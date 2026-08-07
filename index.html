@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f0f1a" />
+    <link rel="apple-touch-icon" href="/icon.svg">
+    <title>Rastreador de Hábitos - Nautilus</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <button id="theme-toggle" class="theme-toggle" title="Cambiar tema" aria-label="Cambiar tema">
+          <span class="theme-icon-light">☀️</span>
+          <span class="theme-icon-dark">🌙</span>
+        </button>
+        <h1>Rastreador de Hábitos</h1>
+        <p>Reto de 21 Días - Nautilus</p>
+      </header>
+
+      <div class="layout">
+        <div class="sidebar">
+          <div class="add-habit-container" id="add-habit-container">
+            <input type="text" id="new-habit-input" placeholder="Añadir hábito..." maxlength="30" />
+            <button id="add-habit-btn">+</button>
+          </div>
+          <div id="habits-legend" class="habits-legend">
+            <!-- Habit list injected here -->
+          </div>
+        </div>
+
+        <div class="svg-container" id="svg-container">
+          <!-- SVG injected here -->
+        </div>
+      </div>
+
+      <!-- Tooltip flotante para el SVG -->
+      <div id="cell-tooltip" class="cell-tooltip"></div>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

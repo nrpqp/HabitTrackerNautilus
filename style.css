@@ -1,0 +1,749 @@
+/* ── Light Theme (default) ────────────────────────────────── */
+:root {
+  --bg-color: #f0ece4;
+  --text-main: #1a1a2e;
+  --text-secondary: #4a4a5a;
+  --text-muted: #6b7280;
+  --border-color: #d1d5db;
+  --card-bg: #ffffff;
+  --legend-bg: #f3f1ed;
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --danger: #ef4444;
+  --empty-cell-fill: #e8e4dc;
+  --empty-cell-stroke: #c5c0b6;
+  --locked-cell-fill: #d5d1c9;
+  --locked-cell-stroke: #b5b0a6;
+  --center-fill: #ffffff;
+  --center-stroke: #c8c4bc;
+  --guide-stroke: #d6d2ca;
+  --day-label-fill: #b8860b;
+  --tooltip-bg: #1a1a2e;
+  --tooltip-color: #ffffff;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08);
+  --color-dot-border: rgba(0,0,0,0.12);
+}
+
+/* ── Dark Theme ──────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-color: #08080f;
+  --text-main: #f0eef8;
+  --text-secondary: #c8c5d8;
+  --text-muted: #908ea5;
+  --border-color: #3e3c58;
+  --card-bg: #141424;
+  --legend-bg: #1e1e35;
+  --primary: #a0a8ff;
+  --primary-hover: #818cf8;
+  --danger: #ff6b6b;
+  --empty-cell-fill: #2c2c4a;
+  --empty-cell-stroke: #504e70;
+  --locked-cell-fill: #1a1a30;
+  --locked-cell-stroke: #33314a;
+  --center-fill: #141424;
+  --center-stroke: #504e70;
+  --guide-stroke: #3e3c58;
+  --day-label-fill: #f0c640;
+  --tooltip-bg: #f0eef8;
+  --tooltip-color: #141424;
+  --shadow-card: 0 2px 6px rgba(0,0,0,0.5), 0 12px 32px rgba(0,0,0,0.6);
+  --color-dot-border: rgba(255,255,255,0.25);
+}
+
+/* ── Global ──────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 30px 16px;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+.container {
+  width: 100%;
+  max-width: 1100px;
+  background: var(--card-bg);
+  border-radius: 24px;
+  padding: 36px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  transition: background-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* ── Theme Toggle ────────────────────────────────────────── */
+.theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--legend-bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: background 0.3s, border-color 0.3s, transform 0.15s;
+  z-index: 10;
+}
+
+.theme-toggle:hover {
+  border-color: var(--primary);
+  transform: scale(1.08);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Show/hide icons based on theme */
+.theme-icon-dark  { display: none; }
+.theme-icon-light { display: inline; }
+
+[data-theme="dark"] .theme-icon-dark  { display: inline; }
+[data-theme="dark"] .theme-icon-light { display: none; }
+
+/* ── Header ──────────────────────────────────────────────── */
+header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-main);
+}
+
+header p {
+  color: var(--text-secondary);
+  font-weight: 300;
+  margin-top: 4px;
+}
+
+/* ── Layout ──────────────────────────────────────────────── */
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+@media (min-width: 768px) {
+  .layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 40px;
+  }
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.sidebar {
+  flex: 1;
+  min-width: 280px;
+}
+
+.add-habit-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  transition: opacity 0.3s ease;
+}
+
+.add-habit-container.hidden {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+#new-habit-input {
+  flex: 1;
+  padding: 11px 18px;
+  border: 2px solid var(--border-color);
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  background: var(--card-bg);
+  color: var(--text-main);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.4s, color 0.4s;
+}
+
+#new-habit-input::placeholder {
+  color: var(--text-muted);
+}
+
+#new-habit-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+
+#add-habit-btn {
+  width: 42px;
+  height: 42px;
+  border: none;
+  background-color: var(--primary);
+  color: white;
+  border-radius: 12px;
+  font-size: 1.4rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#add-habit-btn:hover {
+  background-color: var(--primary-hover);
+}
+#add-habit-btn:active {
+  transform: scale(0.93);
+}
+
+/* ── Legend ───────────────────────────────────────────────── */
+.habits-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  flex-direction: column;
+  background: var(--legend-bg);
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  animation: fadeIn 0.3s ease-out;
+  gap: 6px;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.legend-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.legend-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Color picker wrapper */
+.color-picker-wrapper {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.color-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 2px solid var(--color-dot-border);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.color-dot:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.color-picker-native {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.habit-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-main);
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 2px 4px;
+  transition: background 0.15s;
+}
+
+.habit-name:hover {
+  background: rgba(99,102,241,0.08);
+}
+
+.habit-name-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-main);
+  background: var(--card-bg);
+  border: 2px solid var(--primary);
+  border-radius: 6px;
+  padding: 2px 6px;
+  outline: none;
+}
+
+.legend-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.delete-btn,
+.reset-btn,
+.edit-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.delete-btn:hover {
+  color: var(--danger);
+  background: rgba(239,68,68,0.08);
+}
+
+.reset-btn:hover,
+.edit-btn:hover {
+  color: var(--primary);
+  background: rgba(99,102,241,0.08);
+}
+
+/* Date info row */
+.legend-dates {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.date-info {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.date-info strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.today-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--primary);
+  color: white;
+  padding: 1px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+
+/* ── SVG Container ───────────────────────────────────────── */
+.svg-container {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.svg-container svg {
+  max-width: 580px;
+  width: 100%;
+  height: auto;
+  transition: all 0.4s ease;
+}
+
+/* Cell states */
+.day-cell {
+  transition: opacity 0.15s;
+}
+
+.day-cell.unlocked {
+  cursor: pointer;
+}
+
+.day-cell.unlocked:hover {
+  opacity: 0.7;
+}
+
+.day-cell.locked {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.day-cell.is-today {
+  cursor: pointer;
+}
+
+/* Today pulse animation on SVG */
+@keyframes pulseGlow {
+  0%   { stroke-opacity: 1; }
+  50%  { stroke-opacity: 0.3; }
+  100% { stroke-opacity: 1; }
+}
+
+.today-indicator {
+  fill: none;
+  stroke-width: 2.5;
+  animation: pulseGlow 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── Tooltip ─────────────────────────────────────────────── */
+.cell-tooltip {
+  position: fixed;
+  padding: 6px 12px;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-color);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 100;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.cell-tooltip.visible {
+  opacity: 1;
+}
+
+/* ── Animations ──────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Cross-browser resets & compatibility ─────────────────── */
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button, input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+svg {
+  overflow: visible;
+}
+
+/* ── Responsive: Mobile-first ────────────────────────────── */
+
+/* ▸ Small phones (< 380px) */
+@media (max-width: 379px) {
+  body {
+    padding: 8px;
+  }
+  .container {
+    padding: 14px;
+    border-radius: 16px;
+  }
+  header h1 {
+    font-size: 1.2rem;
+    letter-spacing: 1.5px;
+  }
+  header p {
+    font-size: 0.8rem;
+  }
+  .theme-toggle {
+    top: 8px;
+    right: 8px;
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+  .layout {
+    gap: 20px;
+  }
+  .sidebar {
+    min-width: unset;
+    order: 2;
+  }
+  .svg-container {
+    order: 1;
+  }
+  .svg-container svg {
+    max-width: 280px;
+  }
+  #new-habit-input {
+    padding: 9px 12px;
+    font-size: 0.88rem;
+    border-radius: 10px;
+  }
+  #add-habit-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 1.2rem;
+    border-radius: 10px;
+  }
+  .legend-item {
+    padding: 10px 10px;
+    border-radius: 10px;
+  }
+  .habit-name {
+    font-size: 0.85rem;
+  }
+  .legend-dates {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .date-info {
+    font-size: 0.72rem;
+  }
+  .today-badge {
+    font-size: 0.65rem;
+  }
+  .delete-btn,
+  .reset-btn,
+  .edit-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ▸ Regular phones (380px – 479px) */
+@media (min-width: 380px) and (max-width: 479px) {
+  body {
+    padding: 10px;
+  }
+  .container {
+    padding: 16px;
+    border-radius: 18px;
+  }
+  header h1 {
+    font-size: 1.35rem;
+    letter-spacing: 2px;
+  }
+  header p {
+    font-size: 0.85rem;
+  }
+  .theme-toggle {
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+  .layout {
+    gap: 24px;
+  }
+  .sidebar {
+    min-width: unset;
+    order: 2;
+  }
+  .svg-container {
+    order: 1;
+  }
+  .svg-container svg {
+    max-width: 340px;
+  }
+  #new-habit-input {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+  .legend-item {
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+}
+
+/* ▸ Tablets portrait / large phones (480px – 767px) */
+@media (min-width: 480px) and (max-width: 767px) {
+  body {
+    padding: 16px;
+  }
+  .container {
+    padding: 24px;
+    border-radius: 20px;
+  }
+  header h1 {
+    font-size: 1.6rem;
+  }
+  .theme-toggle {
+    top: 14px;
+    right: 14px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.05rem;
+  }
+  .layout {
+    gap: 28px;
+  }
+  .sidebar {
+    min-width: unset;
+    order: 2;
+  }
+  .svg-container {
+    order: 1;
+  }
+  .svg-container svg {
+    max-width: 420px;
+  }
+}
+
+/* ▸ Tablet landscape / small desktop (768px – 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .svg-container svg {
+    max-width: 460px;
+  }
+  .sidebar {
+    min-width: 260px;
+  }
+}
+
+/* ▸ Desktop (≥ 1024px) — default styles already handle this */
+
+/* ── Touch device adjustments ────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  /* Bigger touch targets */
+  .delete-btn,
+  .reset-btn,
+  .edit-btn {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  #add-habit-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  /* Disable SVG hover effects on touch */
+  .day-cell.unlocked:hover {
+    opacity: 1;
+  }
+  .color-dot:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .habit-name:hover {
+    background: none;
+  }
+  /* Hide tooltip on touch (use active state instead) */
+  .cell-tooltip {
+    display: none;
+  }
+}
+
+/* ── Landscape phone special case ────────────────────────── */
+@media (max-height: 500px) and (orientation: landscape) {
+  body {
+    padding: 10px;
+    align-items: flex-start;
+  }
+  .container {
+    padding: 16px;
+  }
+  .layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .sidebar {
+    order: 1;
+    min-width: 200px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .svg-container {
+    order: 2;
+  }
+  .svg-container svg {
+    max-width: 300px;
+  }
+  header {
+    margin-bottom: 14px;
+  }
+  header h1 {
+    font-size: 1.3rem;
+  }
+}
+
+/* ── Safe area for notched devices ───────────────────────── */
+@supports (padding: env(safe-area-inset-top)) {
+  body {
+    padding-top: max(30px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+}
+
+/* ── Print styles ────────────────────────────────────────── */
+@media print {
+  body {
+    background: white;
+    padding: 0;
+  }
+  .container {
+    box-shadow: none;
+    border-radius: 0;
+    max-width: 100%;
+  }
+  .theme-toggle,
+  .add-habit-container,
+  .legend-actions,
+  .cell-tooltip {
+    display: none !important;
+  }
+}
