@@ -1,3 +1,10 @@
+import { registerSW } from 'virtual:pwa-register';
+
+// Register Service Worker for PWA (works offline)
+if ('serviceWorker' in navigator) {
+  registerSW({ immediate: true });
+}
+
 const MAX_HABITS = 7;
 const TOTAL_DAYS = 21;
 let habits = [];
