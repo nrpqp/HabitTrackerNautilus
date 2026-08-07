@@ -138,6 +138,7 @@ const newHabitInput = document.getElementById('new-habit-input');
 const addHabitContainer = document.getElementById('add-habit-container');
 const tooltip = document.getElementById('cell-tooltip');
 const themeToggle = document.getElementById('theme-toggle');
+const infoToggle = document.getElementById('info-btn');
 
 // ── Theme ───────────────────────────────────────────────────
 
@@ -576,6 +577,19 @@ function setupEventListeners() {
     if (e.key === 'Enter') addHabit();
   });
   themeToggle.addEventListener('click', toggleTheme);
+  infoToggle.addEventListener('click', () => {
+    alert(
+      '📱 Cómo instalar la App:\n\n' +
+      'Para iOS (iPhone/iPad):\n' +
+      '1. Abre este enlace en Safari.\n' +
+      '2. Toca el botón "Compartir" (el cuadrado con la flecha hacia arriba).\n' +
+      '3. Selecciona "Agregar a inicio" o "Añadir a la pantalla de inicio".\n\n' +
+      'Para Android:\n' +
+      '1. Abre este enlace en Chrome.\n' +
+      '2. Toca el menú de 3 puntos (arriba a la derecha).\n' +
+      '3. Selecciona "Instalar aplicación" o "Añadir a pantalla de inicio".'
+    );
+  });
 }
 
 // ── Start ───────────────────────────────────────────────────
