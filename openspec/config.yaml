@@ -1,0 +1,47 @@
+schema: spec-driven
+
+context: |
+  Proyecto: HabitTracker Nautilus
+  Descripción: Aplicación web PWA para rastrear hábitos en un reto de 21 días, visualizados como anillos concéntricos en un SVG radial.
+
+  Stack tecnológico:
+    - Vanilla JS (ES modules, sin frameworks)
+    - Vite 8 + vite-plugin-pwa (build y PWA)
+    - Workbox (service worker, funciona offline)
+    - CSS puro (variables CSS, dark/light mode)
+    - SVG generado dinámicamente por JS
+    - localStorage para persistencia de datos
+
+  Arquitectura:
+    - index.html: entrada principal, estructura HTML
+    - main.js: toda la lógica de la app (hábitos, SVG, localStorage, UI)
+    - style.css: estilos globales con variables CSS para temas
+    - vite.config.js: configuración de Vite y PWA
+    - src/: assets e íconos
+
+  Dominio:
+    - Hasta 7 hábitos simultáneos, cada uno con su anillo en el SVG
+    - 21 días por reto, empezando desde la fecha de creación del hábito
+    - Cada celda del anillo representa un día; se marca completado al hacer click
+    - Los datos se guardan en localStorage con clave "habitos_nautilus"
+    - Soporta tema claro/oscuro con toggle en el header
+
+  Convenciones:
+    - Idioma: descripciones en español, identificadores técnicos en inglés
+    - Commits: Conventional Commits — tipo en inglés, descripción en español
+    - Ramas: v{version}/{tipo}/{descripcion} — ver .claude/skills/01-git-branch/references/
+    - Sin dependencias de runtime; solo devDependencies para el build
+
+rules:
+  proposal:
+    - Incluir siempre sección "No incluido en este cambio" para delimitar el scope
+    - Considerar impacto en iOS/Safari y modo PWA offline
+  tasks:
+    - Cada tarea debe ser implementable de forma independiente
+    - Preferir cambios en main.js sobre añadir nuevos archivos
+
+operations:
+  apply:
+    guidance:
+      - Después de implementar cada tarea, usar /02-git-commit para commitear
+      - Verificar que el SVG sigue renderizando correctamente tras cambios en main.js
