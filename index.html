@@ -21,23 +21,33 @@
         <button id="info-btn" class="info-toggle" title="Cómo instalar" aria-label="Cómo instalar">
           <span>ℹ️</span>
         </button>
+        <button id="add-habit-btn" class="add-toggle" title="Añadir hábito" aria-label="Añadir hábito">+</button>
         <h1>Rastreador de Hábitos</h1>
         <p>Reto de 21 Días - Nautilus</p>
       </header>
 
-      <div class="layout">
-        <div class="sidebar">
-          <div class="add-habit-container" id="add-habit-container">
-            <input type="text" id="new-habit-input" placeholder="Añadir hábito..." maxlength="30" />
-            <button id="add-habit-btn">+</button>
-          </div>
-          <div id="habits-legend" class="habits-legend">
-            <!-- Habit list injected here -->
-          </div>
-        </div>
+      <div class="svg-container" id="svg-container">
+        <!-- SVG injected here -->
+      </div>
 
-        <div class="svg-container" id="svg-container">
-          <!-- SVG injected here -->
+      <!-- Panel contextual de hábito (bottom sheet / popover) -->
+      <div id="habit-sheet" class="habit-sheet hidden">
+        <div class="habit-sheet-backdrop"></div>
+        <div class="habit-sheet-panel">
+          <div class="habit-sheet-handle"></div>
+          <input
+            type="text"
+            id="sheet-name-input"
+            class="sheet-name-input"
+            maxlength="15"
+            placeholder="Nombre del hábito"
+          />
+          <div id="sheet-swatches" class="sheet-swatches"></div>
+          <div id="sheet-progress" class="sheet-progress"></div>
+          <div id="sheet-actions" class="sheet-actions">
+            <button id="sheet-reset-btn" class="sheet-action-btn sheet-reset">↺ Reiniciar</button>
+            <button id="sheet-delete-btn" class="sheet-action-btn sheet-danger">× Eliminar</button>
+          </div>
         </div>
       </div>
 

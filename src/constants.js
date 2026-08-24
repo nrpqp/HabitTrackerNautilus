@@ -1,5 +1,6 @@
 export const MAX_HABITS = 7;
 export const TOTAL_DAYS = 21;
+export const MAX_NAME_LENGTH = 15;
 
 export const startAngle = -90;
 export const sweepAngle = 300;

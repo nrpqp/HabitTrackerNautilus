@@ -6,10 +6,11 @@
   --text-muted: #6b7280;
   --border-color: #d1d5db;
   --card-bg: #ffffff;
-  --legend-bg: #f3f1ed;
+  --panel-bg: #ffffff;
   --primary: #6366f1;
   --primary-hover: #4f46e5;
   --danger: #ef4444;
+  --danger-hover: #dc2626;
   --empty-cell-fill: #e8e4dc;
   --empty-cell-stroke: #c5c0b6;
   --locked-cell-fill: #d5d1c9;
@@ -21,7 +22,8 @@
   --tooltip-bg: #1a1a2e;
   --tooltip-color: #ffffff;
   --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08);
-  --color-dot-border: rgba(0,0,0,0.12);
+  --shadow-panel: 0 -4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
+  --handle-color: #d1d5db;
 }
 
 /* ── Dark Theme ──────────────────────────────────────────── */
@@ -32,10 +34,11 @@
   --text-muted: #908ea5;
   --border-color: #3e3c58;
   --card-bg: #141424;
-  --legend-bg: #1e1e35;
+  --panel-bg: #1e1e35;
   --primary: #a0a8ff;
   --primary-hover: #818cf8;
   --danger: #ff6b6b;
+  --danger-hover: #ef4444;
   --empty-cell-fill: #2c2c4a;
   --empty-cell-stroke: #504e70;
   --locked-cell-fill: #1a1a30;
@@ -47,7 +50,8 @@
   --tooltip-bg: #f0eef8;
   --tooltip-color: #141424;
   --shadow-card: 0 2px 6px rgba(0,0,0,0.5), 0 12px 32px rgba(0,0,0,0.6);
-  --color-dot-border: rgba(255,255,255,0.25);
+  --shadow-panel: 0 -4px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+  --handle-color: #504e70;
 }
 
 /* ── Global ──────────────────────────────────────────────── */
@@ -72,7 +76,7 @@ body {
 
 .container {
   width: 100%;
-  max-width: 1100px;
+  max-width: 900px;
   height: 100%;
   max-height: 850px;
   background: var(--card-bg);
@@ -84,65 +88,6 @@ body {
   flex-direction: column;
   transition: background-color 0.4s ease, box-shadow 0.4s ease;
 }
-
-/* ── Theme Toggle ────────────────────────────────────────── */
-.theme-toggle {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 44px;
-  height: 44px;
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  background: var(--legend-bg);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  transition: background 0.3s, border-color 0.3s, transform 0.15s;
-  z-index: 10;
-}
-
-.theme-toggle:hover {
-  border-color: var(--primary);
-  transform: scale(1.08);
-}
-
-.theme-toggle:active,
-.info-toggle:active {
-  transform: scale(0.95);
-}
-
-.info-toggle {
-  position: absolute;
-  top: 20px;
-  right: 74px; /* Placed next to theme toggle */
-  width: 44px;
-  height: 44px;
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  background: var(--legend-bg);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  transition: background 0.3s, border-color 0.3s, transform 0.15s;
-  z-index: 10;
-}
-
-.info-toggle:hover {
-  border-color: var(--primary);
-  transform: scale(1.08);
-}
-
-/* Show/hide icons based on theme */
-.theme-icon-dark  { display: none; }
-.theme-icon-light { display: inline; }
-
-[data-theme="dark"] .theme-icon-dark  { display: inline; }
-[data-theme="dark"] .theme-icon-light { display: none; }
 
 /* ── Header ──────────────────────────────────────────────── */
 header {
@@ -165,281 +110,59 @@ header p {
   margin-top: 4px;
 }
 
-/* ── Layout ──────────────────────────────────────────────── */
-.layout {
+/* ── Header buttons ──────────────────────────────────────── */
+.theme-toggle,
+.info-toggle,
+.add-toggle {
+  position: absolute;
+  top: 20px;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--panel-bg);
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
-  gap: 24px;
-  flex: 1;
-  min-height: 0;
-  width: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: background 0.3s, border-color 0.3s, transform 0.15s;
+  z-index: 10;
 }
 
-@media (min-width: 768px) {
-  .layout {
-    flex-direction: row;
-    align-items: stretch; /* Changed from flex-start to stretch so svg-container fills height and shrinks */
-    gap: 40px;
-    overflow: hidden;
-  }
+.theme-toggle { right: 20px; }
+.info-toggle  { right: 74px; }
+.add-toggle   { right: 128px; font-size: 1.5rem; font-weight: 300; color: var(--text-main); }
+
+.theme-toggle:hover,
+.info-toggle:hover,
+.add-toggle:hover {
+  border-color: var(--primary);
+  transform: scale(1.08);
 }
 
-/* ── Sidebar ─────────────────────────────────────────────── */
-.sidebar {
-  flex: 1;
-  min-width: 280px;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+.theme-toggle:active,
+.info-toggle:active,
+.add-toggle:active {
+  transform: scale(0.95);
 }
 
-.habits-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-y: auto;
-  padding-right: 8px;
-  padding-bottom: 20px;
-}
-/* Custom scrollbar for legend */
-.habits-legend::-webkit-scrollbar {
-  width: 6px;
-}
-.habits-legend::-webkit-scrollbar-track {
-  background: transparent;
-}
-.habits-legend::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
-}
-
-
-.add-habit-container {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  transition: opacity 0.3s ease;
-}
-
-.add-habit-container.hidden {
-  opacity: 0.3;
+.add-toggle:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
   pointer-events: none;
 }
 
-#new-habit-input {
-  flex: 1;
-  padding: 11px 18px;
-  border: 2px solid var(--border-color);
-  border-radius: 14px;
-  font-family: inherit;
-  font-size: 0.95rem;
-  outline: none;
-  background: var(--card-bg);
-  color: var(--text-main);
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.4s, color 0.4s;
-}
+/* Show/hide icons based on theme */
+.theme-icon-dark  { display: none; }
+.theme-icon-light { display: inline; }
 
-#new-habit-input::placeholder {
-  color: var(--text-muted);
-}
-
-#new-habit-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
-}
-
-#add-habit-btn {
-  width: 42px;
-  height: 42px;
-  border: none;
-  background-color: var(--primary);
-  color: white;
-  border-radius: 12px;
-  font-size: 1.4rem;
-  font-weight: 300;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#add-habit-btn:hover {
-  background-color: var(--primary-hover);
-}
-#add-habit-btn:active {
-  transform: scale(0.93);
-}
-
-/* ── Legend ───────────────────────────────────────────────── */
-/* legend container replaced above */
-
-.legend-item {
-  display: flex;
-  flex-direction: column;
-  background: var(--legend-bg);
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid var(--border-color);
-  animation: fadeIn 0.3s ease-out;
-  gap: 6px;
-  transition: background 0.4s, border-color 0.4s;
-}
-
-.legend-top-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.legend-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  overflow: hidden;
-  flex: 1;
-  min-width: 0;
-}
-
-/* Color picker wrapper */
-.color-picker-wrapper {
-  position: relative;
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-}
-
-.color-dot {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  flex-shrink: 0;
-  cursor: pointer;
-  border: 2px solid var(--color-dot-border);
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-
-.color-dot:hover {
-  transform: scale(1.15);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-.color-picker-native {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  border: none;
-  padding: 0;
-}
-
-.habit-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--text-main);
-  cursor: pointer;
-  border-radius: 6px;
-  padding: 2px 4px;
-  transition: background 0.15s;
-}
-
-.habit-name:hover {
-  background: rgba(99,102,241,0.08);
-}
-
-.habit-name-input {
-  width: 100%;
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--text-main);
-  background: var(--card-bg);
-  border: 2px solid var(--primary);
-  border-radius: 6px;
-  padding: 2px 6px;
-  outline: none;
-}
-
-.legend-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.delete-btn,
-.reset-btn,
-.edit-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  transition: color 0.2s, background 0.2s;
-}
-
-.delete-btn:hover {
-  color: var(--danger);
-  background: rgba(239,68,68,0.08);
-}
-
-.reset-btn:hover,
-.edit-btn:hover {
-  color: var(--primary);
-  background: rgba(99,102,241,0.08);
-}
-
-/* Date info row */
-.legend-dates {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding-top: 4px;
-  border-top: 1px dashed var(--border-color);
-}
-
-.date-info {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.date-info strong {
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.today-badge {
-  display: inline-block;
-  font-size: 0.7rem;
-  font-weight: 600;
-  background: var(--primary);
-  color: white;
-  padding: 1px 7px;
-  border-radius: 6px;
-  letter-spacing: 0.3px;
-}
+[data-theme="dark"] .theme-icon-dark  { display: inline; }
+[data-theme="dark"] .theme-icon-light { display: none; }
 
 /* ── SVG Container ───────────────────────────────────────── */
 .svg-container {
-  flex: 2;
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -454,6 +177,11 @@ header p {
   width: 100%;
   height: 100%;
   transition: all 0.4s ease;
+}
+
+/* Label hit areas show pointer cursor */
+.habit-label-hit {
+  cursor: pointer;
 }
 
 /* Cell states */
@@ -490,6 +218,212 @@ header p {
   stroke-width: 2.5;
   animation: pulseGlow 2s ease-in-out infinite;
   pointer-events: none;
+}
+
+/* ── Habit Sheet (bottom sheet / popover) ────────────────── */
+.habit-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.habit-sheet.hidden {
+  display: none;
+}
+
+.habit-sheet.open {
+  pointer-events: auto;
+}
+
+.habit-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.habit-sheet.open .habit-sheet-backdrop {
+  opacity: 1;
+}
+
+.habit-sheet-panel {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--panel-bg);
+  border-radius: 20px 20px 0 0;
+  padding: 12px 20px 32px;
+  box-shadow: var(--shadow-panel);
+  transform: translateY(100%);
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.habit-sheet.open .habit-sheet-panel {
+  transform: translateY(0);
+}
+
+.habit-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--handle-color);
+  border-radius: 2px;
+  margin: 0 auto 4px;
+  flex-shrink: 0;
+}
+
+/* ── Sheet name input ───────────────────────────────────── */
+.sheet-name-input {
+  width: 100%;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sheet-name-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+
+/* ── Sheet swatches ─────────────────────────────────────── */
+.sheet-swatches {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.swatch:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.swatch.active {
+  border-color: var(--text-main);
+  box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--text-main);
+}
+
+/* ── Sheet progress ─────────────────────────────────────── */
+.sheet-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-color);
+  border-radius: 10px;
+  gap: 12px;
+}
+
+.progress-dates {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.progress-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--primary);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.progress-badge.done {
+  background: #2ecc71;
+}
+
+/* ── Sheet actions ──────────────────────────────────────── */
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.sheet-action-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.sheet-action-btn:active {
+  transform: scale(0.97);
+}
+
+.sheet-reset {
+  background: rgba(99,102,241,0.1);
+  color: var(--primary);
+}
+
+.sheet-reset:hover {
+  background: rgba(99,102,241,0.18);
+}
+
+.sheet-danger {
+  background: rgba(239,68,68,0.1);
+  color: var(--danger);
+}
+
+.sheet-danger:hover {
+  background: rgba(239,68,68,0.18);
+}
+
+/* ── Desktop: popover instead of bottom sheet ────────────── */
+@media (min-width: 769px) {
+  .habit-sheet {
+    align-items: flex-start;
+  }
+
+  .habit-sheet-panel {
+    position: fixed;
+    width: 320px;
+    max-width: 320px;
+    margin: 0;
+    border-radius: 16px;
+    padding: 16px 20px 20px;
+    transform: scale(0.95);
+    opacity: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    bottom: auto;
+  }
+
+  .habit-sheet.open .habit-sheet-panel {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  .habit-sheet-handle {
+    display: none;
+  }
 }
 
 /* ── Tooltip ─────────────────────────────────────────────── */
@@ -544,7 +478,7 @@ svg {
   overflow: visible;
 }
 
-/* ── Responsive: Mobile-first ────────────────────────────── */
+/* ── Responsive ──────────────────────────────────────────── */
 
 /* ▸ Small phones (< 380px) */
 @media (max-width: 379px) {
@@ -565,71 +499,16 @@ svg {
   header p {
     font-size: 0.8rem;
   }
-  .theme-toggle {
+  .theme-toggle, .info-toggle, .add-toggle {
     top: 8px;
-    right: 8px;
     width: 34px;
     height: 34px;
     font-size: 0.9rem;
     border-radius: 8px;
   }
-  .info-toggle {
-    top: 8px;
-    right: 50px;
-    width: 34px;
-    height: 34px;
-    font-size: 0.9rem;
-    border-radius: 8px;
-  }
-  .layout {
-    gap: 20px;
-  }
-  .sidebar {
-    min-width: unset;
-    order: 2;
-  }
-  .svg-container {
-    order: 1;
-  }
-  .svg-container svg {
-    max-width: 280px;
-  }
-  #new-habit-input {
-    padding: 9px 12px;
-    font-size: 0.88rem;
-    border-radius: 10px;
-  }
-  #add-habit-btn {
-    width: 38px;
-    height: 38px;
-    font-size: 1.2rem;
-    border-radius: 10px;
-  }
-  .legend-item {
-    padding: 10px 10px;
-    border-radius: 10px;
-  }
-  .habit-name {
-    font-size: 0.85rem;
-  }
-  .legend-dates {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-  .date-info {
-    font-size: 0.72rem;
-  }
-  .today-badge {
-    font-size: 0.65rem;
-  }
-  .delete-btn,
-  .reset-btn,
-  .edit-btn {
-    width: 26px;
-    height: 26px;
-    font-size: 0.9rem;
-  }
+  .theme-toggle { right: 8px; }
+  .info-toggle  { right: 50px; }
+  .add-toggle   { right: 92px; font-size: 1.2rem; }
 }
 
 /* ▸ Regular phones (380px – 479px) */
@@ -651,43 +530,16 @@ svg {
   header p {
     font-size: 0.85rem;
   }
-  .theme-toggle {
+  .theme-toggle, .info-toggle, .add-toggle {
     top: 10px;
-    right: 10px;
     width: 36px;
     height: 36px;
     font-size: 0.95rem;
     border-radius: 10px;
   }
-  .info-toggle {
-    top: 10px;
-    right: 54px;
-    width: 36px;
-    height: 36px;
-    font-size: 0.95rem;
-    border-radius: 10px;
-  }
-  .layout {
-    gap: 24px;
-  }
-  .sidebar {
-    min-width: unset;
-    order: 2;
-  }
-  .svg-container {
-    order: 1;
-  }
-  .svg-container svg {
-    max-width: 340px;
-  }
-  #new-habit-input {
-    padding: 10px 14px;
-    font-size: 0.9rem;
-  }
-  .legend-item {
-    padding: 10px 12px;
-    border-radius: 12px;
-  }
+  .theme-toggle { right: 10px; }
+  .info-toggle  { right: 54px; }
+  .add-toggle   { right: 98px; font-size: 1.3rem; }
 }
 
 /* ▸ Tablets portrait / large phones (480px – 767px) */
@@ -705,72 +557,24 @@ svg {
   header h1 {
     font-size: 1.6rem;
   }
-  .theme-toggle {
+  .theme-toggle, .info-toggle, .add-toggle {
     top: 14px;
-    right: 14px;
     width: 40px;
     height: 40px;
     font-size: 1.05rem;
   }
-  .info-toggle {
-    top: 14px;
-    right: 62px;
-    width: 40px;
-    height: 40px;
-    font-size: 1.05rem;
-  }
-  .layout {
-    gap: 28px;
-  }
-  .sidebar {
-    min-width: unset;
-    order: 2;
-  }
-  .svg-container {
-    order: 1;
-  }
-  .svg-container svg {
-    max-width: 420px;
-  }
+  .theme-toggle { right: 14px; }
+  .info-toggle  { right: 62px; }
+  .add-toggle   { right: 110px; font-size: 1.4rem; }
 }
-
-/* ▸ Tablet landscape / small desktop (768px – 1023px) */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .svg-container svg {
-    max-width: 460px;
-  }
-  .sidebar {
-    min-width: 260px;
-  }
-}
-
-/* ▸ Desktop (≥ 1024px) — default styles already handle this */
 
 /* ── Touch device adjustments ────────────────────────────── */
 @media (hover: none) and (pointer: coarse) {
-  /* Bigger touch targets */
-  .delete-btn,
-  .reset-btn,
-  .edit-btn {
-    min-width: 36px;
-    min-height: 36px;
-  }
-  #add-habit-btn {
-    min-width: 44px;
-    min-height: 44px;
-  }
   /* Disable SVG hover effects on touch */
   .day-cell.unlocked:hover {
     opacity: 1;
   }
-  .color-dot:hover {
-    transform: none;
-    box-shadow: none;
-  }
-  .habit-name:hover {
-    background: none;
-  }
-  /* Hide tooltip on touch (use active state instead) */
+  /* Hide tooltip on touch */
   .cell-tooltip {
     display: none;
   }
@@ -784,23 +588,6 @@ svg {
   }
   .container {
     padding: 16px;
-  }
-  .layout {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 20px;
-  }
-  .sidebar {
-    order: 1;
-    min-width: 200px;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-  .svg-container {
-    order: 2;
-  }
-  .svg-container svg {
-    max-width: 300px;
   }
   header {
     margin-bottom: 14px;
@@ -818,6 +605,9 @@ svg {
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
   }
+  .habit-sheet-panel {
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
+  }
 }
 
 /* ── Print styles ────────────────────────────────────────── */
@@ -832,8 +622,9 @@ svg {
     max-width: 100%;
   }
   .theme-toggle,
-  .add-habit-container,
-  .legend-actions,
+  .info-toggle,
+  .add-toggle,
+  .habit-sheet,
   .cell-tooltip {
     display: none !important;
   }
