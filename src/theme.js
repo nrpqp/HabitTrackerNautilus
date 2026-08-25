@@ -6,6 +6,8 @@ export function getThemeColors() {
     emptyCellStroke: v('--empty-cell-stroke'),
     lockedFill:      v('--locked-cell-fill'),
     lockedStroke:    v('--locked-cell-stroke'),
+    oldCellFill:     v('--old-cell-fill'),
+    oldCellStroke:   v('--old-cell-stroke'),
     centerFill:      v('--center-fill'),
     centerStroke:    v('--center-stroke'),
     guideStroke:     v('--guide-stroke'),

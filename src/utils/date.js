@@ -9,6 +9,12 @@ export function todayISO() {
   return toLocalISO(new Date());
 }
 
+export function yesterdayISO() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return toLocalISO(d);
+}
+
 export function addDays(isoStr, n) {
   const d = new Date(isoStr + 'T00:00:00');
   d.setDate(d.getDate() + n);

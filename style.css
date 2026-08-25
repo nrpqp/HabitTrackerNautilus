@@ -15,6 +15,8 @@
   --empty-cell-stroke: #c5c0b6;
   --locked-cell-fill: #d5d1c9;
   --locked-cell-stroke: #b5b0a6;
+  --old-cell-fill: #c4bfb4;
+  --old-cell-stroke: #9e9890;
   --center-fill: #ffffff;
   --center-stroke: #c8c4bc;
   --guide-stroke: #d6d2ca;
@@ -43,6 +45,8 @@
   --empty-cell-stroke: #504e70;
   --locked-cell-fill: #1a1a30;
   --locked-cell-stroke: #33314a;
+  --old-cell-fill: #242238;
+  --old-cell-stroke: #3d3b58;
   --center-fill: #141424;
   --center-stroke: #504e70;
   --guide-stroke: #3e3c58;
