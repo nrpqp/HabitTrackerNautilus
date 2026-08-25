@@ -1,5 +1,5 @@
 import { TOTAL_DAYS, DEFAULT_COLORS } from './constants.js';
-import { todayISO, addDays } from './utils/date.js';
+import { todayISO, yesterdayISO, addDays } from './utils/date.js';
 
 export let habits = [];
 
@@ -32,7 +32,9 @@ export function saveHabits() {
 export function cellState(habit, dayIndex) {
   const cellDate = addDays(habit.startDate, dayIndex);
   const today = todayISO();
+  const yesterday = yesterdayISO();
   if (cellDate === today) return 'today';
-  if (cellDate < today) return 'unlocked';
+  if (cellDate === yesterday) return 'yesterday';
+  if (cellDate < yesterday) return 'old';
   return 'locked';
 }

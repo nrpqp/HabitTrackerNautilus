@@ -77,6 +77,16 @@ export function renderSVG(onCellClick, onLabelClick) {
         fill = tc.lockedFill;
         stroke = tc.lockedStroke;
         strokeW = 0.6;
+      } else if (state === 'old') {
+        if (isCompleted) {
+          fill = `url(#grad-${habit.id})`;
+          stroke = darkenColor(habit.color, 0.2);
+          strokeW = 1.5;
+        } else {
+          fill = tc.oldCellFill;
+          stroke = tc.oldCellStroke;
+          strokeW = 0.6;
+        }
       } else if (isCompleted) {
         fill = `url(#grad-${habit.id})`;
         stroke = darkenColor(habit.color, 0.2);
@@ -88,7 +98,7 @@ export function renderSVG(onCellClick, onLabelClick) {
       }
 
       const cssClass =
-        state === 'locked'
+        state === 'locked' || state === 'old'
           ? 'day-cell locked'
           : state === 'today'
           ? 'day-cell unlocked is-today'
@@ -214,7 +224,9 @@ export function renderSVG(onCellClick, onLabelClick) {
       const isCompleted = habit.progress[dayIndex];
       let label = `Día ${dayIndex + 1} · ${formatDateFull(date)}`;
       if (state === 'locked') label += ' · 🔒 Bloqueado';
+      else if (state === 'old' && !isCompleted) label += ' · ❌ Perdido';
       else if (state === 'today' && !isCompleted) label += ' · ⭐ ¡Hoy!';
+      else if (state === 'yesterday' && !isCompleted) label += ' · ⏰ Ayer';
       else if (isCompleted) label += ' · ✅';
 
       tooltip.textContent = label;
