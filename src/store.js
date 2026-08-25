@@ -10,6 +10,7 @@ export function loadHabits() {
     habits.forEach((h, i) => {
       if (!h.color) h.color = DEFAULT_COLORS[i % DEFAULT_COLORS.length];
       if (!h.startDate) h.startDate = todayISO();
+      h.notificationTime = h.notificationTime ?? null;
     });
   } else {
     habits = [
@@ -19,6 +20,7 @@ export function loadHabits() {
         color: DEFAULT_COLORS[0],
         startDate: todayISO(),
         progress: new Array(TOTAL_DAYS).fill(false),
+        notificationTime: null,
       },
     ];
   }

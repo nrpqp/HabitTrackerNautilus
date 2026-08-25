@@ -14,7 +14,7 @@ if ('serviceWorker' in navigator) {
 
 function renderSVGOnly() {
   renderSVG(
-    renderSVGOnly,
+    () => { renderSVGOnly(); scheduleNotifications(); },
     (habitId, event) => openHabitSheet(habitId, 'edit', event)
   );
 }
@@ -87,6 +87,22 @@ function openHabitSheet(habitId, mode = 'edit', event = null) {
       aria-label="Color ${color}"
     ></button>
   `).join('');
+
+  // Populate notification section
+  const notifSection = document.getElementById('sheet-notification');
+  const notifToggle = document.getElementById('sheet-notif-toggle');
+  const notifTimeRow = document.getElementById('sheet-notif-time-row');
+  const notifTimeInput = document.getElementById('sheet-notif-time');
+  const notifDenied = document.getElementById('sheet-notif-denied');
+  if (mode === 'edit' && habit) {
+    notifToggle.checked = !!habit.notificationTime;
+    notifTimeInput.value = habit.notificationTime || '08:00';
+    notifTimeRow.classList.toggle('notif-hidden', !habit.notificationTime);
+    notifDenied.classList.add('notif-hidden');
+    notifSection.style.display = '';
+  } else {
+    notifSection.style.display = 'none';
+  }
 
   // Populate progress
   if (mode === 'edit' && habit) {
@@ -171,6 +187,35 @@ function commitSheetName() {
     render();
   }
   sheetOriginalName = newName;
+}
+
+function saveNotifTime() {
+  const habit = habits.find((h) => h.id === sheetCurrentHabitId);
+  const timeInput = document.getElementById('sheet-notif-time');
+  if (habit && timeInput.value) {
+    habit.notificationTime = timeInput.value;
+    saveHabits();
+    scheduleNotifications();
+  }
+}
+
+function scheduleNotifications() {
+  if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  navigator.serviceWorker.ready.then((reg) => {
+    if (!reg.active) return;
+    const today = todayISO();
+    const habitsToSchedule = habits
+      .filter((h) => h.notificationTime)
+      .map((h) => {
+        const todayIndex = diffDays(h.startDate, today);
+        const isTodayDone = todayIndex >= 0 && todayIndex < h.progress.length
+          ? h.progress[todayIndex]
+          : true;
+        return { habitId: h.id, habitName: h.name, notificationTime: h.notificationTime, isTodayDone };
+      });
+    reg.active.postMessage({ type: 'SCHEDULE_NOTIFICATIONS', habits: habitsToSchedule });
+  });
 }
 
 function adjustSheetForKeyboard() {
@@ -301,6 +346,38 @@ function setupEventListeners() {
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', adjustSheetForKeyboard);
   }
+
+  // Notification toggle
+  document.getElementById('sheet-notif-toggle').addEventListener('change', async (e) => {
+    const notifDenied = document.getElementById('sheet-notif-denied');
+    const notifTimeRow = document.getElementById('sheet-notif-time-row');
+    notifDenied.classList.add('notif-hidden');
+
+    if (e.target.checked) {
+      if ('Notification' in window && Notification.permission !== 'granted') {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          e.target.checked = false;
+          notifDenied.classList.remove('notif-hidden');
+          return;
+        }
+      }
+      notifTimeRow.classList.remove('notif-hidden');
+      saveNotifTime();
+    } else {
+      notifTimeRow.classList.add('notif-hidden');
+      const habit = habits.find((h) => h.id === sheetCurrentHabitId);
+      if (habit) {
+        habit.notificationTime = null;
+        saveHabits();
+        scheduleNotifications();
+      }
+    }
+  });
+
+  document.getElementById('sheet-notif-time').addEventListener('change', () => {
+    saveNotifTime();
+  });
 }
 
 // ── Init ─────────────────────────────────────────────────────
@@ -310,6 +387,7 @@ function init() {
   loadHabits();
   setupEventListeners();
   render();
+  scheduleNotifications();
 }
 
 init();
