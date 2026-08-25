@@ -48,7 +48,7 @@ export function renderSVG(onCellClick, onLabelClick) {
       </linearGradient>
     `;
   });
-  defsHTML += '</defs>';
+  // label arc paths are added in the main loop below; defsHTML is closed after it
 
   let pathsHTML = '';
   let todayIndicators = '';
@@ -58,6 +58,12 @@ export function renderSVG(onCellClick, onLabelClick) {
     const rOut = innerRadius + (r + 1) * cellThickness + r * gapBetweenRings;
     const rIn = rOut - cellThickness;
     const rMid = rIn + cellThickness / 2;
+
+    // Arc path for the curved label in the gap (210°→270°, clockwise, sweep=1)
+    const arcLabelR = rIn + 2;
+    const arcStart = polarToCartesian(dynCx, dynCy, arcLabelR, 210);
+    const arcEnd = polarToCartesian(dynCx, dynCy, arcLabelR, 270);
+    defsHTML += `<path id="label-arc-${habit.id}" d="M ${arcStart.x} ${arcStart.y} A ${arcLabelR} ${arcLabelR} 0 0 1 ${arcEnd.x} ${arcEnd.y}" fill="none" />`;
 
     dayAngles.forEach(({ a0, a1 }, d) => {
       const state = cellState(habit, d);
@@ -113,40 +119,36 @@ export function renderSVG(onCellClick, onLabelClick) {
       }
     });
 
-    // Label in the gap: text anchored at the inner ring edge along the bisector
-    // Rotation rotAngle makes text baseline run outward from center toward upper-left
-    const rotAngle = GAP_BISECTOR - 90; // 150° — readable from inner-to-outer direction
-    const anchorPos = polarToCartesian(dynCx, dynCy, rIn + 2, GAP_BISECTOR);
-
+    // Label in the gap: curved text following the arc of each ring
+    const anchorPos = polarToCartesian(dynCx, dynCy, arcLabelR, GAP_BISECTOR);
     const hitW = Math.max(44, Math.ceil(habit.name.length * labelFontSize * 0.65) + 8);
     const hitH = Math.max(44, cellThickness + 4);
+    // Tangent direction for CW arc at GAP_BISECTOR: GAP_BISECTOR + 90
+    const hitRotAngle = GAP_BISECTOR + 90;
 
     labelsHTML += `
       <text
-        x="${anchorPos.x}"
-        y="${anchorPos.y}"
         font-size="${labelFontSize}"
         font-weight="600"
         font-family="Outfit"
-        text-anchor="start"
-        dominant-baseline="middle"
         fill="${habit.color}"
-        transform="rotate(${rotAngle}, ${anchorPos.x}, ${anchorPos.y})"
         pointer-events="none"
-      >${habit.name}</text>
+      ><textPath href="#label-arc-${habit.id}" startOffset="50%" text-anchor="middle">${habit.name}</textPath></text>
       <rect
         class="habit-label-hit"
-        x="${anchorPos.x}"
+        x="${anchorPos.x - hitW / 2}"
         y="${anchorPos.y - hitH / 2}"
         width="${hitW}"
         height="${hitH}"
         fill="transparent"
         data-habit-id="${habit.id}"
-        transform="rotate(${rotAngle}, ${anchorPos.x}, ${anchorPos.y})"
+        transform="rotate(${hitRotAngle}, ${anchorPos.x}, ${anchorPos.y})"
         style="cursor: pointer;"
       />
     `;
   });
+
+  defsHTML += '</defs>';
 
   let textHTML = '';
   const labelR = dynOuter + 16;
