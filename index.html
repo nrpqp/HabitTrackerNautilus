@@ -44,6 +44,17 @@
           />
           <div id="sheet-swatches" class="sheet-swatches"></div>
           <div id="sheet-progress" class="sheet-progress"></div>
+          <div id="sheet-notification" class="sheet-notification" style="display:none">
+            <label class="notif-toggle-row">
+              <span class="notif-label">⏰ Recordatorio diario</span>
+              <input type="checkbox" id="sheet-notif-toggle" class="notif-toggle" />
+            </label>
+            <div id="sheet-notif-time-row" class="notif-time-row notif-hidden">
+              <input type="time" id="sheet-notif-time" class="notif-time-input" value="08:00" />
+              <p class="notif-limit-note">Funciona si la app fue abierta ese día. En iOS la entrega en background es limitada.</p>
+            </div>
+            <p id="sheet-notif-denied" class="notif-denied notif-hidden">🔕 Notificaciones bloqueadas. Habilítalas en la configuración de tu navegador.</p>
+          </div>
           <div id="sheet-actions" class="sheet-actions">
             <button id="sheet-reset-btn" class="sheet-action-btn sheet-reset">↺ Reiniciar</button>
             <button id="sheet-delete-btn" class="sheet-action-btn sheet-danger">× Eliminar</button>
