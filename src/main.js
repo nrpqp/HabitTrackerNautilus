@@ -15,22 +15,22 @@ if ('serviceWorker' in navigator) {
 let particles = [];
 let particleRafId = null;
 let pCtx = null;
+let pCanvas = null;
 
 function initParticleCanvas() {
-  const canvas = document.getElementById('effect-overlay');
-  if (!canvas) return;
-  pCtx = canvas.getContext('2d');
+  pCanvas = document.getElementById('effect-overlay');
+  if (!pCanvas) return;
+  pCtx = pCanvas.getContext('2d');
   resizeParticleCanvas();
   window.addEventListener('resize', resizeParticleCanvas);
 }
 
 function resizeParticleCanvas() {
-  const canvas = document.getElementById('effect-overlay');
-  if (!canvas) return;
+  if (!pCanvas) return;
   const container = document.getElementById('svg-container');
   const rect = container.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
+  pCanvas.width = rect.width;
+  pCanvas.height = rect.height;
 }
 
 function spawnParticles(x, y, elementId, isMilestone) {
@@ -67,9 +67,8 @@ function spawnParticles(x, y, elementId, isMilestone) {
 }
 
 function animParticles() {
-  if (!pCtx) return;
-  const canvas = document.getElementById('effect-overlay');
-  pCtx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!pCtx || !pCanvas) return;
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
 
   particles = particles.filter((p) => p.life < p.maxLife);
 
@@ -95,7 +94,7 @@ function animParticles() {
     particleRafId = requestAnimationFrame(animParticles);
   } else {
     particleRafId = null;
-    pCtx.clearRect(0, 0, canvas.width, canvas.height);
+    if (pCanvas) pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
   }
 }
 
@@ -177,6 +176,16 @@ function renderSVGOnly() {
       }
       renderSVGOnly();
       scheduleNotifications();
+      // Cell-pop: add flash class to the toggled cell after re-render
+      if (habitId !== undefined && dayIndex !== undefined) {
+        const cell = document.querySelector(
+          `[data-habit-id="${habitId}"][data-day="${dayIndex}"]`
+        );
+        if (cell) {
+          cell.classList.add('cell-pop');
+          cell.addEventListener('animationend', () => cell.classList.remove('cell-pop'), { once: true });
+        }
+      }
     },
     (habitId, event) => openHabitSheet(habitId, 'edit', event)
   );
@@ -263,17 +272,26 @@ function openHabitSheet(habitId, mode = 'edit', event = null) {
   nameInput.value = sheetOriginalName;
   nameInput.maxLength = MAX_NAME_LENGTH;
 
-  // Populate element selector
-  swatchesEl.innerHTML = ELEMENTS.map((el) => `
+  // Populate element selector — disable elements already used by other habits
+  const usedElements = habits
+    .filter((h) => !(habit && h.id === habit.id))
+    .map((h) => h.element);
+  swatchesEl.innerHTML = ELEMENTS.map((el) => {
+    const taken = usedElements.includes(el.id);
+    const active = habit && habit.element === el.id;
+    const shouldDisable = taken && !active;
+    return `
     <button
-      class="element-btn${habit && habit.element === el.id ? ' active' : ''}"
+      class="element-btn${active ? ' active' : ''}${shouldDisable ? ' taken' : ''}"
       data-element="${el.id}"
       aria-label="${el.name}"
+      ${shouldDisable ? 'disabled' : ''}
+      title="${shouldDisable ? 'Ya asignado a otro hábito' : el.name}"
     >
       <span class="element-icon">${el.icon}</span>
       <span class="element-name">${el.name}</span>
-    </button>
-  `).join('');
+    </button>`;
+  }).join('');
 
   // Populate notification section
   const notifSection = document.getElementById('sheet-notification');

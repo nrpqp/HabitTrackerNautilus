@@ -251,6 +251,22 @@ header p {
   .phase-1, .phase-2, .phase-3 { animation: none; }
 }
 
+@keyframes cell-pop {
+  0%   { filter: brightness(1);   opacity: 1; }
+  35%  { filter: brightness(1.7); opacity: 0.85; }
+  100% { filter: brightness(1);   opacity: 1; }
+}
+
+.cell-pop {
+  animation: cell-pop 0.32s ease-out;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell-pop { animation: none; }
+}
+
 /* ── Habit Sheet (bottom sheet / popover) ────────────────── */
 .habit-sheet {
   position: fixed;
@@ -831,4 +847,16 @@ svg {
 
 .element-btn.active .element-name {
   color: var(--primary);
+}
+
+.element-btn.taken {
+  opacity: 0.28;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+
+.element-btn.taken .element-name::after {
+  content: ' ✓';
+  font-size: 0.7em;
+  opacity: 0.7;
 }

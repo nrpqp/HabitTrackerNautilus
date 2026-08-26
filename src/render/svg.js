@@ -116,7 +116,7 @@ export function renderSVG(onCellClick, onLabelClick) {
           <path
             class="today-indicator"
             d="${pathData}"
-            stroke="${habit.color}"
+            stroke="${elementColor(habit.element, d)}"
           />
         `;
       }
@@ -173,6 +173,8 @@ export function renderSVG(onCellClick, onLabelClick) {
     `;
   });
 
+  // Preserve canvas overlay before replacing innerHTML (it lives inside svg-container)
+  const overlayCanvas = svgContainer.querySelector('canvas');
   svgContainer.innerHTML = `
     <svg viewBox="0 0 ${dynSize} ${dynSize}">
       ${defsHTML}
@@ -184,6 +186,7 @@ export function renderSVG(onCellClick, onLabelClick) {
       ${textHTML}
     </svg>
   `;
+  if (overlayCanvas) svgContainer.appendChild(overlayCanvas);
 
   document.querySelectorAll('.day-cell.unlocked').forEach((cell) => {
     cell.addEventListener('click', (e) => {
