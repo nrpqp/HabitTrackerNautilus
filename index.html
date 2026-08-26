@@ -28,6 +28,7 @@
 
       <div class="svg-container" id="svg-container">
         <!-- SVG injected here -->
+        <canvas id="effect-overlay"></canvas>
       </div>
 
       <!-- Panel contextual de hábito (bottom sheet / popover) -->
@@ -64,6 +65,13 @@
 
       <!-- Tooltip flotante para el SVG -->
       <div id="cell-tooltip" class="cell-tooltip"></div>
+
+      <!-- Toast de milestone -->
+      <div id="milestone-toast" class="milestone-toast">
+        <span class="milestone-ico" id="milestone-ico">🌟</span>
+        <div class="milestone-title" id="milestone-title">¡Primera semana!</div>
+        <div class="milestone-sub" id="milestone-sub">7 días completados</div>
+      </div>
     </div>
     <script type="module" src="./src/main.js"></script>
   </body>

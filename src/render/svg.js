@@ -3,7 +3,7 @@ import {
   startAngle, sweepAngle, innerRadius, cellThickness, gapBetweenRings,
 } from '../constants.js';
 import { addDays, formatDateFull } from '../utils/date.js';
-import { lightenColor, darkenColor } from '../utils/color.js';
+import { lightenColor, darkenColor, elementColor } from '../utils/color.js';
 import { computeSvgMetrics, polarToCartesian, annularSectorPath } from '../utils/svg.js';
 import { getThemeColors } from '../theme.js';
 import { habits, saveHabits, cellState } from '../store.js';
@@ -39,15 +39,6 @@ export function renderSVG(onCellClick, onLabelClick) {
   const labelFontSize = Math.max(9, Math.floor(innerRadius * 0.2));
 
   let defsHTML = '<defs>';
-  sortedHabits.forEach((habit) => {
-    const light = lightenColor(habit.color, 0.4);
-    defsHTML += `
-      <linearGradient id="grad-${habit.id}" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%"   stop-color="${habit.color}" />
-        <stop offset="100%" stop-color="${light}" />
-      </linearGradient>
-    `;
-  });
   // label arc paths are added in the main loop below; defsHTML is closed after it
 
   let pathsHTML = '';
@@ -72,6 +63,7 @@ export function renderSVG(onCellClick, onLabelClick) {
       const cellDate = addDays(habit.startDate, d);
 
       let fill, stroke, strokeW;
+      const phase = d < 7 ? 'phase-1' : d < 14 ? 'phase-2' : 'phase-3';
 
       if (state === 'locked') {
         fill = tc.lockedFill;
@@ -79,8 +71,8 @@ export function renderSVG(onCellClick, onLabelClick) {
         strokeW = 0.6;
       } else if (state === 'old') {
         if (isCompleted) {
-          fill = `url(#grad-${habit.id})`;
-          stroke = darkenColor(habit.color, 0.2);
+          fill = elementColor(habit.element, d);
+          stroke = elementColor(habit.element, d, -12);
           strokeW = 1.5;
         } else {
           fill = tc.oldCellFill;
@@ -88,8 +80,8 @@ export function renderSVG(onCellClick, onLabelClick) {
           strokeW = 0.6;
         }
       } else if (isCompleted) {
-        fill = `url(#grad-${habit.id})`;
-        stroke = darkenColor(habit.color, 0.2);
+        fill = elementColor(habit.element, d);
+        stroke = elementColor(habit.element, d, -12);
         strokeW = 1.5;
       } else {
         fill = tc.emptyCellFill;
@@ -97,12 +89,13 @@ export function renderSVG(onCellClick, onLabelClick) {
         strokeW = 0.8;
       }
 
-      const cssClass =
+      const baseClass =
         state === 'locked' || state === 'old'
           ? 'day-cell locked'
           : state === 'today'
           ? 'day-cell unlocked is-today'
           : 'day-cell unlocked';
+      const cssClass = isCompleted ? `${baseClass} ${phase}` : baseClass;
 
       pathsHTML += `
         <path
@@ -141,7 +134,7 @@ export function renderSVG(onCellClick, onLabelClick) {
         font-size="${labelFontSize}"
         font-weight="600"
         font-family="Outfit"
-        fill="${habit.color}"
+        fill="${elementColor(habit.element, 10)}"
         pointer-events="none"
       ><textPath href="#label-arc-${habit.id}" startOffset="50%" text-anchor="middle">${habit.name}</textPath></text>
       <rect
@@ -198,9 +191,10 @@ export function renderSVG(onCellClick, onLabelClick) {
       const dayIndex = parseInt(e.target.getAttribute('data-day'), 10);
       const habit = habits.find((h) => h.id === habitId);
       if (habit) {
+        const prevState = habit.progress[dayIndex];
         habit.progress[dayIndex] = !habit.progress[dayIndex];
         saveHabits();
-        if (onCellClick) onCellClick();
+        if (onCellClick) onCellClick(e, habitId, dayIndex, prevState);
       }
     });
   });

@@ -1,4 +1,4 @@
-import { TOTAL_DAYS, DEFAULT_COLORS } from './constants.js';
+import { TOTAL_DAYS, DEFAULT_COLORS, ELEMENTS } from './constants.js';
 import { todayISO, yesterdayISO, addDays } from './utils/date.js';
 
 export let habits = [];
@@ -11,13 +11,14 @@ export function loadHabits() {
       if (!h.color) h.color = DEFAULT_COLORS[i % DEFAULT_COLORS.length];
       if (!h.startDate) h.startDate = todayISO();
       h.notificationTime = h.notificationTime ?? null;
+      if (!h.element) h.element = ELEMENTS[i % ELEMENTS.length].id;
     });
   } else {
     habits = [
       {
         id: Date.now().toString(),
         name: 'Leer 20 mins',
-        color: DEFAULT_COLORS[0],
+        element: ELEMENTS[0].id,
         startDate: todayISO(),
         progress: new Array(TOTAL_DAYS).fill(false),
         notificationTime: null,

@@ -173,6 +173,15 @@ header p {
   min-height: 0;
   min-width: 0;
   overflow: hidden;
+  position: relative;
+}
+
+#effect-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .svg-container svg {
@@ -222,6 +231,24 @@ header p {
   stroke-width: 2.5;
   animation: pulseGlow 2s ease-in-out infinite;
   pointer-events: none;
+}
+
+/* ── Elemental phase animations ──────────────────────────── */
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.65; }
+}
+
+@keyframes surge {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.8; filter: brightness(1.25); }
+}
+
+.phase-2 { animation: breathe 3.4s ease-in-out infinite; }
+.phase-3 { animation: surge  1.7s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .phase-1, .phase-2, .phase-3 { animation: none; }
 }
 
 /* ── Habit Sheet (bottom sheet / popover) ────────────────── */
@@ -718,4 +745,90 @@ svg {
   .cell-tooltip {
     display: none !important;
   }
+}
+
+/* ── Milestone toast ─────────────────────────────────────── */
+.milestone-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 24px 36px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 300;
+  box-shadow: var(--shadow-panel);
+  transition:
+    opacity 0.3s ease,
+    transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.milestone-toast.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.milestone-ico {
+  display: block;
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.milestone-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.milestone-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ── Element selector in sheet ───────────────────────────── */
+.element-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-color);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  font-family: 'Outfit', sans-serif;
+  flex: 1;
+  min-width: 0;
+}
+
+.element-btn .element-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.element-btn .element-name {
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.element-btn.active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.element-btn.active .element-name {
+  color: var(--primary);
 }

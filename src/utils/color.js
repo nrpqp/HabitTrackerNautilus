@@ -1,3 +1,15 @@
+import { ELEMENTS } from '../constants.js';
+
+export function elementColor(elementId, dayIndex, lightnessOffset = 0) {
+  const el = ELEMENTS.find((e) => e.id === elementId);
+  if (!el) return '#888888';
+  const t = dayIndex / 20;
+  const h = el.h0 + (el.h1 - el.h0) * t;
+  const s = el.s0 + (el.s1 - el.s0) * t;
+  const l = Math.max(0, Math.min(100, (el.l0 + (el.l1 - el.l0) * t) + lightnessOffset));
+  return `hsl(${h.toFixed(1)},${s.toFixed(1)}%,${l.toFixed(1)}%)`;
+}
+
 export function lightenColor(hex, amount = 0.4) {
   const num = parseInt(hex.replace('#', ''), 16);
   let r = (num >> 16) & 0xff;
