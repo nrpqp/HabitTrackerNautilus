@@ -11,21 +11,21 @@
 
 ## 2. Motor de efectos
 
-- [ ] 2.1 Crear `src/fx/engine.js` con el objeto de nivel (valor, fijar, suscriptores, presupuesto) anclado a 2 y sin gobernador, e integrarlo sin que ningún efecto lo consulte todavía. Verificar que la app arranca sin cambios visibles.
-- [ ] 2.2 Implementar la detección de capacidades y la fórmula de nivel de design.md §2. Verificar los cuatro casos con overrides de DevTools: movimiento reducido da 0; ahorro de datos da 0; 8 núcleos y 8 GB dan 3; ausencia de memoria declarada con puntero grueso no da 3.
-- [ ] 2.3 Implementar el gobernador de FPS (tres segundos consecutivos bajo 46 fps bajan un nivel, suelo en 1, sin promoción). Verificar con throttling de CPU 6× en DevTools que el nivel baja y no vuelve a subir al quitarlo.
+- [x] 2.1 Crear `src/fx/engine.js` con el objeto de nivel (valor, fijar, suscriptores, presupuesto) anclado a 2 y sin gobernador, e integrarlo sin que ningún efecto lo consulte todavía. Verificar que la app arranca sin cambios visibles.
+- [x] 2.2 Implementar la detección de capacidades y la fórmula de nivel de design.md §2. Verificar los cuatro casos con overrides de DevTools: movimiento reducido da 0; ahorro de datos da 0; 8 núcleos y 8 GB dan 3; ausencia de memoria declarada con puntero grueso no da 3.
+- [x] 2.3 Implementar el gobernador de FPS (tres segundos consecutivos bajo 46 fps bajan un nivel, suelo en 1, sin promoción). Verificar con throttling de CPU 6× en DevTools que el nivel baja y no vuelve a subir al quitarlo.
 - [ ] 2.4 Implementar la háptica con los cuatro patrones, como no-op silencioso si `navigator.vibrate` no existe y en nivel 0. Verificar en Chrome Android que vibra y en un navegador sin soporte que no lanza errores en consola.
-- [ ] 2.5 Reflejar el nivel activo en `document.documentElement.dataset.tier` y anular bajo `[data-tier="0"]` las animaciones de fase que hoy dependen de `prefers-reduced-motion`. Verificar que forzar el nivel 0 deja todas las celdas estáticas.
-- [ ] 2.6 Implementar el bucle único de canvas: limpia una vez por frame, pide a cada efecto activo que se dibuje, se detiene sin efectos activos y se reanuda con el primero nuevo. Verificar en el panel Performance que la app en reposo no hace trabajo de canvas por frame.
+- [x] 2.5 Reflejar el nivel activo en `document.documentElement.dataset.tier` y anular bajo `[data-tier="0"]` las animaciones de fase que hoy dependen de `prefers-reduced-motion`. Verificar que forzar el nivel 0 deja todas las celdas estáticas.
+- [x] 2.6 Implementar el bucle único de canvas: limpia una vez por frame, pide a cada efecto activo que se dibuje, se detiene sin efectos activos y se reanuda con el primero nuevo. Verificar en el panel Performance que la app en reposo no hace trabajo de canvas por frame.
 
 ## 3. Partículas
 
-- [ ] 3.1 Mover el sistema de partículas de `src/main.js` a `src/fx/engine.js` bajo el bucle único, manteniendo el comportamiento actual. Verificar que el burst al marcar es indistinguible del anterior.
-- [ ] 3.2 Dimensionar el canvas con `devicePixelRatio` acotado (2 en nivel 3, 1.5 por debajo) y `ctx.setTransform`, con reajuste al redimensionar. Verificar en pantalla de alta densidad que las partículas dejan de verse borrosas y siguen alineadas con las celdas tras cambiar el tamaño de la ventana.
-- [ ] 3.3 Añadir el sprite radial cacheado por color y el blending aditivo. Verificar que el solapamiento de partículas del mismo elemento produce un núcleo más luminoso que cada una por separado.
-- [ ] 3.4 Trasladar a `src/constants.js` los campos de física por elemento y aplicar el movimiento propio de cada uno. Verificar que el fuego asciende y el de tierra cae, y que los siete elementos son distinguibles por su movimiento.
-- [ ] 3.5 Escalar el burst con el presupuesto por nivel y no emitir nada en nivel 0. Verificar que el burst de nivel 3 tiene más partículas que el de nivel 2 y que en nivel 0 la celda cambia de color sin ninguna partícula.
-- [ ] 3.6 Verificar el aditivo en tema claro y ajustar el peso relativo de halo y silueta si el burst pierde contraste sobre fondo claro.
+- [x] 3.1 Mover el sistema de partículas de `src/main.js` a `src/fx/engine.js` bajo el bucle único, manteniendo el comportamiento actual. Verificar que el burst al marcar es indistinguible del anterior.
+- [x] 3.2 Dimensionar el canvas con `devicePixelRatio` acotado (2 en nivel 3, 1.5 por debajo) y `ctx.setTransform`, con reajuste al redimensionar. Verificar en pantalla de alta densidad que las partículas dejan de verse borrosas y siguen alineadas con las celdas tras cambiar el tamaño de la ventana.
+- [x] 3.3 Añadir el sprite radial cacheado por color y el blending aditivo. Verificar que el solapamiento de partículas del mismo elemento produce un núcleo más luminoso que cada una por separado.
+- [x] 3.4 Trasladar a `src/constants.js` los campos de física por elemento y aplicar el movimiento propio de cada uno. Verificar que el fuego asciende y el de tierra cae, y que los siete elementos son distinguibles por su movimiento.
+- [x] 3.5 Escalar el burst con el presupuesto por nivel y no emitir nada en nivel 0. Verificar que el burst de nivel 3 tiene más partículas que el de nivel 2 y que en nivel 0 la celda cambia de color sin ninguna partícula.
+- [x] 3.6 Verificar el aditivo en tema claro y ajustar el peso relativo de halo y silueta si el burst pierde contraste sobre fondo claro.
 
 ## 4. Núcleo del día
 

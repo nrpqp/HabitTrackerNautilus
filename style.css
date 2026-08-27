@@ -251,6 +251,17 @@ header p {
   .phase-1, .phase-2, .phase-3 { animation: none; }
 }
 
+/* Nivel 0 (Calma): el motor de efectos ya cubre prefers-reduced-motion,
+   ahorro de datos y la degradación manual. La media query de arriba se
+   mantiene como red de seguridad si el JS no llega a ejecutarse. */
+html[data-tier="0"] .phase-1,
+html[data-tier="0"] .phase-2,
+html[data-tier="0"] .phase-3,
+html[data-tier="0"] .today-indicator,
+html[data-tier="0"] .cell-pop {
+  animation: none;
+}
+
 @keyframes cell-pop {
   0%   { filter: brightness(1);   opacity: 1; }
   35%  { filter: brightness(1.7); opacity: 0.85; }

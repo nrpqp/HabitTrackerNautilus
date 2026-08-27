@@ -4,177 +4,29 @@ import { MAX_HABITS, TOTAL_DAYS, ELEMENTS, MAX_NAME_LENGTH } from './constants.j
 import { todayISO, addDays, formatDateShort, diffDays } from './utils/date.js';
 import { habits, loadHabits, saveHabits } from './store.js';
 import { initTheme, toggleTheme } from './theme.js';
-import { renderSVG } from './render/svg.js';
+import { renderSVG, view } from './render/svg.js';
+import {
+  tier, detectTier, haptics, initFxCanvas, burstElement, setUnitScale,
+} from './fx/engine.js';
 
 if ('serviceWorker' in navigator) {
   registerSW({ immediate: true });
 }
 
-// ── Particles ────────────────────────────────────────────────
-
-let particles = [];
-let particleRafId = null;
-let pCtx = null;
-let pCanvas = null;
-
-function initParticleCanvas() {
-  pCanvas = document.getElementById('effect-overlay');
-  if (!pCanvas) return;
-  pCtx = pCanvas.getContext('2d');
-  resizeParticleCanvas();
-  window.addEventListener('resize', resizeParticleCanvas);
-}
-
-function resizeParticleCanvas() {
-  if (!pCanvas) return;
-  const container = document.getElementById('svg-container');
-  const rect = container.getBoundingClientRect();
-  pCanvas.width = rect.width;
-  pCanvas.height = rect.height;
-}
-
-function spawnParticles(x, y, elementId, isMilestone) {
-  const el = ELEMENTS.find((e) => e.id === elementId);
-  if (!el || !pCtx) return;
-
-  const count = isMilestone ? 20 : 6;
-  const baseSpeed = isMilestone ? el.speed * 1.8 : el.speed;
-
-  for (let i = 0; i < count; i++) {
-    const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
-    let vx, vy;
-    if (el.upward) {
-      vx = Math.cos(angle) * baseSpeed * 0.7;
-      vy = -baseSpeed * (0.6 + Math.random() * 0.9);
-    } else {
-      vx = Math.cos(angle) * baseSpeed * (0.7 + Math.random() * 0.6);
-      vy = Math.sin(angle) * baseSpeed * (0.7 + Math.random() * 0.6);
-    }
-    particles.push({
-      x, y, vx, vy,
-      size: isMilestone ? 4 + Math.random() * 6 : 2.5 + Math.random() * 3.5,
-      opacity: 1,
-      rgb: el.rgb,
-      life: 0,
-      maxLife: isMilestone ? 55 + Math.random() * 30 : 32 + Math.random() * 18,
-      particleType: el.particleType,
-      rot: Math.random() * Math.PI * 2,
-      gravity: el.gravity,
-    });
-  }
-
-  if (!particleRafId) particleRafId = requestAnimationFrame(animParticles);
-}
-
-function animParticles() {
-  if (!pCtx || !pCanvas) return;
-  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
-
-  particles = particles.filter((p) => p.life < p.maxLife);
-
-  for (const p of particles) {
-    p.life++;
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += p.gravity;
-    p.rot += 0.08;
-    p.opacity = Math.pow(1 - p.life / p.maxLife, 0.7);
-
-    pCtx.save();
-    pCtx.globalAlpha = p.opacity * 0.9;
-    pCtx.translate(p.x, p.y);
-    pCtx.rotate(p.rot);
-    pCtx.fillStyle = `rgb(${p.rgb[0]},${p.rgb[1]},${p.rgb[2]})`;
-    pCtx.strokeStyle = `rgb(${p.rgb[0]},${p.rgb[1]},${p.rgb[2]})`;
-    drawParticleShape(pCtx, p);
-    pCtx.restore();
-  }
-
-  if (particles.length > 0) {
-    particleRafId = requestAnimationFrame(animParticles);
-  } else {
-    particleRafId = null;
-    if (pCanvas) pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
-  }
-}
-
-function drawParticleShape(ctx, p) {
-  const s = p.size;
-  const progress = p.life / p.maxLife;
-  switch (p.particleType) {
-    case 'spark':
-      ctx.beginPath();
-      ctx.ellipse(0, -s * 0.5, s * 0.28, s, 0, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    case 'ripple':
-      ctx.beginPath();
-      ctx.arc(0, 0, s * (0.4 + progress * 0.8), 0, Math.PI * 2);
-      ctx.lineWidth = 1.5 * (1 - progress);
-      ctx.globalAlpha *= 0.6;
-      ctx.stroke();
-      break;
-    case 'leaf':
-      ctx.beginPath();
-      ctx.moveTo(0, -s);
-      ctx.bezierCurveTo(s * 0.7, -s * 0.4, s * 0.6, s * 0.6, 0, s * 0.3);
-      ctx.bezierCurveTo(-s * 0.6, s * 0.6, -s * 0.7, -s * 0.4, 0, -s);
-      ctx.fill();
-      break;
-    case 'bolt':
-      ctx.beginPath();
-      ctx.rect(-s * 0.18, -s, s * 0.36, s * 2);
-      ctx.fill();
-      break;
-    case 'crystal':
-      ctx.beginPath();
-      for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2 - Math.PI / 6;
-        i === 0
-          ? ctx.moveTo(Math.cos(a) * s, Math.sin(a) * s)
-          : ctx.lineTo(Math.cos(a) * s, Math.sin(a) * s);
-      }
-      ctx.closePath();
-      ctx.lineWidth = 1;
-      ctx.globalAlpha *= 0.8;
-      ctx.stroke();
-      break;
-    case 'chunk':
-      ctx.beginPath();
-      ctx.rect(-s * 0.55, -s * 0.55, s * 1.1, s * 1.1);
-      ctx.fill();
-      break;
-    case 'swirl':
-      ctx.beginPath();
-      ctx.arc(0, 0, s * 0.7, 0, Math.PI * 1.3);
-      ctx.lineWidth = 1.5;
-      ctx.globalAlpha *= 0.5;
-      ctx.stroke();
-      break;
-    default:
-      ctx.beginPath();
-      ctx.arc(0, 0, s * 0.5, 0, Math.PI * 2);
-      ctx.fill();
-  }
-}
-
 // ── Render ───────────────────────────────────────────────────
 
 function renderSVGOnly() {
+  setUnitScale(view.centerPx().scale);
   renderSVG(
     (e, habitId, dayIndex, prevState) => {
-      if (e) {
-        const habit = habits.find((h) => h.id === habitId);
-        if (habit) {
-          const container = document.getElementById('svg-container');
-          const rect = container.getBoundingClientRect();
-          spawnParticles(e.clientX - rect.left, e.clientY - rect.top, habit.element, false);
-          if (!prevState && habit.progress[dayIndex]) {
-            checkMilestone(dayIndex, habit);
-          }
-        }
-      }
+      const habit = habits.find((h) => h.id === habitId);
       renderSVGOnly();
+      if (habit) {
+        const c = view.cellCenterPx(habitId, dayIndex);
+        burstElement(c.x, c.y, habit.element, dayIndex);
+        haptics[prevState ? 'tap' : 'success']();
+        if (!prevState && habit.progress[dayIndex]) checkMilestone(dayIndex, habit);
+      }
       scheduleNotifications();
       // Cell-pop: add flash class to the toggled cell after re-render
       if (habitId !== undefined && dayIndex !== undefined) {
@@ -208,9 +60,9 @@ function checkMilestone(dayIndex, habit) {
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 2800);
 
-  const container = document.getElementById('svg-container');
-  const rect = container.getBoundingClientRect();
-  spawnParticles(rect.width / 2, rect.height / 2, habit.element, true);
+  haptics.milestone();
+  const c = view.centerPx();
+  burstElement(c.x, c.y, habit.element, dayIndex, { base: 44, scale: 1.6, spread: 1.8 });
 }
 
 function render() {
@@ -586,12 +438,28 @@ function setupEventListeners() {
 
 // ── Init ─────────────────────────────────────────────────────
 
+/**
+ * `?fx=0..3` fija el nivel de efectos. Sin esto no hay forma de verificar
+ * los cuatro niveles en un dispositivo real, donde no existen los overrides
+ * de DevTools.
+ */
+function applyTierOverride() {
+  const raw = new URLSearchParams(location.search).get('fx');
+  if (raw === null) return false;
+  const forced = Number(raw);
+  if (!Number.isInteger(forced) || forced < 0 || forced > 3) return false;
+  tier.set(forced, true);
+  return true;
+}
+
 function init() {
   initTheme();
+  if (!applyTierOverride()) tier.set(detectTier(), false);
   loadHabits();
   setupEventListeners();
-  initParticleCanvas();
+  initFxCanvas();
   render();
+  window.addEventListener('resize', () => setUnitScale(view.centerPx().scale));
   scheduleNotifications();
 }
 
