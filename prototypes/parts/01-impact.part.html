@@ -1,0 +1,223 @@
+<!--{"title":"01 · Impacto","subtitle":"Golpe, onda de choque y reacción en cadena","favicon":"💥","file":"01-impact.html"}-->
+<style>
+  .day-cell { will-change: transform; }
+  .day-cell.is-today {
+    stroke: var(--primary);
+    stroke-width: 2;
+    animation: today-breath 2.2s ease-in-out infinite;
+  }
+  @keyframes today-breath {
+    0%, 100% { stroke-opacity: 1; }
+    50%      { stroke-opacity: .28; }
+  }
+  html[data-tier="0"] .day-cell.is-today { animation: none; }
+</style>
+
+<div class="lab-stage">
+  <div class="nautilus" id="stage"></div>
+</div>
+<p class="hint">
+  Toca cualquier celda desbloqueada. El <b>golpe</b> deforma la celda, la <b>onda</b> se expande
+  desde el punto de impacto y la <b>cadena</b> propaga el temblor a las celdas vecinas con retraso
+  proporcional a la distancia angular. Toca una celda gris del futuro para ver el rechazo.
+</p>
+<div class="dock" id="dock"></div>
+
+<script>
+(() => {
+  FX.setup({
+    title: '01 · Impacto',
+    subtitle: 'Golpe, onda de choque y reacción en cadena',
+  });
+
+  const stage = document.getElementById('stage');
+  const habits = FX.demoHabits();
+
+  let power = 1;
+  const flags = { wave: true, chain: true, shake: true, flash: true };
+
+  const N = new FX.Nautilus(stage, habits, {
+    onCell:   (e, hi, d, prev) => impact(e, hi, d, prev),
+    onDenied: (e, hi, d) => denied(hi, d),
+  });
+
+  const cv = FX.makeCanvas(stage);
+
+  // ── Ondas de choque en canvas ───────────────────────────────
+  const waves = new FX.Particles(cv, {
+    additive: true,
+    max: 40,
+    step: () => {},            // las ondas no se desplazan
+    draw: (ctx, p) => {
+      const e = 1 - Math.pow(1 - p.t, 3);
+      const r = p.r0 + (p.r1 - p.r0) * e;
+      const fade = Math.pow(1 - p.t, 2);
+      ctx.globalAlpha = fade * p.alpha;
+      if (p.fill) {
+        ctx.fillStyle = `rgb(${p.rgb})`;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.strokeStyle = `rgb(${p.rgb})`;
+        ctx.lineWidth = Math.max(.5, p.w * fade);
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+      }
+    },
+  });
+
+  function shockwave(x, y, rgb, scale) {
+    if (!flags.wave || FX.tier.value === 0) return;
+    const k = cv.w / 360; // el nautilus mide 356 unidades SVG
+    waves.emit(1, () => ({
+      x, y, life: 0, maxLife: 34, rgb,
+      r0: 6 * k, r1: 98 * k * scale, w: 5 * k, alpha: .85, fill: false,
+    }));
+    // Destello sólido corto en el punto de impacto
+    if (flags.flash) {
+      waves.emit(1, () => ({
+        x, y, life: 0, maxLife: 12, rgb,
+        r0: 2 * k, r1: 22 * k * scale, w: 0, alpha: .5, fill: true,
+      }));
+    }
+    // Segunda onda, más lenta y tenue: sólo en Tier 3.
+    if (FX.tier.value >= 3) {
+      waves.emit(1, () => ({
+        x, y, life: -8, maxLife: 52, rgb,
+        r0: 6 * k, r1: 152 * k * scale, w: 2.5 * k, alpha: .38, fill: false,
+      }));
+    }
+  }
+
+  // ── Golpe sobre una celda ───────────────────────────────────
+  function punch(cell, strength, delay = 0) {
+    if (FX.tier.value === 0) return;
+    const s = 1 + 0.2 * strength * power;
+    const frames = [
+      { transform: 'scale(1)', filter: 'brightness(1)' },
+      { transform: `scale(${s.toFixed(3)})`, filter: `brightness(${(1 + .8 * strength).toFixed(2)})`, offset: .26 },
+      { transform: `scale(${(1 - .05 * strength).toFixed(3)})`, filter: 'brightness(1.05)', offset: .58 },
+      { transform: 'scale(1)', filter: 'brightness(1)' },
+    ];
+    // En Tier 1 el filtro se cae: brightness sobre <path> obliga a repintar
+    // la capa entera y es lo primero que hay que sacrificar.
+    if (FX.tier.value < 2) frames.forEach(f => delete f.filter);
+    cell.animate(frames, {
+      duration: 380 + 160 * strength,
+      delay,
+      easing: 'cubic-bezier(.22,.9,.24,1)',
+    });
+  }
+
+  // ── Reacción en cadena ──────────────────────────────────────
+  function chain(hi, d) {
+    if (!flags.chain || FX.tier.value === 0) return;
+    const reach = FX.tier.value >= 3 ? 4 : FX.tier.value >= 2 ? 3 : 2;
+
+    // A lo largo del mismo anillo
+    for (let k = 1; k <= reach; k++) {
+      const falloff = (1 - k / (reach + 1)) * .55;
+      [d - k, d + k].forEach(dd => {
+        const c = N.cells[hi][dd];
+        if (c) punch(c, falloff, k * 42);
+      });
+    }
+    // A través de los anillos, mismo día
+    N.cells.forEach((ring, j) => {
+      if (j === hi) return;
+      const dist = Math.abs(j - hi);
+      const c = ring[d];
+      if (c) punch(c, .34 / dist, 55 * dist);
+    });
+  }
+
+  // ── Sacudida del conjunto ───────────────────────────────────
+  let shakeAnim = null;
+  function shake(strength) {
+    if (!flags.shake || FX.tier.value < 3) return;
+    if (shakeAnim) shakeAnim.cancel();
+    const amp = 5 * strength * power;
+    const kf = [];
+    for (let i = 0; i <= 8; i++) {
+      const decay = 1 - i / 8;
+      kf.push({
+        transform: i === 8 ? 'translate(0,0)'
+          : `translate(${((Math.random() - .5) * 2 * amp * decay).toFixed(2)}px, ${((Math.random() - .5) * 2 * amp * decay).toFixed(2)}px)`,
+      });
+    }
+    shakeAnim = stage.animate(kf, { duration: 300, easing: 'linear' });
+  }
+
+  // ── Orquestación ────────────────────────────────────────────
+  function impact(e, hi, d, prev) {
+    const cell = N.cells[hi][d];
+    const marking = !prev;               // marcar pega más fuerte que desmarcar
+    const strength = marking ? 1 : .45;
+    const rgb = FX.elRGB(habits[hi].element, d).join(',');
+    const c = N.cellCenterPx(hi, d);
+
+    punch(cell, strength);
+    shockwave(c.x, c.y, rgb, marking ? 1 : .55);
+    if (marking) {
+      chain(hi, d);
+      shake(strength);
+      FX.haptics.success();
+    } else {
+      FX.haptics.tap();
+    }
+  }
+
+  function denied(hi, d) {
+    const cell = N.cells[hi][d];
+    if (FX.tier.value === 0) return;
+    cell.animate([
+      { transform: 'translateX(0)' },
+      { transform: 'translateX(-2.5px)', offset: .2 },
+      { transform: 'translateX(2.5px)',  offset: .45 },
+      { transform: 'translateX(-1.5px)', offset: .7 },
+      { transform: 'translateX(0)' },
+    ], { duration: 260, easing: 'linear' });
+    const prevStroke = cell.getAttribute('stroke');
+    cell.setAttribute('stroke', '#ef4444');
+    setTimeout(() => cell.setAttribute('stroke', prevStroke), 260);
+  }
+
+  // ── Dock ────────────────────────────────────────────────────
+  const dock = document.getElementById('dock');
+
+  dock.appendChild(FX.chipGroup('Fuerza', [
+    { value: .6, label: 'Sutil' },
+    { value: 1,  label: 'Normal' },
+    { value: 1.7, label: 'Exagerado' },
+  ], 1, v => power = Number(v)));
+
+  const toggles = document.createElement('div');
+  toggles.className = 'dock-group';
+  const tLabel = document.createElement('span');
+  tLabel.className = 'dock-label';
+  tLabel.textContent = 'Capas';
+  toggles.appendChild(tLabel);
+  [
+    ['wave', 'Onda'], ['chain', 'Cadena'], ['shake', 'Sacudida'], ['flash', 'Destello'],
+  ].forEach(([key, label]) => {
+    const b = document.createElement('button');
+    b.className = 'chip on';
+    b.textContent = label;
+    b.addEventListener('click', () => {
+      flags[key] = !flags[key];
+      b.classList.toggle('on', flags[key]);
+    });
+    toggles.appendChild(b);
+  });
+  dock.appendChild(toggles);
+
+  dock.appendChild(FX.tierGroup());
+
+  dock.appendChild(FX.actionBtn('↺ Reiniciar', () => {
+    const fresh = FX.demoHabits();
+    habits.forEach((h, i) => h.progress = fresh[i].progress);
+    N.paint();
+    waves.clear();
+  }));
+
+  FX.startGovernor(fps => FX.toast('🐢', 'Bajando de tier', `Sostenía ${fps.toFixed(0)} fps`));
+})();
+</script>

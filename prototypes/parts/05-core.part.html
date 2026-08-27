@@ -1,0 +1,312 @@
+<!--{"title":"05 · Núcleo","subtitle":"El centro como reactor del día y la supernova al cerrarlo","favicon":"🌟","file":"05-core.html"}-->
+<style>
+  .core-label {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+  }
+  .core-label .c-num {
+    font-size: 1.9rem; font-weight: 700; line-height: 1;
+    letter-spacing: -.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-main);
+  }
+  .core-label .c-cap {
+    font-size: .58rem; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .core-label.full .c-num { color: #f0b429; }
+
+  .flash {
+    position: fixed; inset: 0;
+    background: radial-gradient(circle at 50% 50%, #fff 0%, #ffe9a8 45%, transparent 72%);
+    opacity: 0; pointer-events: none; z-index: 250;
+  }
+  .gauge-arc { fill: none; stroke-linecap: round; }
+  .gauge-track { fill: none; stroke: var(--guide-stroke); stroke-linecap: round; }
+</style>
+
+<div class="lab-stage">
+  <div class="nautilus" id="stage">
+    <div class="core-label" id="corelabel">
+      <div class="c-num">0/3</div>
+      <div class="c-cap">hoy</div>
+    </div>
+  </div>
+</div>
+<div class="flash" id="flash"></div>
+<p class="hint">
+  Hoy la app celebra cada hábito por separado y nunca celebra <b>el día</b>. El núcleo vacío del centro
+  es el sitio natural para eso: se carga con cada hábito cerrado y, al completar el último,
+  entra en <b>supernova</b>. Es el único momento del día que se gana una celebración de pantalla completa.
+</p>
+<div class="dock" id="dock"></div>
+
+<script>
+(() => {
+  FX.setup({
+    title: '05 · Núcleo',
+    subtitle: 'El centro como reactor del día y la supernova al cerrarlo',
+  });
+
+  const stage = document.getElementById('stage');
+  const flash = document.getElementById('flash');
+  const label = document.getElementById('corelabel');
+  const habits = FX.demoHabits();
+  const NS = 'http://www.w3.org/2000/svg';
+
+  const N = new FX.Nautilus(stage, habits, { onCell: handleCell });
+  const cv = FX.makeCanvas(stage);
+
+  // El día "de hoy" de cada anillo queda fijado al arrancar.
+  const TODAY = habits.map((_, i) => N.todayIndex(i));
+
+  const doneToday = () => habits.filter((h, i) => h.progress[TODAY[i]]).length;
+
+  // ── Medidor alrededor del núcleo ────────────────────────────
+  const gaugeR = FX.CFG.innerR - 20;
+  const gauges = [];
+  {
+    const { cx, cy } = N.m;
+    const seg = 360 / habits.length;
+    const pad = 7;
+    habits.forEach((h, i) => {
+      const a0 = -90 + i * seg + pad / 2;
+      const a1 = -90 + (i + 1) * seg - pad / 2;
+      const p0 = FX.polar(cx, cy, gaugeR, a0);
+      const p1 = FX.polar(cx, cy, gaugeR, a1);
+      const d = `M ${p0.x} ${p0.y} A ${gaugeR} ${gaugeR} 0 0 1 ${p1.x} ${p1.y}`;
+      const len = gaugeR * (a1 - a0) * FX.DEG;
+
+      const track = document.createElementNS(NS, 'path');
+      track.setAttribute('class', 'gauge-track');
+      track.setAttribute('d', d);
+      track.setAttribute('stroke-width', '3');
+      N.overlay.appendChild(track);
+
+      const arc = document.createElementNS(NS, 'path');
+      arc.setAttribute('class', 'gauge-arc');
+      arc.setAttribute('d', d);
+      arc.setAttribute('stroke-width', '4.5');
+      arc.setAttribute('stroke', FX.elColor(h.element, 20));
+      arc.setAttribute('stroke-dasharray', len);
+      arc.setAttribute('stroke-dashoffset', len);
+      N.overlay.appendChild(arc);
+      gauges.push({ arc, len });
+    });
+  }
+
+  function refreshCore(animate) {
+    const n = doneToday(), total = habits.length;
+    label.querySelector('.c-num').textContent = `${n}/${total}`;
+    label.classList.toggle('full', n === total);
+
+    gauges.forEach((g, i) => {
+      const on = habits[i].progress[TODAY[i]];
+      const target = on ? 0 : g.len;
+      if (animate && FX.tier.value > 0) {
+        g.arc.animate([{ strokeDashoffset: g.arc.getAttribute('stroke-dashoffset') },
+                       { strokeDashoffset: target }],
+          { duration: 480, easing: 'cubic-bezier(.3,.9,.3,1)', fill: 'forwards' });
+      }
+      g.arc.setAttribute('stroke-dashoffset', target);
+      g.arc.setAttribute('stroke', FX.elColor(habits[i].element, 20));
+    });
+
+    // El núcleo respira más fuerte cuanto más cerca está el día de cerrarse.
+    const charge = n / total;
+    N.core.style.filter = FX.tier.value >= 2 && charge > 0
+      ? `drop-shadow(0 0 ${(4 + 16 * charge).toFixed(1)}px rgba(240,180,41,${(.25 + .5 * charge).toFixed(2)}))`
+      : 'none';
+  }
+
+  // ── Carga: un hábito cerrado ────────────────────────────────
+  function charge(hi) {
+    FX.haptics.success();
+    const k = cv.w / N.m.size;
+    const c = N.cellCenterPx(hi, TODAY[hi]);
+    const center = N.centerPx();
+    const rgb = FX.elRGB(habits[hi].element, TODAY[hi]);
+
+    if (FX.tier.value >= 2) {
+      // La energía viaja de la celda al núcleo.
+      const spr = FX.glowSprite(rgb);
+      const t0 = performance.now(), dur = 520;
+      (function frame(t) {
+        const u = Math.min(1, (t - t0) / dur);
+        const e = u * u * (3 - 2 * u);
+        const x = c.x + (center.x - c.x) * e;
+        const y = c.y + (center.y - c.y) * e;
+        const ctx = cv.ctx;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = .85 * (1 - u * .3);
+        const s = (10 + 8 * (1 - u)) * k;
+        ctx.drawImage(spr, x - s, y - s, s * 2, s * 2);
+        ctx.restore();
+        if (u < 1) requestAnimationFrame(frame);
+        else {
+          N.core.animate([
+            { transform: 'scale(1)' },
+            { transform: 'scale(1.14)', offset: .3 },
+            { transform: 'scale(1)' },
+          ], { duration: 480, easing: 'cubic-bezier(.2,1.5,.3,1)' });
+        }
+      })(performance.now());
+    }
+  }
+
+  // ── Supernova: el día completo ──────────────────────────────
+  const P = new FX.Particles(cv, {
+    additive: true, max: 700,
+    draw: (ctx, p) => {
+      const fade = Math.pow(1 - p.t, .75);
+      ctx.globalAlpha = fade;
+      const s = p.size * (1 + p.t * .6);
+      ctx.drawImage(FX.glowSprite(p.rgb), -s * 2, -s * 2, s * 4, s * 4);
+    },
+  });
+
+  function supernova() {
+    FX.haptics.milestone();
+    FX.toast('🌟', 'Día completo', `${habits.length} de ${habits.length} hábitos cerrados`, 3400);
+
+    if (FX.tier.value === 0) return;
+
+    // Destello de pantalla completa: opacity pura, barato en cualquier gama.
+    flash.animate([{ opacity: 0 }, { opacity: .55, offset: .12 }, { opacity: 0 }],
+      { duration: 900, easing: 'ease-out' });
+
+    // El núcleo se hincha
+    N.core.animate([
+      { transform: 'scale(1)' },
+      { transform: 'scale(1.5)', offset: .25 },
+      { transform: 'scale(1)' },
+    ], { duration: 1100, easing: 'cubic-bezier(.2,1.3,.3,1)' });
+
+    if (FX.tier.value < 2) return;
+
+    const center = N.centerPx();
+    const k = cv.w / N.m.size;
+    const gold = [255, 214, 120];
+
+    // Partículas: mezcla de los colores de todos los hábitos + oro.
+    const n = FX.tier.budget(52);
+    P.emit(n, (i) => {
+      const a = (i / n) * Math.PI * 2 + Math.random() * .3;
+      const sp = (2.2 + Math.random() * 5) * k;
+      const h = habits[i % habits.length];
+      return {
+        x: center.x, y: center.y,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        life: 0, maxLife: 60 + Math.random() * 45,
+        size: (2.5 + Math.random() * 4) * k,
+        rgb: Math.random() < .4 ? gold : FX.elRGB(h.element, 20),
+        drag: .972, g: .02 * k,
+      };
+    });
+
+    // Anillos de choque y rayos.
+    ringsAndRays(center, k, gold);
+  }
+
+  function ringsAndRays(center, k, gold) {
+    const t0 = performance.now();
+    const dur = FX.tier.value >= 3 ? 1400 : 1000;
+    const rayCount = FX.tier.value >= 3 ? 16 : 8;
+    (function frame(t) {
+      const u = Math.min(1, (t - t0) / dur);
+      const ctx = cv.ctx;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.translate(center.x, center.y);
+
+      // Tres anillos desfasados
+      for (let i = 0; i < 3; i++) {
+        const uu = Math.max(0, Math.min(1, (u - i * .13) / (1 - i * .13)));
+        if (uu <= 0) continue;
+        const e = 1 - Math.pow(1 - uu, 3);
+        const r = 10 * k + 240 * k * e;
+        ctx.globalAlpha = Math.pow(1 - uu, 2) * .7;
+        ctx.strokeStyle = `rgb(${gold.join(',')})`;
+        ctx.lineWidth = Math.max(.6, 7 * k * (1 - uu));
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+      }
+
+      // Rayos girando
+      if (FX.tier.value >= 3 || u < .6) {
+        ctx.rotate(u * .7);
+        ctx.globalAlpha = Math.pow(1 - u, 2.4) * .55;
+        ctx.strokeStyle = '#fff8e0';
+        for (let i = 0; i < rayCount; i++) {
+          const a = (i / rayCount) * Math.PI * 2;
+          const len = (40 + 210 * u) * k;
+          ctx.lineWidth = Math.max(.6, 3.4 * k * (1 - u));
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * 24 * k, Math.sin(a) * 24 * k);
+          ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+      if (u < 1) requestAnimationFrame(frame);
+    })(performance.now());
+  }
+
+  // ── Interacción ─────────────────────────────────────────────
+  function handleCell(e, hi, d, prev) {
+    if (d !== TODAY[hi]) {
+      // La maqueta sólo deja mover el día de hoy.
+      habits[hi].progress[d] = prev;
+      N.paint();
+      FX.haptics.denied();
+      return;
+    }
+    const before = doneToday() - (habits[hi].progress[d] ? 1 : 0);
+    refreshCore(true);
+    if (habits[hi].progress[d]) {
+      charge(hi);
+      if (doneToday() === habits.length) setTimeout(supernova, 420);
+    } else {
+      FX.haptics.tap();
+    }
+  }
+
+  // ── Dock ────────────────────────────────────────────────────
+  const dock = document.getElementById('dock');
+
+  const marks = document.createElement('div');
+  marks.className = 'dock-group';
+  const ml = document.createElement('span');
+  ml.className = 'dock-label'; ml.textContent = 'Cerrar hoy';
+  marks.appendChild(ml);
+  habits.forEach((h, i) => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = `${FX.byId(h.element).icon} ${h.name}`;
+    b.addEventListener('click', () => {
+      const d = TODAY[i];
+      habits[i].progress[d] = !habits[i].progress[d];
+      N.paint();
+      b.classList.toggle('on', habits[i].progress[d]);
+      handleCell(null, i, d, !habits[i].progress[d]);
+    });
+    marks.appendChild(b);
+  });
+  dock.appendChild(marks);
+
+  dock.appendChild(FX.actionBtn('🌟 Supernova', supernova, 'Dispara la celebración sin marcar nada'));
+  dock.appendChild(FX.tierGroup());
+  dock.appendChild(FX.actionBtn('↺ Reiniciar', () => {
+    const fresh = FX.demoHabits();
+    habits.forEach((h, i) => h.progress = fresh[i].progress);
+    N.paint(); P.clear(); refreshCore(false);
+    marks.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  }));
+
+  refreshCore(false);
+  FX.startGovernor(fps => FX.toast('🐢', 'Bajando de tier', `Sostenía ${fps.toFixed(0)} fps`));
+})();
+</script>

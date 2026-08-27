@@ -29,6 +29,11 @@
       <div class="svg-container" id="svg-container">
         <!-- SVG injected here -->
         <canvas id="effect-overlay"></canvas>
+        <!-- Medidor del día: se posiciona sobre el centro real del SVG -->
+        <div class="day-core" id="day-core" aria-live="polite">
+          <div class="core-value" id="core-value">0/0</div>
+          <div class="core-caption" id="core-caption">hoy</div>
+        </div>
       </div>
 
       <!-- Panel contextual de hábito (bottom sheet / popover) -->
@@ -65,6 +70,9 @@
 
       <!-- Tooltip flotante para el SVG -->
       <div id="cell-tooltip" class="cell-tooltip"></div>
+
+      <!-- Destello de pantalla completa al cerrar el día -->
+      <div class="fx-flash" id="fx-flash" aria-hidden="true"></div>
 
       <!-- Toast de milestone -->
       <div id="milestone-toast" class="milestone-toast">

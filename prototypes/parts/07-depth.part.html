@@ -1,0 +1,234 @@
+<!--{"title":"07 · Profundidad","subtitle":"Paralaje por puntero o giroscopio, especular y sombra","favicon":"🪩","file":"07-depth.html"}-->
+<style>
+  .nautilus { transform-style: preserve-3d; will-change: transform; }
+  .lab-stage { position: relative; }
+  /* Fuera del elemento con preserve-3d: un filter dentro de un plano 3D
+     se aplana en un cuadrilátero rotado y deja de leerse como sombra. */
+  .depth-shadow {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: min(68vh, 480px, 80vw);
+    height: min(68vh, 480px, 80vw);
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, rgba(0,0,0,.3), rgba(0,0,0,0) 64%);
+    filter: blur(26px);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .3s;
+    transform: translate(-50%, -50%);
+  }
+  [data-theme="dark"] .depth-shadow {
+    background: radial-gradient(circle at 50% 50%, rgba(0,0,0,.6), rgba(0,0,0,0) 66%);
+  }
+  html[data-depth="on"] .depth-shadow { opacity: 1; }
+
+  .sensor-state {
+    font-size: .72rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 0 20px 8px;
+  }
+  .sensor-state b { color: var(--text-secondary); }
+</style>
+
+<div class="lab-stage">
+  <div class="depth-shadow" id="shadow"></div>
+  <div class="nautilus" id="stage"></div>
+</div>
+<p class="hint">
+  La misma capa de profundidad se alimenta de <b>fuentes distintas según el dispositivo</b>: el puntero
+  en escritorio, el giroscopio en móvil, y una órbita lenta automática cuando no hay ninguno de los dos.
+  Los números de día y el núcleo se desplazan en sentidos opuestos: eso es lo que crea la sensación
+  de que el nautilus tiene grosor.
+</p>
+<p class="sensor-state" id="sensor"></p>
+<div class="dock" id="dock"></div>
+
+<script>
+(() => {
+  FX.setup({
+    title: '07 · Profundidad',
+    subtitle: 'Paralaje por puntero o giroscopio, especular y sombra',
+  });
+
+  const stage = document.getElementById('stage');
+  const shadow = document.getElementById('shadow');
+  const sensorEl = document.getElementById('sensor');
+  const habits = FX.demoHabits();
+
+  const N = new FX.Nautilus(stage, habits, {
+    onCell: (e, hi, d, prev) => {
+      FX.haptics.tap();
+      const c = N.cells[hi][d];
+      if (FX.tier.value > 0) {
+        c.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.14)', offset: .3 }, { transform: 'scale(1)' }],
+          { duration: 380, easing: 'cubic-bezier(.2,1.4,.3,1)' });
+      }
+    },
+  });
+  const cv = FX.makeCanvas(stage);
+
+  // ── Reagrupar por capas de profundidad ──────────────────────
+  const NS = 'http://www.w3.org/2000/svg';
+  const far = document.createElementNS(NS, 'g');
+  const near = document.createElementNS(NS, 'g');
+  far.setAttribute('class', 'depth-far');
+  near.setAttribute('class', 'depth-near');
+  N.svg.appendChild(far);
+  N.svg.appendChild(near);
+  N.svg.querySelectorAll('.day-num').forEach(t => far.appendChild(t));
+  N.svg.querySelectorAll('text[data-label]').forEach(t => near.appendChild(t));
+  near.appendChild(N.core);
+
+  // ── Estado de inclinación ───────────────────────────────────
+  let tx = 0, ty = 0;      // objetivo, en rango -1..1
+  let cx = 0, cy = 0;      // valor suavizado
+  let source = 'auto';
+  let depthOn = true;
+  let amount = 1;
+
+  function setSource(s, note) {
+    source = s;
+    const names = { pointer: 'puntero', gyro: 'giroscopio', auto: 'órbita automática' };
+    sensorEl.innerHTML =
+      `Fuente activa: <b>${names[s]}</b> · ` +
+      `puntero fino: <b>${FX.caps.hover ? 'sí' : 'no'}</b> · ` +
+      `táctil: <b>${FX.caps.touch ? 'sí' : 'no'}</b> · ` +
+      `sensor de orientación: <b>${FX.caps.gyro ? (FX.caps.gyroNeedsPermission ? 'requiere permiso' : 'disponible') : 'no'}</b>` +
+      (note ? ` · ${note}` : '');
+  }
+
+  // Escritorio: el puntero manda.
+  if (FX.caps.hover) {
+    setSource('pointer');
+    addEventListener('pointermove', (e) => {
+      if (source === 'gyro') return;
+      source = 'pointer';
+      const r = stage.getBoundingClientRect();
+      tx = ((e.clientX - (r.left + r.width / 2)) / (r.width / 2));
+      ty = ((e.clientY - (r.top + r.height / 2)) / (r.height / 2));
+      tx = Math.max(-1.6, Math.min(1.6, tx));
+      ty = Math.max(-1.6, Math.min(1.6, ty));
+    });
+    addEventListener('pointerleave', () => { tx = 0; ty = 0; });
+  } else {
+    setSource('auto');
+  }
+
+  function attachGyro() {
+    const handler = (e) => {
+      if (e.gamma == null && e.beta == null) return;
+      source = 'gyro';
+      tx = Math.max(-1, Math.min(1, (e.gamma || 0) / 32));
+      ty = Math.max(-1, Math.min(1, ((e.beta || 0) - 45) / 32));
+    };
+    addEventListener('deviceorientation', handler);
+    setSource('gyro', 'inclina el aparato');
+  }
+
+  async function enableGyro() {
+    if (!FX.caps.gyro) { setSource(source, 'este navegador no expone orientación'); return; }
+    if (FX.caps.gyroNeedsPermission) {
+      try {
+        const res = await DeviceOrientationEvent.requestPermission();
+        if (res !== 'granted') { setSource(source, 'permiso denegado'); return; }
+      } catch (err) {
+        setSource(source, 'permiso no concedido (requiere https)');
+        return;
+      }
+    }
+    attachGyro();
+  }
+
+  // ── Bucle de render ─────────────────────────────────────────
+  const spr = FX.glowSprite([255, 255, 255]);
+  function loop(t) {
+    // Sin fuente real: órbita lenta para que la maqueta se lea igual.
+    if (source === 'auto' && depthOn) {
+      tx = Math.cos(t / 2600) * .55;
+      ty = Math.sin(t / 3100) * .45;
+    }
+    const on = depthOn && FX.tier.value >= 1;
+    const goalX = on ? tx * amount : 0;
+    const goalY = on ? ty * amount : 0;
+    cx += (goalX - cx) * .09;
+    cy += (goalY - cy) * .09;
+
+    const maxDeg = 9;
+    stage.style.transform =
+      `rotateX(${(-cy * maxDeg).toFixed(2)}deg) rotateY(${(cx * maxDeg).toFixed(2)}deg)`;
+
+    // Paralaje 2D interno: capas en sentidos opuestos.
+    const k = 7;
+    far.setAttribute('transform', `translate(${(cx * k).toFixed(2)}, ${(cy * k).toFixed(2)})`);
+    near.setAttribute('transform', `translate(${(-cx * k * 1.7).toFixed(2)}, ${(-cy * k * 1.7).toFixed(2)})`);
+
+    // Sombra desplazada al lado contrario de la luz.
+    shadow.style.transform =
+      `translate(calc(-50% + ${(-cx * 16).toFixed(1)}px), calc(-50% + ${(-cy * 16).toFixed(1)}px))`;
+
+    // Especular: mancha de luz que sigue la inclinación.
+    const ctx = cv.ctx;
+    ctx.clearRect(0, 0, cv.w, cv.h);
+    if (on && FX.tier.value >= 2) {
+      const lx = cv.w / 2 + cx * cv.w * .42;
+      const ly = cv.h / 2 + cy * cv.h * .42;
+      const s = cv.w * .3;
+      ctx.save();
+      // Recortar al disco del nautilus: sin esto el sprite se corta contra
+      // el borde del canvas y el brillo aparece como un rectángulo duro.
+      ctx.beginPath();
+      ctx.arc(cv.w / 2, cv.h / 2, N.m.outerR * (cv.w / N.m.size), 0, Math.PI * 2);
+      ctx.clip();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = .2 + .12 * Math.min(1, Math.hypot(cx, cy));
+      ctx.drawImage(spr, lx - s, ly - s, s * 2, s * 2);
+      ctx.restore();
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  function syncDepthFlag() {
+    document.documentElement.dataset.depth =
+      (depthOn && FX.tier.value >= 3) ? 'on' : 'off';
+  }
+  FX.tier.onChange(syncDepthFlag);
+  syncDepthFlag();
+
+  // ── Dock ────────────────────────────────────────────────────
+  const dock = document.getElementById('dock');
+
+  dock.appendChild(FX.chipGroup('Fuente', [
+    { value: 'auto', label: '🛞 Auto' },
+    { value: 'pointer', label: '🖱️ Puntero', title: FX.caps.hover ? '' : 'Sin puntero fino en este dispositivo' },
+    { value: 'gyro', label: '📱 Giroscopio' },
+  ], FX.caps.hover ? 'pointer' : 'auto', v => {
+    if (v === 'gyro') enableGyro();
+    else { source = v; setSource(v); }
+  }));
+
+  dock.appendChild(FX.chipGroup('Intensidad', [
+    { value: .5, label: 'Apenas' },
+    { value: 1, label: 'Media' },
+    { value: 1.8, label: 'Marcada' },
+  ], 1, v => amount = Number(v)));
+
+  const b = document.createElement('button');
+  b.className = 'chip on';
+  b.textContent = 'Profundidad';
+  b.addEventListener('click', () => {
+    depthOn = !depthOn;
+    b.classList.toggle('on', depthOn);
+    syncDepthFlag();
+  });
+  const g = document.createElement('div');
+  g.className = 'dock-group';
+  g.appendChild(b);
+  dock.appendChild(g);
+
+  dock.appendChild(FX.tierGroup());
+
+  FX.startGovernor(fps => FX.toast('🐢', 'Bajando de tier', `Sostenía ${fps.toFixed(0)} fps`));
+})();
+</script>
