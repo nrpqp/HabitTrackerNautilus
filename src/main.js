@@ -2,12 +2,18 @@ import { registerSW } from 'virtual:pwa-register';
 
 import { MAX_HABITS, TOTAL_DAYS, ELEMENTS, MAX_NAME_LENGTH } from './constants.js';
 import { todayISO, addDays, formatDateShort, diffDays } from './utils/date.js';
-import { habits, loadHabits, saveHabits } from './store.js';
+import {
+  habits, loadHabits, saveHabits,
+  todayIndexOf, isDoneToday, habitsActiveToday, habitStreak,
+} from './store.js';
 import { initTheme, toggleTheme } from './theme.js';
 import { renderSVG, view } from './render/svg.js';
 import {
   tier, detectTier, haptics, initFxCanvas, burstElement, setUnitScale,
 } from './fx/engine.js';
+import {
+  streakComet, arrivalBurst, extinguishCell, chargeToCore, setCoreCharge, supernova,
+} from './fx/effects.js';
 
 if ('serviceWorker' in navigator) {
   registerSW({ immediate: true });
@@ -17,30 +23,130 @@ if ('serviceWorker' in navigator) {
 
 function renderSVGOnly() {
   setUnitScale(view.centerPx().scale);
-  renderSVG(
-    (e, habitId, dayIndex, prevState) => {
-      const habit = habits.find((h) => h.id === habitId);
-      renderSVGOnly();
-      if (habit) {
-        const c = view.cellCenterPx(habitId, dayIndex);
-        burstElement(c.x, c.y, habit.element, dayIndex);
-        haptics[prevState ? 'tap' : 'success']();
-        if (!prevState && habit.progress[dayIndex]) checkMilestone(dayIndex, habit);
-      }
-      scheduleNotifications();
-      // Cell-pop: add flash class to the toggled cell after re-render
-      if (habitId !== undefined && dayIndex !== undefined) {
-        const cell = document.querySelector(
-          `[data-habit-id="${habitId}"][data-day="${dayIndex}"]`
-        );
-        if (cell) {
-          cell.classList.add('cell-pop');
-          cell.addEventListener('animationend', () => cell.classList.remove('cell-pop'), { once: true });
-        }
-      }
-    },
-    (habitId, event) => openHabitSheet(habitId, 'edit', event)
-  );
+  renderSVG(onCellToggled, (habitId, event) => openHabitSheet(habitId, 'edit', event));
+  refreshDayCore();
+}
+
+// ── Núcleo del día ───────────────────────────────────────────
+
+let coreTransientTimer = null;
+let coreShowingTransient = false;
+
+function setCoreLabel(value, caption, full) {
+  const core = document.getElementById('day-core');
+  document.getElementById('core-value').textContent = value;
+  document.getElementById('core-caption').textContent = caption;
+  core.classList.toggle('is-full', !!full);
+  core.classList.remove('swapping');
+  // Reiniciar la animación de cambio sin esperar al siguiente frame de CSS.
+  void core.offsetWidth;
+  core.classList.add('swapping');
+}
+
+/** Estado en reposo del centro: cuántos hábitos quedan cerrados hoy. */
+function refreshDayCore() {
+  const core = document.getElementById('day-core');
+  if (!core) return;
+
+  const center = view.centerPx();
+  core.style.left = `${center.x}px`;
+  core.style.top = `${center.y}px`;
+
+  const active = habitsActiveToday();
+  const done = active.filter(isDoneToday).length;
+  setCoreCharge(active.length ? done / active.length : 0);
+
+  if (coreShowingTransient) return;
+  if (!active.length) {
+    setCoreLabel('—', 'sin retos', false);
+    return;
+  }
+  setCoreLabel(`${done}/${active.length}`, 'hoy', done === active.length);
+}
+
+/**
+ * La racha ocupa el centro un instante y lo devuelve. El centro es del
+ * día: la racha sólo lo toma prestado, y cada presentación reemplaza a
+ * la anterior para que marcar varios días seguidos no lo deje atascado.
+ */
+function showStreakInCore(streak) {
+  const icon = streak >= 21 ? '🏆' : streak >= 14 ? '⚡' : streak >= 7 ? '🔥' : '✨';
+  coreShowingTransient = true;
+  setCoreLabel(`${icon} ${streak}`, 'racha', false);
+  clearTimeout(coreTransientTimer);
+  coreTransientTimer = setTimeout(() => {
+    coreShowingTransient = false;
+    refreshDayCore();
+  }, 1900);
+}
+
+// ── Marcado de una celda ─────────────────────────────────────
+
+function onCellToggled(event, habitId, dayIndex, prevState) {
+  const habit = habits.find((h) => h.id === habitId);
+  renderSVGOnly();
+  scheduleNotifications();
+  if (!habit) return;
+
+  const marking = !prevState;
+  const isTodayCell = dayIndex === todayIndexOf(habit);
+
+  if (!marking) {
+    haptics.tap();
+    extinguishCell(habitId, dayIndex);
+    return;
+  }
+
+  haptics.success();
+
+  // El cometa sólo sale si el marcado ha extendido la racha de verdad:
+  // marcar el día 1, o un día posterior a un hueco, no la extiende.
+  const streak = habitStreak(habit);
+  const extendsStreak = dayIndex > 0 && streak === dayIndex + 1;
+
+  // Si este mismo marcado cierra el día, la racha no toma el centro: el
+  // día manda. Sin esta regla, quién ocupa el centro dependería de si el
+  // cometa llega antes o después de la supernova — indeterminista.
+  const closesDay = isTodayCell && willCloseDay();
+
+  const onArrive = () => {
+    arrivalBurst(habitId, dayIndex, habit.element);
+    if (extendsStreak && !closesDay) showStreakInCore(streak);
+    if (!prevState && habit.progress[dayIndex]) checkMilestone(dayIndex, habit);
+  };
+
+  if (extendsStreak) {
+    streakComet(habitId, 0, dayIndex, habit.element, onArrive);
+  } else {
+    onArrive();
+  }
+
+  if (isTodayCell) closeDay(habit, habitId, dayIndex, closesDay);
+}
+
+/**
+ * ¿El marcado que se acaba de aplicar deja el día completo? El estado ya
+ * está mutado, así que "todos cerrados" equivale a la transición.
+ */
+function willCloseDay() {
+  const active = habitsActiveToday();
+  return active.length > 0 && active.every(isDoneToday);
+}
+
+/** Carga del núcleo y, si era el último pendiente, supernova. */
+function closeDay(habit, habitId, dayIndex, closesDay) {
+  chargeToCore(habitId, dayIndex, habit.element);
+  if (!closesDay) return;
+
+  const active = habitsActiveToday();
+  setTimeout(() => {
+    haptics.milestone();
+    supernova(active.map((h) => h.element));
+    // Una presentación de racha de otro hábito también cede el centro.
+    coreShowingTransient = false;
+    clearTimeout(coreTransientTimer);
+    refreshDayCore();
+  }, 420);
 }
 
 function checkMilestone(dayIndex, habit) {
@@ -459,7 +565,10 @@ function init() {
   setupEventListeners();
   initFxCanvas();
   render();
-  window.addEventListener('resize', () => setUnitScale(view.centerPx().scale));
+  window.addEventListener('resize', () => {
+    setUnitScale(view.centerPx().scale);
+    refreshDayCore();
+  });
   scheduleNotifications();
 }
 

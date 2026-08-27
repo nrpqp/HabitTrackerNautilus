@@ -196,7 +196,14 @@ function loop(now) {
   ctx.clearRect(0, 0, cw, ch);
   for (const effect of effects) {
     let alive = false;
-    try { alive = effect.draw(ctx, now); } catch (_) { alive = false; }
+    try {
+      alive = effect.draw(ctx, now);
+    } catch (err) {
+      // Un efecto roto se descarta para no tumbar el bucle, pero el error
+      // se reporta: tragárselo en silencio esconde defectos reales.
+      console.error('[fx] efecto descartado por error', err);
+      alive = false;
+    }
     if (!alive) effects.delete(effect);
   }
 

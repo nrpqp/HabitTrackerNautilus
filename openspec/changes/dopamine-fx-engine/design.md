@@ -113,6 +113,8 @@ Ver `proposal.md` — *Why* para la motivación. Las restricciones que dan forma
 
 **Por qué**: las maquetas `04-streak` y `05-core` se diseñaron por separado y **ambas reclaman el centro**. Hay que elegir un dueño. El del día gana el reposo porque es información de estado —está siempre vigente y el usuario la consulta— mientras que la racha es información de evento: importa en el instante en que crece. Un temporizador con reemplazo (cada presentación cancela la anterior) evita que marcar varios días seguidos deje el centro atascado.
 
+**Regla de precedencia**: si un mismo marcado cierra el día *y* extiende la racha, la racha no toma el centro. Sin esta regla el ganador dependería de si el cometa llega antes o después de la supernova — con una racha corta el cometa llega en ~360 ms y la supernova en 420 ms, con una larga al revés. El resultado sería indeterminista según la longitud de la racha.
+
 **Alternativa descartada**: partir el centro en dos mitades. A ese radio —52 unidades de SVG— no caben dos cifras legibles, y menos en un móvil pequeño.
 
 ## Risks / Trade-offs

@@ -29,30 +29,30 @@
 
 ## 4. Núcleo del día
 
-- [ ] 4.1 Añadir la etiqueta del núcleo en `index.html` y `style.css`, posicionada sobre el centro real del SVG (no sobre el centro del contenedor, que no coinciden cuando el contenedor no es cuadrado). Verificar que queda centrada con la ventana estrecha, ancha y en móvil.
-- [ ] 4.2 Dibujar un arco por hábito alrededor del núcleo con el color de su elemento, reconstruido cuando cambia el número de hábitos. Verificar que con 1, 3 y 7 hábitos los arcos se reparten correctamente.
-- [ ] 4.3 Rellenar y vaciar el arco de cada hábito según el estado del día de hoy y mostrar la cuenta `n/total`. Verificar que marcar y desmarcar hoy mueve cuenta y arco, y que marcar ayer no los mueve.
-- [ ] 4.4 Verificar que al cargar la app con hábitos ya marcados hoy el medidor aparece con el estado correcto y no se dispara ninguna celebración.
-- [ ] 4.5 Implementar la traza de energía de la celda al núcleo con nivel mínimo 2, y hacer que la intensidad del núcleo en reposo crezca con la proporción de hábitos cerrados hoy. Verificar que en nivel 1 el arco se rellena igualmente sin traza.
+- [x] 4.1 Añadir la etiqueta del núcleo en `index.html` y `style.css`, posicionada sobre el centro real del SVG (no sobre el centro del contenedor, que no coinciden cuando el contenedor no es cuadrado). Verificar que queda centrada con la ventana estrecha, ancha y en móvil.
+- [x] 4.2 Dibujar un arco por hábito alrededor del núcleo con el color de su elemento, reconstruido cuando cambia el número de hábitos. Verificar que con 1, 3 y 7 hábitos los arcos se reparten correctamente.
+- [x] 4.3 Rellenar y vaciar el arco de cada hábito según el estado del día de hoy y mostrar la cuenta `n/total`. Verificar que marcar y desmarcar hoy mueve cuenta y arco, y que marcar ayer no los mueve.
+- [x] 4.4 Verificar que al cargar la app con hábitos ya marcados hoy el medidor aparece con el estado correcto y no se dispara ninguna celebración.
+- [x] 4.5 Implementar la traza de energía de la celda al núcleo con nivel mínimo 2, y hacer que la intensidad del núcleo en reposo crezca con la proporción de hábitos cerrados hoy. Verificar que en nivel 1 el arco se rellena igualmente sin traza.
 
 ## 5. Celebración del día completo
 
-- [ ] 5.1 Detectar la transición a día completo comparando la cuenta de hábitos cerrados hoy antes y después de marcar. Verificar que se dispara al marcar el último pendiente, que no se dispara si queda alguno, y que se dispara con un único hábito activo.
-- [ ] 5.2 Añadir la capa de destello de pantalla completa y el mensaje de día completo que desaparece solo. Verificar que desaparece sin intervención del usuario.
-- [ ] 5.3 Implementar los anillos de choque, los rayos y el burst de la supernova, escalados por nivel y bajo el bucle único. Verificar que en nivel 0 se muestra el mensaje y el medidor lleno sin ninguna animación.
-- [ ] 5.4 Verificar el ciclo de desmarcar y volver a marcar: la celebración se dispara de nuevo por tratarse de una nueva transición.
+- [x] 5.1 Detectar la transición a día completo comparando la cuenta de hábitos cerrados hoy antes y después de marcar. Verificar que se dispara al marcar el último pendiente, que no se dispara si queda alguno, y que se dispara con un único hábito activo.
+- [x] 5.2 Añadir la capa de destello de pantalla completa y el mensaje de día completo que desaparece solo. Verificar que desaparece sin intervención del usuario.
+- [x] 5.3 Implementar los anillos de choque, los rayos y el burst de la supernova, escalados por nivel y bajo el bucle único. Verificar que en nivel 0 se muestra el mensaje y el medidor lleno sin ninguna animación.
+- [x] 5.4 Verificar el ciclo de desmarcar y volver a marcar: la celebración se dispara de nuevo por tratarse de una nueva transición.
 
 ## 6. Racha
 
-- [ ] 6.1 Implementar el cálculo de la racha en `src/store.js` como días consecutivos desde el día 1. Verificar los tres casos del spec: racha corrida, racha cortada por un hueco y racha vacía.
-- [ ] 6.2 Implementar el encendido de una celda (escala con retorno más brillo) reutilizable por el cometa y por la variante sin canvas, quitando `filter` de los keyframes por debajo del nivel 2. Verificar que la celda recupera su aspecto al terminar.
-- [ ] 6.3 Implementar el cometa sobre el arco con nivel mínimo 2: interpola el ángulo entre el primer día de la racha y el día marcado, deja rastro aditivo y deduce del ángulo la celda que enciende a su paso. Verificar con 1, 3 y 7 hábitos que el rastro sigue el anillo correcto y que las celdas encendidas son las que el cometa atraviesa.
-- [ ] 6.4 Acotar la duración del recorrido y encadenar el estallido de llegada en la celda marcada. Verificar que una racha de 20 días no supera el tope de duración.
-- [ ] 6.5 Implementar la variante de nivel 1: encendido escalonado de las celdas de la racha sin canvas ni rastro. Verificar forzando el nivel 1 que las celdas se encienden en secuencia y no hay traza.
-- [ ] 6.6 Implementar los casos sin recorrido: marcar el día 1, y marcar un día posterior a un hueco. Verificar que ambos reciben el estallido de llegada directamente, sin cometa.
-- [ ] 6.7 Mostrar la longitud de la racha en la etiqueta del núcleo al aterrizar el cometa, con retorno automático al estado del día y reemplazo de la presentación anterior si llega otra. Verificar marcando varios días seguidos que el centro acaba siempre volviendo a `n/total`.
-- [ ] 6.8 Distinguir visualmente los tramos de racha de una, dos y tres semanas en la presentación. Verificar comparando una racha de 3 y una de 14.
-- [ ] 6.9 Implementar la respuesta al romper la racha: apagado de la celda desmarcada y cascada en las posteriores. Verificar que es claramente distinta del refuerzo de marcar y que en nivel 0 no hay animación.
+- [x] 6.1 Implementar el cálculo de la racha en `src/store.js` como días consecutivos desde el día 1. Verificar los tres casos del spec: racha corrida, racha cortada por un hueco y racha vacía.
+- [x] 6.2 Implementar el encendido de una celda (escala con retorno más brillo) reutilizable por el cometa y por la variante sin canvas, quitando `filter` de los keyframes por debajo del nivel 2. Verificar que la celda recupera su aspecto al terminar.
+- [x] 6.3 Implementar el cometa sobre el arco con nivel mínimo 2: interpola el ángulo entre el primer día de la racha y el día marcado, deja rastro aditivo y deduce del ángulo la celda que enciende a su paso. Verificar con 1, 3 y 7 hábitos que el rastro sigue el anillo correcto y que las celdas encendidas son las que el cometa atraviesa.
+- [x] 6.4 Acotar la duración del recorrido y encadenar el estallido de llegada en la celda marcada. Verificar que una racha de 20 días no supera el tope de duración.
+- [x] 6.5 Implementar la variante de nivel 1: encendido escalonado de las celdas de la racha sin canvas ni rastro. Verificar forzando el nivel 1 que las celdas se encienden en secuencia y no hay traza.
+- [x] 6.6 Implementar los casos sin recorrido: marcar el día 1, y marcar un día posterior a un hueco. Verificar que ambos reciben el estallido de llegada directamente, sin cometa.
+- [x] 6.7 Mostrar la longitud de la racha en la etiqueta del núcleo al aterrizar el cometa, con retorno automático al estado del día y reemplazo de la presentación anterior si llega otra. Verificar marcando varios días seguidos que el centro acaba siempre volviendo a `n/total`.
+- [x] 6.8 Distinguir visualmente los tramos de racha de una, dos y tres semanas en la presentación. Verificar comparando una racha de 3 y una de 14.
+- [x] 6.9 Implementar la respuesta al romper la racha: apagado de la celda desmarcada y cascada en las posteriores. Verificar que es claramente distinta del refuerzo de marcar y que en nivel 0 no hay animación.
 
 ## 7. Verificación transversal
 

@@ -1,5 +1,5 @@
 import { TOTAL_DAYS, DEFAULT_COLORS, ELEMENTS } from './constants.js';
-import { todayISO, yesterdayISO, addDays } from './utils/date.js';
+import { todayISO, yesterdayISO, addDays, diffDays } from './utils/date.js';
 
 export let habits = [];
 
@@ -40,4 +40,34 @@ export function cellState(habit, dayIndex) {
   if (cellDate === yesterday) return 'yesterday';
   if (cellDate < yesterday) return 'old';
   return 'locked';
+}
+
+/**
+ * Índice del día de hoy dentro del reto de un hábito, o -1 si el reto aún
+ * no ha empezado o ya terminó. Un hábito terminado no puede cerrarse hoy,
+ * así que tampoco cuenta para el medidor del día.
+ */
+export function todayIndexOf(habit) {
+  const i = diffDays(habit.startDate, todayISO());
+  return i >= 0 && i < TOTAL_DAYS ? i : -1;
+}
+
+export function isDoneToday(habit) {
+  const i = todayIndexOf(habit);
+  return i === -1 ? false : !!habit.progress[i];
+}
+
+/** Hábitos cuyo reto está en curso hoy. Son los que el día puede cerrar. */
+export function habitsActiveToday() {
+  return habits.filter((h) => todayIndexOf(h) !== -1);
+}
+
+/** Días consecutivos completados desde el día 1. Un hueco corta la racha. */
+export function habitStreak(habit) {
+  let n = 0;
+  for (let i = 0; i < habit.progress.length; i++) {
+    if (!habit.progress[i]) break;
+    n++;
+  }
+  return n;
 }

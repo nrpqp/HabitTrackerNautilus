@@ -192,6 +192,80 @@ header p {
   transition: all 0.4s ease;
 }
 
+/* ── Medidor del día en el núcleo ─────────────────────────── */
+.gauge-track {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.gauge-arc {
+  fill: none;
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.48s cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+
+html[data-tier="0"] .gauge-arc {
+  transition: none;
+}
+
+.day-core {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+}
+
+.core-value {
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
+  transition: color 0.3s ease;
+}
+
+.core-caption {
+  margin-top: 3px;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.day-core.is-full .core-value { color: #f0b429; }
+
+/* Cambio de contenido del núcleo: sale y entra sin saltar de posición. */
+@keyframes core-swap {
+  0%   { opacity: 1; transform: scale(1); }
+  22%  { opacity: 0; transform: scale(0.86); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.day-core.swapping .core-value,
+.day-core.swapping .core-caption {
+  animation: core-swap 0.42s ease-out;
+}
+
+html[data-tier="0"] .day-core.swapping .core-value,
+html[data-tier="0"] .day-core.swapping .core-caption {
+  animation: none;
+}
+
+/* ── Destello de pantalla completa ────────────────────────── */
+.fx-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 50%, #fff 0%, #ffe9a8 45%, transparent 72%);
+}
+
 /* Label hit areas show pointer cursor */
 .habit-label-hit {
   cursor: pointer;
@@ -257,25 +331,8 @@ header p {
 html[data-tier="0"] .phase-1,
 html[data-tier="0"] .phase-2,
 html[data-tier="0"] .phase-3,
-html[data-tier="0"] .today-indicator,
-html[data-tier="0"] .cell-pop {
+html[data-tier="0"] .today-indicator {
   animation: none;
-}
-
-@keyframes cell-pop {
-  0%   { filter: brightness(1);   opacity: 1; }
-  35%  { filter: brightness(1.7); opacity: 0.85; }
-  100% { filter: brightness(1);   opacity: 1; }
-}
-
-.cell-pop {
-  animation: cell-pop 0.32s ease-out;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cell-pop { animation: none; }
 }
 
 /* ── Habit Sheet (bottom sheet / popover) ────────────────── */

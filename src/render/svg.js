@@ -6,7 +6,7 @@ import { addDays, formatDateFull } from '../utils/date.js';
 import { elementColor } from '../utils/color.js';
 import { computeSvgMetrics, polarToCartesian, annularSectorPath } from '../utils/svg.js';
 import { getThemeColors } from '../theme.js';
-import { habits, saveHabits, cellState } from '../store.js';
+import { habits, saveHabits, cellState, isDoneToday } from '../store.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -23,6 +23,7 @@ let overlayEl = null;
 let centerCircle = null;
 let guideCircle = null;
 let dayNumbers = [];
+let gauges = [];        // [{ arc, length }] — un segmento por hábito
 let rings = [];          // [{ habitId, rIn, rOut, rMid, cells:[path], indicator, label, textPath, hit }]
 let metrics = null;
 let dayAngles = [];
@@ -149,6 +150,34 @@ function build(list) {
     svgEl.appendChild(hit);
 
     return { habitId: habit.id, rIn, rOut, rMid, cells, indicator, label, textPath, hit };
+  });
+
+  // Medidor del día alrededor del núcleo: un segmento por hábito.
+  const gaugeR = innerRadius - 20;
+  const seg = 360 / Math.max(1, list.length);
+  const segPad = list.length > 1 ? 7 : 2;
+  gauges = list.map((habit, i) => {
+    const a0 = -90 + i * seg + segPad / 2;
+    const a1 = -90 + (i + 1) * seg - segPad / 2;
+    const p0 = polarToCartesian(cx, cy, gaugeR, a0);
+    const p1 = polarToCartesian(cx, cy, gaugeR, a1);
+    const large = a1 - a0 > 180 ? 1 : 0;
+    const d = `M ${p0.x} ${p0.y} A ${gaugeR} ${gaugeR} 0 ${large} 1 ${p1.x} ${p1.y}`;
+    const length = gaugeR * (a1 - a0) * (Math.PI / 180);
+
+    const track = document.createElementNS(NS, 'path');
+    track.setAttribute('class', 'gauge-track');
+    track.setAttribute('d', d);
+    svgEl.appendChild(track);
+
+    const arc = document.createElementNS(NS, 'path');
+    arc.setAttribute('class', 'gauge-arc');
+    arc.setAttribute('d', d);
+    arc.setAttribute('stroke-dasharray', length);
+    arc.setAttribute('stroke-dashoffset', length);
+    svgEl.appendChild(arc);
+
+    return { habitId: habit.id, arc, track, length };
   });
 
   // Capa por encima de las celdas para lo que dibujen los efectos dentro del SVG.
@@ -325,6 +354,14 @@ function paint(list) {
   });
 
   dayNumbers.forEach((t) => t.setAttribute('fill', tc.dayLabelFill));
+
+  gauges.forEach((g, i) => {
+    const habit = list[i];
+    if (!habit) return;
+    g.arc.setAttribute('stroke', elementColor(habit.element, 20));
+    g.arc.setAttribute('stroke-dashoffset', isDoneToday(habit) ? 0 : g.length);
+    g.track.setAttribute('stroke', tc.guideStroke);
+  });
 }
 
 // ── API pública ──────────────────────────────────────────────
@@ -351,6 +388,7 @@ export const view = {
   get svg() { return svgEl; },
   get overlay() { return overlayEl; },
   get core() { return centerCircle; },
+  get gauges() { return gauges; },
   get metrics() { return metrics; },
   get ringCount() { return rings.length; },
 
