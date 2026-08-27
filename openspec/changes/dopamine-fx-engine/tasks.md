@@ -56,9 +56,9 @@
 
 ## 7. Verificación transversal
 
-- [ ] 7.1 Recorrer los cuatro niveles forzados (0, 1, 2, 3) sobre el conjunto completo de interacciones, comprobando que en cada uno el momento de recompensa sigue siendo perceptible y que ningún efecto se ejecuta por debajo de su nivel mínimo.
-- [ ] 7.2 Verificar la interacción entre los dos momentos: marcar el último hábito pendiente cuando además extiende una racha larga, comprobando que cometa y supernova se componen sin borrarse mutuamente.
+- [x] 7.1 Recorrer los cuatro niveles forzados (0, 1, 2, 3) sobre el conjunto completo de interacciones, comprobando que en cada uno el momento de recompensa sigue siendo perceptible y que ningún efecto se ejecuta por debajo de su nivel mínimo.
+- [x] 7.2 Verificar la interacción entre los dos momentos: marcar el último hábito pendiente cuando además extiende una racha larga, comprobando que cometa y supernova se componen sin borrarse mutuamente.
 - [ ] 7.3 Probar en iOS Safari con la app instalada como PWA: fluidez al marcar, ausencia de errores por `navigator.vibrate` inexistente, y que el nivel asignado no es 3.
 - [ ] 7.4 Probar en Chrome Android: la háptica se emite y el gobernador no degrada en un dispositivo que sí sostiene el ritmo.
-- [ ] 7.5 Comprobar que la app sigue funcionando offline y que el service worker cachea los archivos nuevos de `src/fx/` (hard refresh sobre el build de producción).
-- [ ] 7.6 Ejecutar `npm run build` y `npm run preview`, y verificar sobre el build que el anillo renderiza y ambos momentos se disparan correctamente.
+- [x] 7.5 Comprobar que la app sigue funcionando offline y que el service worker cachea los archivos nuevos de `src/fx/` (hard refresh sobre el build de producción).
+- [x] 7.6 Ejecutar `npm run build` y `npm run preview`, y verificar sobre el build que el anillo renderiza y ambos momentos se disparan correctamente.
