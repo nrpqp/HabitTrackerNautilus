@@ -3,240 +3,413 @@ import {
   startAngle, sweepAngle, innerRadius, cellThickness, gapBetweenRings,
 } from '../constants.js';
 import { addDays, formatDateFull } from '../utils/date.js';
-import { lightenColor, darkenColor, elementColor } from '../utils/color.js';
+import { elementColor } from '../utils/color.js';
 import { computeSvgMetrics, polarToCartesian, annularSectorPath } from '../utils/svg.js';
 import { getThemeColors } from '../theme.js';
 import { habits, saveHabits, cellState } from '../store.js';
 
+const NS = 'http://www.w3.org/2000/svg';
+
 // Gap bisector angle (midpoint of the 60° gap between arc end ~210° and arc start ~270°)
 const GAP_BISECTOR = 240;
 
-export function renderSVG(onCellClick, onLabelClick) {
-  const svgContainer = document.getElementById('svg-container');
-  const tooltip = document.getElementById('cell-tooltip');
+// ── Estado del árbol construido ──────────────────────────────
+// El SVG se construye una sola vez y después sólo se mutan atributos.
+// Reconstruir sólo cuando cambia el número de anillos o su orden.
+let container = null;
+let svgEl = null;
+let defsEl = null;
+let overlayEl = null;
+let centerCircle = null;
+let guideCircle = null;
+let dayNumbers = [];
+let rings = [];          // [{ habitId, rIn, rOut, rMid, cells:[path], indicator, label, textPath, hit }]
+let metrics = null;
+let dayAngles = [];
+let builtSignature = '';
+const rebuildListeners = [];
 
-  const { outerRadius: dynOuter, size: dynSize, cx: dynCx, cy: dynCy } =
-    computeSvgMetrics(habits.length);
+let onCellClick = null;
+let onLabelClick = null;
 
+function sortedHabits() {
+  return [...habits].sort(
+    (a, b) => a.name.length - b.name.length || habits.indexOf(a) - habits.indexOf(b)
+  );
+}
+
+// Firma del orden: cambia si se añade, elimina o reordena un anillo.
+function orderSignature(list) {
+  return list.map((h) => h.id).join('|');
+}
+
+function computeDayAngles() {
   const angleStep = sweepAngle / TOTAL_DAYS;
   const cellAngle = angleStep - Math.max(0.0001, angleStep * 0.08);
   const arcGap = angleStep - cellAngle;
-
-  const dayAngles = Array.from({ length: TOTAL_DAYS }, (_, d) => {
+  return Array.from({ length: TOTAL_DAYS }, (_, d) => {
     const a0 = startAngle + d * angleStep + arcGap / 2;
     const a1 = a0 + cellAngle;
-    return { a0, a1, day: d + 1 };
+    return { a0, a1, mid: (a0 + a1) / 2, day: d + 1 };
   });
+}
 
-  const tc = getThemeColors();
+// ── Construcción ─────────────────────────────────────────────
 
-  // Sort habits by name length (shortest = innermost ring), stable by insertion order
-  const sortedHabits = [...habits].sort(
-    (a, b) => a.name.length - b.name.length || habits.indexOf(a) - habits.indexOf(b)
-  );
-
-  // Font size for labels, proportional to innerRadius
+function build(list) {
+  container = document.getElementById('svg-container');
+  metrics = computeSvgMetrics(list.length);
+  dayAngles = computeDayAngles();
+  const { size, cx, cy, outerRadius } = metrics;
   const labelFontSize = Math.max(9, Math.floor(innerRadius * 0.2));
 
-  let defsHTML = '<defs>';
-  // label arc paths are added in the main loop below; defsHTML is closed after it
+  // Sacar el SVG anterior sin tocar el canvas overlay ni la etiqueta del núcleo,
+  // que son hermanos suyos dentro del contenedor.
+  if (svgEl) svgEl.remove();
 
-  let pathsHTML = '';
-  let todayIndicators = '';
-  let labelsHTML = '';
+  svgEl = document.createElementNS(NS, 'svg');
+  svgEl.setAttribute('viewBox', `0 0 ${size} ${size}`);
 
-  sortedHabits.forEach((habit, r) => {
+  defsEl = document.createElementNS(NS, 'defs');
+  svgEl.appendChild(defsEl);
+
+  guideCircle = document.createElementNS(NS, 'circle');
+  guideCircle.setAttribute('cx', cx);
+  guideCircle.setAttribute('cy', cy);
+  guideCircle.setAttribute('r', innerRadius - 12);
+  guideCircle.setAttribute('fill', 'none');
+  guideCircle.setAttribute('stroke-width', '1');
+  svgEl.appendChild(guideCircle);
+
+  centerCircle = document.createElementNS(NS, 'circle');
+  centerCircle.setAttribute('cx', cx);
+  centerCircle.setAttribute('cy', cy);
+  centerCircle.setAttribute('r', innerRadius - 8);
+  centerCircle.setAttribute('stroke-width', '1.2');
+  centerCircle.setAttribute('class', 'nautilus-core');
+  svgEl.appendChild(centerCircle);
+
+  rings = list.map((habit, r) => {
     const rOut = innerRadius + (r + 1) * cellThickness + r * gapBetweenRings;
     const rIn = rOut - cellThickness;
     const rMid = rIn + cellThickness / 2;
 
-    // Arc path for the curved label in the gap (210°→270°, clockwise, sweep=1)
-    const arcLabelR = rIn + 2;
-    const arcStart = polarToCartesian(dynCx, dynCy, arcLabelR, 210);
-    const arcEnd = polarToCartesian(dynCx, dynCy, arcLabelR, 270);
-    defsHTML += `<path id="label-arc-${habit.id}" d="M ${arcStart.x} ${arcStart.y} A ${arcLabelR} ${arcLabelR} 0 0 1 ${arcEnd.x} ${arcEnd.y}" fill="none" />`;
+    const group = document.createElementNS(NS, 'g');
+    group.setAttribute('class', 'habit-ring');
 
-    dayAngles.forEach(({ a0, a1 }, d) => {
+    const cells = dayAngles.map(({ a0, a1 }, d) => {
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', annularSectorPath(cx, cy, rIn, rOut, a0, a1));
+      path.setAttribute('data-habit-id', habit.id);
+      path.setAttribute('data-day', d);
+      path.style.transformBox = 'fill-box';
+      path.style.transformOrigin = 'center';
+      group.appendChild(path);
+      return path;
+    });
+
+    // El indicador de "hoy" es uno por anillo: sólo un día puede serlo.
+    const indicator = document.createElementNS(NS, 'path');
+    indicator.setAttribute('class', 'today-indicator');
+    indicator.style.display = 'none';
+    group.appendChild(indicator);
+
+    svgEl.appendChild(group);
+
+    // Etiqueta curva en el hueco de 60° (210°→270°, sentido horario)
+    const arcLabelR = rIn + 2;
+    const arcStart = polarToCartesian(cx, cy, arcLabelR, 210);
+    const arcEnd = polarToCartesian(cx, cy, arcLabelR, 270);
+    const arcPath = document.createElementNS(NS, 'path');
+    arcPath.setAttribute('id', `label-arc-${habit.id}`);
+    arcPath.setAttribute('d', `M ${arcStart.x} ${arcStart.y} A ${arcLabelR} ${arcLabelR} 0 0 1 ${arcEnd.x} ${arcEnd.y}`);
+    arcPath.setAttribute('fill', 'none');
+    defsEl.appendChild(arcPath);
+
+    const label = document.createElementNS(NS, 'text');
+    label.setAttribute('font-size', labelFontSize);
+    label.setAttribute('font-weight', '600');
+    label.setAttribute('font-family', 'Outfit');
+    label.setAttribute('pointer-events', 'none');
+    const textPath = document.createElementNS(NS, 'textPath');
+    textPath.setAttribute('href', `#label-arc-${habit.id}`);
+    textPath.setAttribute('startOffset', '50%');
+    textPath.setAttribute('text-anchor', 'middle');
+    label.appendChild(textPath);
+    svgEl.appendChild(label);
+
+    const anchorPos = polarToCartesian(cx, cy, arcLabelR, GAP_BISECTOR);
+    const hit = document.createElementNS(NS, 'rect');
+    hit.setAttribute('class', 'habit-label-hit');
+    hit.setAttribute('fill', 'transparent');
+    hit.setAttribute('data-habit-id', habit.id);
+    hit.setAttribute('transform', `rotate(${GAP_BISECTOR + 90}, ${anchorPos.x}, ${anchorPos.y})`);
+    hit.dataset.anchorX = anchorPos.x;
+    hit.dataset.anchorY = anchorPos.y;
+    svgEl.appendChild(hit);
+
+    return { habitId: habit.id, rIn, rOut, rMid, cells, indicator, label, textPath, hit };
+  });
+
+  // Capa por encima de las celdas para lo que dibujen los efectos dentro del SVG.
+  overlayEl = document.createElementNS(NS, 'g');
+  overlayEl.setAttribute('class', 'fx-overlay');
+  overlayEl.setAttribute('pointer-events', 'none');
+  svgEl.appendChild(overlayEl);
+
+  const labelR = outerRadius + 16;
+  dayNumbers = dayAngles.map(({ mid, day }) => {
+    const p = polarToCartesian(cx, cy, labelR, mid);
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', p.x);
+    t.setAttribute('y', p.y);
+    t.setAttribute('font-size', '13');
+    t.setAttribute('font-weight', '700');
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('dominant-baseline', 'middle');
+    t.setAttribute('font-family', 'Outfit');
+    t.textContent = day;
+    svgEl.appendChild(t);
+    return t;
+  });
+
+  attachListeners();
+  // El SVG va delante para que el canvas overlay quede por encima.
+  container.insertBefore(svgEl, container.firstChild);
+  rebuildListeners.forEach((fn) => fn());
+}
+
+// ── Listeners: se enganchan una sola vez por construcción ────
+
+function attachListeners() {
+  const tooltip = document.getElementById('cell-tooltip');
+
+  svgEl.addEventListener('click', (e) => {
+    const cell = e.target.closest('path[data-habit-id]');
+    if (cell) {
+      const habitId = cell.getAttribute('data-habit-id');
+      const dayIndex = parseInt(cell.getAttribute('data-day'), 10);
+      const habit = habits.find((h) => h.id === habitId);
+      if (!habit) return;
+      // La ventana de edición se comprueba aquí, no filtrando por selector:
+      // el estado de una celda cambia con el paso de los días.
+      const state = cellState(habit, dayIndex);
+      if (state !== 'today' && state !== 'yesterday') return;
+      const prevState = habit.progress[dayIndex];
+      habit.progress[dayIndex] = !prevState;
+      saveHabits();
+      if (onCellClick) onCellClick(e, habitId, dayIndex, prevState);
+      return;
+    }
+    const hit = e.target.closest('.habit-label-hit');
+    if (hit && onLabelClick) onLabelClick(hit.getAttribute('data-habit-id'), e);
+  });
+
+  svgEl.addEventListener('mouseover', (e) => {
+    const cell = e.target.closest('path[data-habit-id]');
+    if (!cell || !tooltip) return;
+    const habitId = cell.getAttribute('data-habit-id');
+    const dayIndex = parseInt(cell.getAttribute('data-day'), 10);
+    const habit = habits.find((h) => h.id === habitId);
+    if (!habit) return;
+
+    const state = cell.getAttribute('data-state');
+    const date = cell.getAttribute('data-date');
+    const isCompleted = habit.progress[dayIndex];
+    let label = `Día ${dayIndex + 1} · ${formatDateFull(date)}`;
+    if (state === 'locked') label += ' · 🔒 Bloqueado';
+    else if (state === 'old' && !isCompleted) label += ' · ❌ Perdido';
+    else if (state === 'today' && !isCompleted) label += ' · ⭐ ¡Hoy!';
+    else if (state === 'yesterday' && !isCompleted) label += ' · ⏰ Ayer';
+    else if (isCompleted) label += ' · ✅';
+
+    tooltip.textContent = label;
+    tooltip.classList.add('visible');
+  });
+
+  svgEl.addEventListener('mousemove', (e) => {
+    if (!tooltip || !tooltip.classList.contains('visible')) return;
+    tooltip.style.left = e.clientX + 14 + 'px';
+    tooltip.style.top = e.clientY + 14 + 'px';
+  });
+
+  svgEl.addEventListener('mouseout', (e) => {
+    if (!tooltip) return;
+    if (!e.relatedTarget || !svgEl.contains(e.relatedTarget)) {
+      tooltip.classList.remove('visible');
+      return;
+    }
+    if (!e.relatedTarget.closest('path[data-habit-id]')) {
+      tooltip.classList.remove('visible');
+    }
+  });
+}
+
+// ── Repintado: sólo muta atributos ───────────────────────────
+
+function paint(list) {
+  const tc = getThemeColors();
+  const labelFontSize = Math.max(9, Math.floor(innerRadius * 0.2));
+
+  guideCircle.setAttribute('stroke', tc.guideStroke);
+  centerCircle.setAttribute('fill', tc.centerFill);
+  centerCircle.setAttribute('stroke', tc.centerStroke);
+
+  rings.forEach((ring, r) => {
+    const habit = list[r];
+    if (!habit) return;
+
+    let todayIndex = -1;
+
+    ring.cells.forEach((cell, d) => {
       const state = cellState(habit, d);
       const isCompleted = habit.progress[d];
-      const pathData = annularSectorPath(dynCx, dynCy, rIn, rOut, a0, a1);
       const cellDate = addDays(habit.startDate, d);
-
-      let fill, stroke, strokeW;
       const phase = d < 7 ? 'phase-1' : d < 14 ? 'phase-2' : 'phase-3';
 
+      let fill, stroke, strokeW;
       if (state === 'locked') {
-        fill = tc.lockedFill;
-        stroke = tc.lockedStroke;
-        strokeW = 0.6;
+        fill = tc.lockedFill; stroke = tc.lockedStroke; strokeW = 0.6;
       } else if (state === 'old') {
         if (isCompleted) {
           fill = elementColor(habit.element, d);
           stroke = elementColor(habit.element, d, -12);
           strokeW = 1.5;
         } else {
-          fill = tc.oldCellFill;
-          stroke = tc.oldCellStroke;
-          strokeW = 0.6;
+          fill = tc.oldCellFill; stroke = tc.oldCellStroke; strokeW = 0.6;
         }
       } else if (isCompleted) {
         fill = elementColor(habit.element, d);
         stroke = elementColor(habit.element, d, -12);
         strokeW = 1.5;
       } else {
-        fill = tc.emptyCellFill;
-        stroke = tc.emptyCellStroke;
-        strokeW = 0.8;
+        fill = tc.emptyCellFill; stroke = tc.emptyCellStroke; strokeW = 0.8;
       }
 
-      const baseClass =
-        state === 'locked' || state === 'old'
-          ? 'day-cell locked'
-          : state === 'today'
-          ? 'day-cell unlocked is-today'
-          : 'day-cell unlocked';
-      const cssClass = isCompleted ? `${baseClass} ${phase}` : baseClass;
+      cell.setAttribute('fill', fill);
+      cell.setAttribute('stroke', stroke);
+      cell.setAttribute('stroke-width', strokeW);
+      cell.setAttribute('data-state', state);
+      cell.setAttribute('data-date', cellDate);
 
-      pathsHTML += `
-        <path
-          class="${cssClass}"
-          d="${pathData}"
-          fill="${fill}"
-          stroke="${stroke}"
-          stroke-width="${strokeW}"
-          data-habit-id="${habit.id}"
-          data-day="${d}"
-          data-state="${state}"
-          data-date="${cellDate}"
-        />
-      `;
+      const unlocked = state === 'today' || state === 'yesterday';
+      cell.setAttribute(
+        'class',
+        `day-cell ${unlocked ? 'unlocked' : 'locked'}${state === 'today' ? ' is-today' : ''}` +
+        (isCompleted ? ` ${phase}` : '')
+      );
 
-      if (state === 'today' && !isCompleted) {
-        todayIndicators += `
-          <path
-            class="today-indicator"
-            d="${pathData}"
-            stroke="${elementColor(habit.element, d)}"
-          />
-        `;
-      }
+      if (state === 'today') todayIndex = d;
     });
 
-    // Label in the gap: curved text following the arc of each ring
-    const anchorPos = polarToCartesian(dynCx, dynCy, arcLabelR, GAP_BISECTOR);
+    // Indicador de "hoy": sólo cuando el día actual está sin marcar.
+    if (todayIndex !== -1 && !habit.progress[todayIndex]) {
+      ring.indicator.setAttribute('d', ring.cells[todayIndex].getAttribute('d'));
+      ring.indicator.setAttribute('stroke', elementColor(habit.element, todayIndex));
+      ring.indicator.style.display = '';
+    } else {
+      ring.indicator.style.display = 'none';
+    }
+
+    ring.label.setAttribute('fill', elementColor(habit.element, 10));
+    if (ring.textPath.textContent !== habit.name) ring.textPath.textContent = habit.name;
+
     const hitW = Math.max(44, Math.ceil(habit.name.length * labelFontSize * 0.65) + 8);
     const hitH = Math.max(44, cellThickness + 4);
-    // Tangent direction for CW arc at GAP_BISECTOR: GAP_BISECTOR + 90
-    const hitRotAngle = GAP_BISECTOR + 90;
-
-    labelsHTML += `
-      <text
-        font-size="${labelFontSize}"
-        font-weight="600"
-        font-family="Outfit"
-        fill="${elementColor(habit.element, 10)}"
-        pointer-events="none"
-      ><textPath href="#label-arc-${habit.id}" startOffset="50%" text-anchor="middle">${habit.name}</textPath></text>
-      <rect
-        class="habit-label-hit"
-        x="${anchorPos.x - hitW / 2}"
-        y="${anchorPos.y - hitH / 2}"
-        width="${hitW}"
-        height="${hitH}"
-        fill="transparent"
-        data-habit-id="${habit.id}"
-        transform="rotate(${hitRotAngle}, ${anchorPos.x}, ${anchorPos.y})"
-        style="cursor: pointer;"
-      />
-    `;
+    const ax = parseFloat(ring.hit.dataset.anchorX);
+    const ay = parseFloat(ring.hit.dataset.anchorY);
+    ring.hit.setAttribute('x', ax - hitW / 2);
+    ring.hit.setAttribute('y', ay - hitH / 2);
+    ring.hit.setAttribute('width', hitW);
+    ring.hit.setAttribute('height', hitH);
   });
 
-  defsHTML += '</defs>';
-
-  let textHTML = '';
-  const labelR = dynOuter + 16;
-
-  dayAngles.forEach(({ a0, a1, day }) => {
-    const aMid = (a0 + a1) / 2;
-    const p = polarToCartesian(dynCx, dynCy, labelR, aMid);
-    textHTML += `
-      <text
-        x="${p.x}"
-        y="${p.y}"
-        font-size="13"
-        font-weight="700"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        fill="${tc.dayLabelFill}"
-        font-family="Outfit"
-      >${day}</text>
-    `;
-  });
-
-  // Preserve canvas overlay before replacing innerHTML (it lives inside svg-container)
-  const overlayCanvas = svgContainer.querySelector('canvas');
-  svgContainer.innerHTML = `
-    <svg viewBox="0 0 ${dynSize} ${dynSize}">
-      ${defsHTML}
-      <circle cx="${dynCx}" cy="${dynCy}" r="${innerRadius - 12}" fill="none" stroke="${tc.guideStroke}" stroke-width="1" />
-      <circle cx="${dynCx}" cy="${dynCy}" r="${innerRadius - 8}" fill="${tc.centerFill}" stroke="${tc.centerStroke}" stroke-width="1.2" />
-      ${pathsHTML}
-      ${todayIndicators}
-      ${labelsHTML}
-      ${textHTML}
-    </svg>
-  `;
-  if (overlayCanvas) svgContainer.appendChild(overlayCanvas);
-
-  document.querySelectorAll('.day-cell.unlocked').forEach((cell) => {
-    cell.addEventListener('click', (e) => {
-      const habitId = e.target.getAttribute('data-habit-id');
-      const dayIndex = parseInt(e.target.getAttribute('data-day'), 10);
-      const habit = habits.find((h) => h.id === habitId);
-      if (habit) {
-        const prevState = habit.progress[dayIndex];
-        habit.progress[dayIndex] = !habit.progress[dayIndex];
-        saveHabits();
-        if (onCellClick) onCellClick(e, habitId, dayIndex, prevState);
-      }
-    });
-  });
-
-  document.querySelectorAll('.habit-label-hit').forEach((rect) => {
-    rect.addEventListener('click', (e) => {
-      const habitId = e.currentTarget.getAttribute('data-habit-id');
-      if (onLabelClick) onLabelClick(habitId, e);
-    });
-  });
-
-  document.querySelectorAll('.day-cell').forEach((cell) => {
-    cell.addEventListener('mouseenter', (e) => {
-      const state = e.target.getAttribute('data-state');
-      const date = e.target.getAttribute('data-date');
-      const dayIndex = parseInt(e.target.getAttribute('data-day'), 10);
-      const habitId = e.target.getAttribute('data-habit-id');
-      const habit = habits.find((h) => h.id === habitId);
-      if (!habit) return;
-
-      const isCompleted = habit.progress[dayIndex];
-      let label = `Día ${dayIndex + 1} · ${formatDateFull(date)}`;
-      if (state === 'locked') label += ' · 🔒 Bloqueado';
-      else if (state === 'old' && !isCompleted) label += ' · ❌ Perdido';
-      else if (state === 'today' && !isCompleted) label += ' · ⭐ ¡Hoy!';
-      else if (state === 'yesterday' && !isCompleted) label += ' · ⏰ Ayer';
-      else if (isCompleted) label += ' · ✅';
-
-      tooltip.textContent = label;
-      tooltip.classList.add('visible');
-    });
-
-    cell.addEventListener('mousemove', (e) => {
-      tooltip.style.left = e.clientX + 14 + 'px';
-      tooltip.style.top = e.clientY + 14 + 'px';
-    });
-
-    cell.addEventListener('mouseleave', () => {
-      tooltip.classList.remove('visible');
-    });
-  });
+  dayNumbers.forEach((t) => t.setAttribute('fill', tc.dayLabelFill));
 }
+
+// ── API pública ──────────────────────────────────────────────
+
+export function renderSVG(cellClickHandler, labelClickHandler) {
+  onCellClick = cellClickHandler;
+  onLabelClick = labelClickHandler;
+
+  const list = sortedHabits();
+  const signature = orderSignature(list);
+  if (!svgEl || signature !== builtSignature) {
+    build(list);
+    builtSignature = signature;
+  }
+  paint(list);
+}
+
+/** Se ejecuta cada vez que el árbol SVG se reconstruye desde cero. */
+export function onRebuild(fn) {
+  rebuildListeners.push(fn);
+}
+
+export const view = {
+  get svg() { return svgEl; },
+  get overlay() { return overlayEl; },
+  get core() { return centerCircle; },
+  get metrics() { return metrics; },
+  get ringCount() { return rings.length; },
+
+  /** Índice de anillo de un hábito, o -1 si no está en pantalla. */
+  ringIndexOf(habitId) {
+    return rings.findIndex((r) => r.habitId === habitId);
+  },
+
+  ringAt(index) {
+    return rings[index] || null;
+  },
+
+  /** Referencia al <path> de una celda. */
+  cell(habitId, dayIndex) {
+    const ring = rings.find((r) => r.habitId === habitId);
+    return ring ? ring.cells[dayIndex] || null : null;
+  },
+
+  /** Ángulo medio de un día, en grados. */
+  dayAngle(dayIndex) {
+    return dayAngles[dayIndex] ? dayAngles[dayIndex].mid : 0;
+  },
+
+  /** Centro de una celda en coordenadas del viewBox. */
+  cellCenter(habitId, dayIndex) {
+    const ring = rings.find((r) => r.habitId === habitId);
+    if (!ring || !metrics) return { x: 0, y: 0 };
+    return polarToCartesian(metrics.cx, metrics.cy, ring.rMid, this.dayAngle(dayIndex));
+  },
+
+  /**
+   * Punto del viewBox a píxeles relativos al contenedor.
+   * El SVG se encaja con preserveAspectRatio, así que su centro NO coincide
+   * con el del contenedor cuando éste no es cuadrado: hay que descontar el
+   * letterboxing o los efectos aparecen desplazados.
+   */
+  toPx(x, y) {
+    if (!svgEl || !container || !metrics) return { x: 0, y: 0, scale: 1 };
+    const cRect = container.getBoundingClientRect();
+    const sRect = svgEl.getBoundingClientRect();
+    const scale = Math.min(sRect.width / metrics.size, sRect.height / metrics.size);
+    const offX = sRect.left - cRect.left + (sRect.width - metrics.size * scale) / 2;
+    const offY = sRect.top - cRect.top + (sRect.height - metrics.size * scale) / 2;
+    return { x: offX + x * scale, y: offY + y * scale, scale };
+  },
+
+  cellCenterPx(habitId, dayIndex) {
+    const c = this.cellCenter(habitId, dayIndex);
+    return this.toPx(c.x, c.y);
+  },
+
+  centerPx() {
+    if (!metrics) return { x: 0, y: 0, scale: 1 };
+    return this.toPx(metrics.cx, metrics.cy);
+  },
+
+  /** Radio medio del anillo de un hábito, en unidades del viewBox. */
+  ringRadius(habitId) {
+    const ring = rings.find((r) => r.habitId === habitId);
+    return ring ? ring.rMid : 0;
+  },
+};

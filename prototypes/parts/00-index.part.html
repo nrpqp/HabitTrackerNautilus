@@ -1,0 +1,317 @@
+<!--{"title":"Nautilus FX Lab","subtitle":"Siete direcciones de efecto visual sobre el mismo anillo","favicon":"🌀","file":"index.html"}-->
+<style>
+  body { display: block; overflow-x: hidden; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 64px; }
+
+  .hero { text-align: center; padding: 26px 0 8px; }
+  .hero h1 {
+    font-size: clamp(1.7rem, 4.6vw, 2.6rem);
+    font-weight: 700; letter-spacing: -.035em; line-height: 1.1;
+  }
+  .hero p {
+    color: var(--text-secondary);
+    max-width: 60ch; margin: 12px auto 0; line-height: 1.6;
+    font-size: .96rem;
+  }
+
+  h2.sec {
+    font-size: .72rem; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--text-muted);
+    margin: 40px 0 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2.sec::after {
+    content: ''; flex: 1; height: 1px; background: var(--border-color);
+  }
+
+  /* ── Informe de dispositivo ─────────────────────────────── */
+  .report {
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    border-radius: 18px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow-card);
+  }
+  .report-top {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding-bottom: 14px; margin-bottom: 14px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .report-tier {
+    font-size: 1.5rem; font-weight: 700; letter-spacing: -.03em;
+  }
+  .report-why { font-size: .84rem; color: var(--text-secondary); flex: 1 1 260px; line-height: 1.5; }
+
+  .caps { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 10px; }
+  .cap {
+    border: 1px solid var(--border-color); border-radius: 12px;
+    padding: 9px 12px; background: var(--bg-color);
+  }
+  .cap dt {
+    font-size: .64rem; font-weight: 700; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .cap dd { font-size: .92rem; font-weight: 600; margin-top: 3px; }
+  .cap dd.yes { color: #10a37f; }
+  .cap dd.no  { color: var(--text-muted); }
+
+  /* ── Tarjetas ───────────────────────────────────────────── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    display: flex; flex-direction: column; gap: 8px;
+    text-decoration: none; color: inherit;
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    background: var(--card-bg);
+    padding: 18px;
+    transition: transform .2s cubic-bezier(.2,1,.3,1), box-shadow .2s, border-color .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute; inset: -40% -40% auto auto;
+    width: 180px; height: 180px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 68%);
+    opacity: .16;
+    transition: opacity .3s, transform .5s cubic-bezier(.2,1,.3,1);
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-card); border-color: var(--accent); }
+  .card:hover::before { opacity: .34; transform: scale(1.25); }
+
+  .card-ico { font-size: 1.9rem; line-height: 1; }
+  .card-t { font-size: 1.06rem; font-weight: 700; letter-spacing: -.02em; }
+  .card-d { font-size: .85rem; color: var(--text-secondary); line-height: 1.55; flex: 1; }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+  .tag {
+    font-size: .65rem; font-weight: 700; letter-spacing: .04em;
+    padding: 3px 8px; border-radius: 999px;
+    border: 1px solid var(--border-color); color: var(--text-muted);
+    background: var(--bg-color);
+  }
+  .tag.t1 { color: #0891b2; border-color: #0891b2; }
+  .tag.t2 { color: #7c3aed; border-color: #7c3aed; }
+  .tag.t3 { color: #db2777; border-color: #db2777; }
+
+  /* ── Matriz ─────────────────────────────────────────────── */
+  .matrix-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.matrix {
+    width: 100%; border-collapse: collapse; min-width: 720px;
+    font-size: .85rem;
+  }
+  table.matrix th, table.matrix td {
+    text-align: left; padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+  }
+  table.matrix th {
+    font-size: .65rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-muted);
+    white-space: nowrap;
+  }
+  table.matrix tbody tr:hover { background: rgba(127,127,160,.07); }
+  table.matrix td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .foot {
+    margin-top: 40px; padding-top: 18px;
+    border-top: 1px solid var(--border-color);
+    font-size: .8rem; color: var(--text-muted); line-height: 1.7;
+  }
+  .foot code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .92em;
+    background: var(--bg-color); padding: 1px 5px; border-radius: 5px;
+    border: 1px solid var(--border-color);
+  }
+</style>
+
+<header class="lab-bar">
+  <div class="lab-title">🌀 Nautilus FX Lab<small>Maquetas de efectos visuales · v0.2.0</small></div>
+  <div class="lab-spacer"></div>
+  <span class="tier-badge" data-tier="2">…</span>
+  <button class="icon-btn" id="theme-btn" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Siete maneras de que marcar un día se sienta</h1>
+    <p>
+      Todas parten del mismo anillo, la misma paleta elemental y el mismo stack — vanilla JS, CSS y
+      canvas 2D, sin dependencias nuevas. Lo que cambia es <em>dónde</em> ponen la energía y
+      <em>cuánto</em> cuesta sostenerla. Ábrelas, tócalas y cambia el tier desde el dock de cada una.
+    </p>
+  </div>
+
+  <h2 class="sec">Este dispositivo</h2>
+  <div class="report">
+    <div class="report-top">
+      <div class="report-tier" id="rt">—</div>
+      <div class="report-why" id="rw"></div>
+    </div>
+    <dl class="caps" id="caps"></dl>
+  </div>
+
+  <h2 class="sec">Las direcciones</h2>
+  <div class="cards" id="cards"></div>
+
+  <h2 class="sec">Cuál elegir</h2>
+  <div class="matrix-scroll">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th>Dirección</th><th>Momento que celebra</th><th>Tier mín.</th>
+          <th>Coste por evento</th><th>Dónde brilla</th><th>Riesgo principal</th>
+        </tr>
+      </thead>
+      <tbody id="mbody"></tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    Las maquetas son HTML autocontenido: se abren con <code>file://</code>, sin servidor ni build.
+    Se regeneran con <code>node prototypes/assemble.js</code> a partir de <code>prototypes/parts/</code>.
+    La geometría del anillo está calcada de <code>src/utils/svg.js</code> y <code>src/constants.js</code>,
+    así que lo que ves aquí es trasladable tal cual.
+    <br><br>
+    Diferencia estructural con la app actual: aquí el SVG se construye <b>una sola vez</b> con la DOM API
+    y después sólo se mutan atributos. La app hoy hace <code>innerHTML</code> completo en cada click, lo
+    que mata cualquier animación en curso — es el techo real de todo lo demás.
+  </div>
+</div>
+
+<script>
+(() => {
+  FX.initTheme();
+  document.getElementById('theme-btn').addEventListener('click', FX.toggleTheme);
+
+  const badge = document.querySelector('.tier-badge');
+  badge.dataset.tier = FX.tier.value;
+  badge.textContent = `T${FX.tier.value} · ${FX.TIER_NAMES[FX.tier.value]} (auto)`;
+
+  // ── Informe ───────────────────────────────────────────────
+  const c = FX.caps;
+  document.getElementById('rt').textContent =
+    `Tier ${FX.tier.value} · ${FX.TIER_NAMES[FX.tier.value]}`;
+
+  const why = [];
+  if (c.reducedMotion) why.push('el sistema pide <b>movimiento reducido</b>, así que todo baja a Tier 0');
+  if (c.saveData) why.push('está activo el <b>ahorro de datos</b>');
+  if (c.cores !== null) why.push(`declara <b>${c.cores} núcleos</b>`);
+  else why.push('no expone número de núcleos');
+  if (c.memory !== null) why.push(`declara <b>${c.memory} GB</b> de memoria`);
+  else why.push('no expone memoria (Safari y Firefox nunca lo hacen)');
+  why.push(c.coarse ? 'el puntero es <b>grueso</b> (táctil)' : 'el puntero es <b>fino</b>');
+  document.getElementById('rw').innerHTML =
+    'Se ha decidido así porque ' + why.join(', ') + '.';
+
+  const caps = [
+    ['Núcleos', c.cores ?? 'no expuesto', c.cores !== null],
+    ['Memoria', c.memory !== null ? c.memory + ' GB' : 'no expuesto', c.memory !== null],
+    ['DPR', c.dpr, true],
+    ['Movimiento reducido', c.reducedMotion ? 'sí' : 'no', !c.reducedMotion],
+    ['Ahorro de datos', c.saveData ? 'sí' : 'no', !c.saveData],
+    ['Vibración', c.vibrate ? 'disponible' : 'no (iOS Safari)', c.vibrate],
+    ['Orientación', c.gyro ? (c.gyroNeedsPermission ? 'con permiso' : 'disponible') : 'no', c.gyro],
+    ['Puntero fino', c.hover ? 'sí' : 'no', c.hover],
+    ['Táctil', c.touch ? 'sí' : 'no', c.touch],
+  ];
+  const capsEl = document.getElementById('caps');
+  caps.forEach(([k, v, ok]) => {
+    const d = document.createElement('div');
+    d.className = 'cap';
+    d.innerHTML = `<dt>${k}</dt><dd class="${ok ? 'yes' : 'no'}">${v}</dd>`;
+    capsEl.appendChild(d);
+  });
+
+  // ── Tarjetas ──────────────────────────────────────────────
+  const DIRS = [
+    {
+      file: '01-impact.html', ico: '💥', accent: '#e74c3c',
+      title: '01 · Impacto',
+      desc: 'La celda encaja un golpe, una onda de choque sale del punto tocado y el temblor se propaga a las vecinas con retraso angular.',
+      tags: [['Tier 1', 't1'], ['transform', ''], ['canvas', ''], ['háptica', '']],
+      moment: 'Marcar un día', tier: '1', cost: '1 onda + ~10 animaciones cortas',
+      shines: 'Cualquier dispositivo; degrada limpio', risk: 'Pasarse de sacudida y marear',
+    },
+    {
+      file: '02-bloom.html', ico: '✨', accent: '#ff6b35',
+      title: '02 · Bloom',
+      desc: 'Partículas con blending aditivo, sprite radial cacheado y física propia por elemento. Es el salto de calidad más directo sobre lo que ya existe.',
+      tags: [['Tier 2', 't2'], ['canvas', ''], ['aditivo', ''], ['7 elementos', '']],
+      moment: 'Marcar un día', tier: '2', cost: '22–47 partículas · ~0,8 s',
+      shines: 'Pantallas OLED y tema oscuro', risk: 'Fill-rate en gama baja con DPR 3',
+    },
+    {
+      file: '03-flow.html', ico: '🌊', accent: '#00b4d8',
+      title: '03 · Flujo',
+      desc: 'El color se vierte a lo largo del arco en vez de encenderse de golpe, el pulso viaja desfasado por el anillo y una luz especular barre lo conseguido.',
+      tags: [['Tier 1', 't1'], ['dashoffset', ''], ['CSS delay', ''], ['especular', '']],
+      moment: 'Marcar un día + estado en reposo', tier: '1', cost: 'Continuo bajo (~60 arcos/frame)',
+      shines: 'Sensación de material caro', risk: 'Animación continua = batería',
+    },
+    {
+      file: '04-streak.html', ico: '☄️', accent: '#f39c12',
+      title: '04 · Racha',
+      desc: 'Un cometa sale del inicio de la racha, recorre lo ya conseguido reencendiéndolo y estalla en la celda nueva. Cuanto más larga la racha, más largo el viaje.',
+      tags: [['Tier 2', 't2'], ['cometa', ''], ['cadena', ''], ['fallback Tier 1', '']],
+      moment: 'Continuidad, no el día suelto', tier: '2', cost: '1 rastro + burst · ~1,3 s',
+      shines: 'Retención — hace visible lo que se pierde', risk: 'Se alarga en rachas de 20 días',
+    },
+    {
+      file: '05-core.html', ico: '🌟', accent: '#f0b429',
+      title: '05 · Núcleo',
+      desc: 'El centro vacío se convierte en el reactor del día: se carga con cada hábito cerrado y entra en supernova al completar el último.',
+      tags: [['Tier 1', 't1'], ['medidor', ''], ['supernova', ''], ['pantalla', '']],
+      moment: 'Cerrar el día completo', tier: '1', cost: '52–94 partículas + 3 anillos · 1,4 s',
+      shines: 'Es el pico de dopamina que hoy no existe', risk: 'Con 1 solo hábito pierde sentido',
+    },
+    {
+      file: '06-ascend.html', ico: '🏆', accent: '#9b59b6',
+      title: '06 · Ascenso',
+      desc: 'Los hitos de 7, 14 y 21 comparten gramática pero escalan en intensidad. El 21 se lleva la pantalla y deja una marca permanente en el anillo.',
+      tags: [['Tier 1', 't1'], ['confeti', ''], ['barrido', ''], ['halo permanente', '']],
+      moment: 'Días 7, 14 y 21', tier: '1', cost: 'Pico alto pero 3 veces por reto',
+      shines: 'Cierre del reto — el recuerdo que queda', risk: 'Si el día 7 se pasa, el 21 no sube',
+    },
+    {
+      file: '07-depth.html', ico: '🪩', accent: '#c77dff',
+      title: '07 · Profundidad',
+      desc: 'Paralaje alimentado por el puntero en escritorio, el giroscopio en móvil, y una órbita lenta cuando no hay ninguno. Capas opuestas dan grosor al anillo.',
+      tags: [['Tier 1', 't1'], ['giroscopio', ''], ['puntero', ''], ['especular', '']],
+      moment: 'Estado en reposo, todo el tiempo', tier: '1', cost: 'Continuo · 1 transform + 1 sprite',
+      shines: 'Es lo primero que se nota al abrir', risk: 'iOS pide permiso explícito y https',
+    },
+  ];
+
+  const cards = document.getElementById('cards');
+  const mbody = document.getElementById('mbody');
+  DIRS.forEach(d => {
+    const a = document.createElement('a');
+    a.className = 'card';
+    a.href = './' + d.file;
+    a.style.setProperty('--accent', d.accent);
+    a.innerHTML = `
+      <span class="card-ico">${d.ico}</span>
+      <div class="card-t">${d.title}</div>
+      <div class="card-d">${d.desc}</div>
+      <div class="tags">${d.tags.map(([t, cls]) => `<span class="tag ${cls}">${t}</span>`).join('')}</div>
+    `;
+    cards.appendChild(a);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${d.ico} ${d.title.replace(/^\d+ · /, '')}</td>
+      <td>${d.moment}</td>
+      <td><span class="tag t${d.tier}">Tier ${d.tier}</span></td>
+      <td>${d.cost}</td>
+      <td>${d.shines}</td>
+      <td>${d.risk}</td>
+    `;
+    mbody.appendChild(tr);
+  });
+})();
+</script>

@@ -1,0 +1,318 @@
+<!--{"title":"06 · Ascenso","subtitle":"Los hitos de 7, 14 y 21 con intensidad escalada","favicon":"🏆","file":"06-ascend.html"}-->
+<style>
+  #confetti {
+    position: fixed; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 240;
+  }
+  .crown {
+    position: fixed;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%) scale(.75);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 260;
+    padding: 26px 34px;
+    border-radius: 24px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-card), 0 0 60px rgba(240,180,41,.28);
+    text-align: center;
+    min-width: 240px;
+  }
+  .crown.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    transition: opacity .35s ease, transform .55s cubic-bezier(.2,1.6,.35,1);
+  }
+  .crown .k-ico { font-size: 3rem; line-height: 1; display: block; }
+  .crown .k-title { font-size: 1.25rem; font-weight: 700; margin-top: 6px; letter-spacing: -.02em; }
+  .crown .k-sub { font-size: .85rem; color: var(--text-muted); margin-top: 2px; }
+  .crown .k-rank {
+    display: inline-block; margin-top: 12px;
+    font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    padding: 6px 14px; border-radius: 999px;
+    background: linear-gradient(100deg, #f0b429, #ffe08a, #f0b429);
+    color: #3a2a00;
+  }
+
+  /* Estado "ascendido": el anillo terminado conserva una marca permanente. */
+  @keyframes ascend-shimmer {
+    0%, 100% { stroke-opacity: .35; }
+    50%      { stroke-opacity: 1; }
+  }
+  .ascend-halo {
+    fill: none;
+    stroke: #f0b429;
+    stroke-width: 1.6;
+    animation: ascend-shimmer 2.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+  html[data-tier="0"] .ascend-halo { animation: none; stroke-opacity: .7; }
+</style>
+
+<div class="lab-stage">
+  <div class="nautilus" id="stage"></div>
+</div>
+<canvas id="confetti"></canvas>
+<div class="crown" id="crown">
+  <span class="k-ico">🏆</span>
+  <div class="k-title">Reto completado</div>
+  <div class="k-sub">21 días</div>
+  <span class="k-rank">Dominado</span>
+</div>
+<p class="hint">
+  Los tres hitos comparten gramática pero no intensidad: el <b>día 7</b> barre la semana,
+  el <b>14</b> añade anillo de choque y rayos, y el <b>21</b> se lleva la pantalla entera y deja
+  una marca permanente en el anillo. Escalar así evita que la primera celebración devalúe la última.
+</p>
+<div class="dock" id="dock"></div>
+
+<script>
+(() => {
+  FX.setup({
+    title: '06 · Ascenso',
+    subtitle: 'Los hitos de 7, 14 y 21 con intensidad escalada',
+  });
+
+  const stage = document.getElementById('stage');
+  const crown = document.getElementById('crown');
+  const habits = FX.demoHabits();
+  const NS = 'http://www.w3.org/2000/svg';
+  let activeRing = 1;
+
+  const N = new FX.Nautilus(stage, habits, {
+    onCell: (e, hi, d, prev) => {
+      activeRing = hi;
+      if (!prev && (d === 6 || d === 13 || d === 20)) celebrate(hi, d + 1);
+      else FX.haptics.tap();
+    },
+  });
+  const cv = FX.makeCanvas(stage);
+
+  // ── Confeti a pantalla completa (sólo día 21) ───────────────
+  const conf = document.getElementById('confetti');
+  const cctx = conf.getContext('2d');
+  function fitConfetti() {
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    conf.width = innerWidth * d; conf.height = innerHeight * d;
+    cctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  fitConfetti();
+  addEventListener('resize', fitConfetti);
+
+  function confetti(elId) {
+    if (FX.tier.value < 2) return;
+    const el = FX.byId(elId);
+    const n = FX.tier.budget(70);
+    const bits = Array.from({ length: n }, () => ({
+      x: Math.random() * innerWidth,
+      y: -20 - Math.random() * innerHeight * .5,
+      vy: 2.2 + Math.random() * 3.4,
+      vx: (Math.random() - .5) * 1.6,
+      rot: Math.random() * 6.28,
+      spin: (Math.random() - .5) * .18,
+      w: 5 + Math.random() * 8,
+      h: 8 + Math.random() * 12,
+      sway: Math.random() * 6.28,
+      life: 0,
+      gold: Math.random() < .35,
+    }));
+    const rgb = el.rgb;
+    const t0 = performance.now();
+    (function frame(t) {
+      const u = (t - t0) / 3400;
+      cctx.clearRect(0, 0, innerWidth, innerHeight);
+      let alive = 0;
+      for (const b of bits) {
+        b.life++;
+        b.sway += .07;
+        b.x += b.vx + Math.sin(b.sway) * 1.1;
+        b.y += b.vy;
+        b.rot += b.spin;
+        if (b.y > innerHeight + 40) continue;
+        alive++;
+        cctx.save();
+        cctx.translate(b.x, b.y);
+        cctx.rotate(b.rot);
+        cctx.globalAlpha = Math.max(0, 1 - Math.max(0, u - .7) / .3);
+        cctx.fillStyle = b.gold ? '#f0b429' : `rgb(${rgb.join(',')})`;
+        cctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h);
+        cctx.restore();
+      }
+      if (alive && u < 1) requestAnimationFrame(frame);
+      else cctx.clearRect(0, 0, innerWidth, innerHeight);
+    })(performance.now());
+  }
+
+  // ── Piezas reutilizables ────────────────────────────────────
+  const P = new FX.Particles(cv, {
+    additive: true, max: 600,
+    draw: (ctx, p) => {
+      ctx.globalAlpha = Math.pow(1 - p.t, .8);
+      const s = p.size * (1 + p.t * .5);
+      ctx.drawImage(FX.glowSprite(p.rgb), -s * 2, -s * 2, s * 4, s * 4);
+    },
+  });
+
+  function burst(x, y, rgb, count, power) {
+    if (FX.tier.value < 2) return;
+    const k = cv.w / N.m.size;
+    const n = FX.tier.budget(count);
+    P.emit(n, (i) => {
+      const a = (i / n) * Math.PI * 2 + Math.random() * .35;
+      const sp = (1.6 + Math.random() * 4) * k * power;
+      return {
+        x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        life: 0, maxLife: 45 + Math.random() * 40,
+        size: (2.4 + Math.random() * 3.6) * k, rgb, drag: .975, g: .03 * k,
+      };
+    });
+  }
+
+  // Barrido: enciende en secuencia las celdas del tramo.
+  function sweep(hi, from, to, step = 45) {
+    for (let d = from; d <= to; d++) {
+      const c = N.cells[hi][d];
+      if (!c) continue;
+      const frames = [
+        { transform: 'scale(1)', filter: 'brightness(1)' },
+        { transform: 'scale(1.16)', filter: 'brightness(1.9)', offset: .3 },
+        { transform: 'scale(1)', filter: 'brightness(1)' },
+      ];
+      if (FX.tier.value < 2) frames.forEach(f => delete f.filter);
+      if (FX.tier.value === 0) continue;
+      c.animate(frames, { duration: 460, delay: (d - from) * step, easing: 'cubic-bezier(.2,1.1,.3,1)' });
+    }
+  }
+
+  function shockRings(count, gold) {
+    if (FX.tier.value < 2) return;
+    const c = N.centerPx();
+    const k = cv.w / N.m.size;
+    const t0 = performance.now(), dur = 1200;
+    (function frame(t) {
+      const u = Math.min(1, (t - t0) / dur);
+      const ctx = cv.ctx;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.translate(c.x, c.y);
+      for (let i = 0; i < count; i++) {
+        const uu = Math.max(0, Math.min(1, (u - i * .15) / (1 - i * .15)));
+        if (uu <= 0) continue;
+        const e = 1 - Math.pow(1 - uu, 3);
+        ctx.globalAlpha = Math.pow(1 - uu, 2) * .65;
+        ctx.strokeStyle = gold;
+        ctx.lineWidth = Math.max(.6, 6 * k * (1 - uu));
+        ctx.beginPath(); ctx.arc(0, 0, 14 * k + 250 * k * e, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.restore();
+      if (u < 1) requestAnimationFrame(frame);
+    })(performance.now());
+  }
+
+  function ascendHalo(hi) {
+    if (N.svg.querySelector(`.ascend-halo[data-h="${hi}"]`)) return;
+    const { cx, cy } = N.m;
+    const r = N.rings[hi].rOut + 2.5;
+    const el = document.createElementNS(NS, 'circle');
+    el.setAttribute('class', 'ascend-halo');
+    el.dataset.h = hi;
+    el.setAttribute('cx', cx); el.setAttribute('cy', cy); el.setAttribute('r', r);
+    N.overlay.appendChild(el);
+    el.animate([{ opacity: 0, transform: 'scale(1.1)' }, { opacity: 1, transform: 'scale(1)' }],
+      { duration: 700, easing: 'cubic-bezier(.2,1.3,.3,1)' });
+  }
+
+  function showCrown(ico, title, sub, rank) {
+    crown.querySelector('.k-ico').textContent = ico;
+    crown.querySelector('.k-title').textContent = title;
+    crown.querySelector('.k-sub').textContent = sub;
+    crown.querySelector('.k-rank').textContent = rank;
+    crown.classList.add('show');
+    clearTimeout(crown._t);
+    crown._t = setTimeout(() => crown.classList.remove('show'), 3600);
+  }
+
+  // ── Los tres hitos ──────────────────────────────────────────
+  function celebrate(hi, day) {
+    const h = habits[hi];
+    const el = FX.byId(h.element);
+    const d = day - 1;
+    const c = N.cellCenterPx(hi, d);
+    const rgb = FX.elRGB(h.element, d);
+
+    if (day === 7) {
+      sweep(hi, 0, 6);
+      burst(c.x, c.y, rgb, 26, 1);
+      FX.haptics.success();
+      FX.toast('🌟', '¡Primera semana!', 'Fase "Despertar" completada');
+    }
+
+    if (day === 14) {
+      sweep(hi, 0, 13, 28);
+      burst(c.x, c.y, rgb, 34, 1.3);
+      setTimeout(() => burst(N.centerPx().x, N.centerPx().y, rgb, 30, 1.6), 260);
+      shockRings(2, `rgb(${rgb.join(',')})`);
+      FX.haptics.milestone();
+      FX.toast('⚡', '¡Dos semanas!', 'Fase "Creciendo" completada');
+    }
+
+    if (day === 21) {
+      sweep(hi, 0, 20, 22);
+      burst(c.x, c.y, rgb, 40, 1.4);
+      shockRings(3, '#f0b429');
+      confetti(h.element);
+      ascendHalo(hi);
+      FX.haptics.milestone();
+
+      // El nautilus entero acusa el golpe.
+      if (FX.tier.value >= 2) {
+        stage.animate([
+          { transform: 'scale(1) rotate(0deg)' },
+          { transform: 'scale(1.06) rotate(-1.2deg)', offset: .18 },
+          { transform: 'scale(1) rotate(0deg)' },
+        ], { duration: 1100, easing: 'cubic-bezier(.2,1.2,.3,1)' });
+      }
+      setTimeout(() => showCrown('🏆', 'Reto completado',
+        `21 días · ${h.name}`, `${el.icon} ${el.name} dominado`), 520);
+    }
+  }
+
+  function jumpTo(hi, day) {
+    habits[hi].progress = Array.from({ length: FX.CFG.DAYS }, (_, i) => i < day);
+    N.paint();
+    celebrate(hi, day);
+  }
+
+  // ── Dock ────────────────────────────────────────────────────
+  const dock = document.getElementById('dock');
+
+  dock.appendChild(FX.chipGroup('Anillo', habits.map((h, i) => ({ value: i, label: h.name })),
+    activeRing, v => activeRing = Number(v)));
+
+  const hitos = document.createElement('div');
+  hitos.className = 'dock-group';
+  const hl = document.createElement('span');
+  hl.className = 'dock-label'; hl.textContent = 'Hito';
+  hitos.appendChild(hl);
+  [[7, '🌟 Día 7'], [14, '⚡ Día 14'], [21, '🏆 Día 21']].forEach(([day, lab]) => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = lab;
+    b.addEventListener('click', () => jumpTo(activeRing, day));
+    hitos.appendChild(b);
+  });
+  dock.appendChild(hitos);
+
+  dock.appendChild(FX.tierGroup());
+  dock.appendChild(FX.actionBtn('↺ Reiniciar', () => {
+    const fresh = FX.demoHabits();
+    habits.forEach((h, i) => h.progress = fresh[i].progress);
+    N.overlay.querySelectorAll('.ascend-halo').forEach(e => e.remove());
+    N.paint(); P.clear();
+    cctx.clearRect(0, 0, innerWidth, innerHeight);
+  }));
+
+  FX.startGovernor(fps => FX.toast('🐢', 'Bajando de tier', `Sostenía ${fps.toFixed(0)} fps`));
+})();
+</script>

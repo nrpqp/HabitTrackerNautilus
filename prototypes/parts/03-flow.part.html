@@ -1,0 +1,255 @@
+<!--{"title":"03 · Flujo","subtitle":"Llenado líquido, onda viajera y barrido especular","favicon":"🌊","file":"03-flow.html"}-->
+<style>
+  /* La onda viajera: mismo keyframe para todas las celdas, pero con
+     animation-delay negativo proporcional al día. El desfase convierte
+     el parpadeo sincronizado actual en una ola que recorre el anillo. */
+  @keyframes flow-wave {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: var(--amp, .68); }
+  }
+  html[data-wave="on"] .day-cell.done[data-phase="2"],
+  html[data-wave="on"] .day-cell.done[data-phase="3"],
+  html[data-wave="all"] .day-cell.done {
+    animation: flow-wave var(--dur, 3.2s) ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * var(--stagger, -.14s));
+  }
+  .day-cell.done[data-phase="1"] { --amp: .84; --dur: 4.2s; }
+  .day-cell.done[data-phase="2"] { --amp: .68; --dur: 3.2s; }
+  .day-cell.done[data-phase="3"] { --amp: .5;  --dur: 2.1s; }
+
+  html[data-tier="0"] .day-cell { animation: none !important; }
+
+  .pour-arc { fill: none; stroke-linecap: butt; pointer-events: none; }
+</style>
+
+<div class="lab-stage">
+  <div class="nautilus" id="stage"></div>
+</div>
+<p class="hint">
+  Tres ideas encima del mismo anillo: el <b>llenado</b> vierte el color a lo largo del arco en vez de
+  encenderlo de golpe; la <b>onda viajera</b> desfasa el pulso por día para que recorra el anillo
+  (hoy todas las celdas parpadean a la vez); el <b>barrido</b> pasa una luz especular sobre lo ya
+  conseguido, que es lo que da sensación de material caro.
+</p>
+<div class="dock" id="dock"></div>
+
+<script>
+(() => {
+  FX.setup({
+    title: '03 · Flujo',
+    subtitle: 'Llenado líquido, onda viajera y barrido especular',
+  });
+
+  const stage = document.getElementById('stage');
+  const habits = FX.demoHabits();
+  const NS = 'http://www.w3.org/2000/svg';
+  let pourOn = true, sheenOn = true;
+
+  const N = new FX.Nautilus(stage, habits, {
+    onCell: (e, hi, d, prev) => { if (!prev) pour(hi, d); else FX.haptics.tap(); },
+    onPaint: (n) => {
+      // Índice de fase para el desfase de la onda.
+      n.cells.forEach(ring => ring.forEach((c, d) => c.style.setProperty('--i', d)));
+    },
+  });
+  document.documentElement.dataset.wave = 'on';
+
+  const cv = FX.makeCanvas(stage);
+
+  // ── Llenado líquido a lo largo del arco ─────────────────────
+  function cellArc(hi, d) {
+    const { cx, cy } = N.m;
+    const { rMid } = N.rings[hi];
+    const { a0, a1 } = N.angles[d];
+    const p0 = FX.polar(cx, cy, rMid, a0);
+    const p1 = FX.polar(cx, cy, rMid, a1);
+    return {
+      d: `M ${p0.x} ${p0.y} A ${rMid} ${rMid} 0 0 1 ${p1.x} ${p1.y}`,
+      len: rMid * (a1 - a0) * FX.DEG,
+    };
+  }
+
+  function pour(hi, d) {
+    FX.haptics.success();
+    const cell = N.cells[hi][d];
+    if (!pourOn || FX.tier.value === 0) return;
+
+    const color = FX.elColor(habits[hi].element, d);
+    const emptyFill = getComputedStyle(document.documentElement)
+      .getPropertyValue('--empty-cell-fill').trim();
+
+    // La celda vuelve a vacío y el arco la rellena de verdad.
+    cell.setAttribute('fill', emptyFill);
+
+    const arc = cellArc(hi, d);
+    const p = document.createElementNS(NS, 'path');
+    p.setAttribute('class', 'pour-arc');
+    p.setAttribute('d', arc.d);
+    p.setAttribute('stroke', color);
+    p.setAttribute('stroke-width', FX.CFG.cell);
+    p.setAttribute('stroke-dasharray', arc.len);
+    p.setAttribute('stroke-dashoffset', arc.len);
+    N.overlay.appendChild(p);
+
+    const anim = p.animate(
+      [{ strokeDashoffset: arc.len }, { strokeDashoffset: 0 }],
+      { duration: 420, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'forwards' }
+    );
+
+    // Gota de luz que corre por delante del llenado.
+    if (FX.tier.value >= 2) headDroplet(hi, d, 420);
+
+    anim.onfinish = () => {
+      N.paint();                     // devuelve el fill definitivo
+      // Destello al completar el vertido.
+      cell.animate(
+        [{ filter: 'brightness(1)' }, { filter: 'brightness(1.55)', offset: .3 }, { filter: 'brightness(1)' }],
+        { duration: 340, easing: 'ease-out' }
+      );
+      p.remove();
+      ripple(hi, d);
+    };
+  }
+
+  // Punto de luz que viaja por el arco mientras se llena.
+  // No dibuja por su cuenta: se apunta a la lista que pinta el bucle único.
+  const droplets = [];
+  function headDroplet(hi, d, dur) {
+    droplets.push({
+      hi, d, dur, t0: performance.now(),
+      spr: FX.glowSprite(FX.elRGB(habits[hi].element, d)),
+    });
+  }
+
+  function drawDroplets(ctx, k) {
+    const now = performance.now();
+    for (let i = droplets.length - 1; i >= 0; i--) {
+      const dr = droplets[i];
+      const u = (now - dr.t0) / dr.dur;
+      if (u >= 1) { droplets.splice(i, 1); continue; }
+      const { cx, cy } = N.m;
+      const { rMid } = N.rings[dr.hi];
+      const { a0, a1 } = N.angles[dr.d];
+      const pt = FX.polar(cx, cy, rMid, a0 + (a1 - a0) * u);
+      const s = 16 * k;
+      ctx.globalAlpha = .9 * (1 - u * .4);
+      ctx.drawImage(dr.spr, pt.x * k - s, pt.y * k - s, s * 2, s * 2);
+    }
+  }
+
+  // ── Onda de brillo que se propaga por el anillo ─────────────
+  function ripple(hi, d) {
+    if (FX.tier.value < 2) return;
+    const reach = FX.tier.value >= 3 ? 6 : 4;
+    for (let k = 1; k <= reach; k++) {
+      const amp = 1 - k / (reach + 1);
+      [d - k, d + k].forEach(dd => {
+        const c = N.cells[hi][dd];
+        if (!c || !c.classList.contains('done')) return;
+        c.animate(
+          [{ filter: 'brightness(1)' },
+           { filter: `brightness(${(1 + .5 * amp).toFixed(2)})`, offset: .4 },
+           { filter: 'brightness(1)' }],
+          { duration: 420, delay: k * 55, easing: 'ease-out' }
+        );
+      });
+    }
+  }
+
+  // ── Bucle único de canvas: barrido especular + gotas ────────
+  // Sólo repinta las celdas hechas, con una envolvente gaussiana
+  // alrededor del ángulo de la luz. ~60 arcos por frame como techo.
+  let sheenRaf = null;
+  function sheenLoop(t) {
+    const ctx = cv.ctx;
+    const k = cv.w / N.m.size;
+    ctx.clearRect(0, 0, cv.w, cv.h);
+
+    if (droplets.length) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      drawDroplets(ctx, k);
+      ctx.restore();
+    }
+
+    if (sheenOn && FX.tier.value >= 2 && !document.hidden) {
+      const head = ((t * .045) % 420) - 60;   // recorre y descansa fuera del arco
+      const width = 55;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineCap = 'butt';
+      N.rings.forEach((ring, hi) => {
+        const rMid = ring.rMid * k;
+        ctx.lineWidth = FX.CFG.cell * k;
+        habits[hi].progress.forEach((done, d) => {
+          if (!done) return;
+          const { a0, a1 } = N.angles[d];
+          const mid = (a0 + a1) / 2;
+          const dist = Math.abs(mid - (FX.CFG.startAngle + head));
+          if (dist > width) return;
+          const env = Math.pow(Math.cos((dist / width) * Math.PI / 2), 2);
+          ctx.globalAlpha = env * (FX.tier.value >= 3 ? .3 : .18);
+          ctx.strokeStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(cv.w / 2, cv.h / 2, rMid, a0 * FX.DEG, a1 * FX.DEG);
+          ctx.stroke();
+        });
+      });
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+    }
+    sheenRaf = requestAnimationFrame(sheenLoop);
+  }
+  sheenRaf = requestAnimationFrame(sheenLoop);
+
+  // ── Dock ────────────────────────────────────────────────────
+  const dock = document.getElementById('dock');
+
+  const layers = document.createElement('div');
+  layers.className = 'dock-group';
+  const ll = document.createElement('span');
+  ll.className = 'dock-label'; ll.textContent = 'Capas';
+  layers.appendChild(ll);
+
+  const mkToggle = (label, initial, fn, title) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (initial ? ' on' : '');
+    b.textContent = label;
+    if (title) b.title = title;
+    b.addEventListener('click', () => {
+      const on = !b.classList.contains('on');
+      b.classList.toggle('on', on);
+      fn(on);
+    });
+    layers.appendChild(b);
+  };
+  mkToggle('Llenado', true, v => pourOn = v, 'stroke-dashoffset sobre el arco medio');
+  mkToggle('Barrido', true, v => sheenOn = v, 'Luz especular sobre las celdas hechas');
+  dock.appendChild(layers);
+
+  dock.appendChild(FX.chipGroup('Onda', [
+    { value: 'off', label: 'Ninguna' },
+    { value: 'sync', label: 'Sincronizada', title: 'Como la app hoy: todas a la vez' },
+    { value: 'on',  label: 'Viajera', title: 'Desfase por día — fases 2 y 3' },
+    { value: 'all', label: 'Viajera total', title: 'Desfase por día en las tres fases' },
+  ], 'on', v => {
+    if (v === 'sync') {
+      document.documentElement.dataset.wave = 'all';
+      document.documentElement.style.setProperty('--stagger', '0s');
+    } else {
+      document.documentElement.dataset.wave = v;
+      document.documentElement.style.removeProperty('--stagger');
+    }
+  }));
+
+  dock.appendChild(FX.tierGroup());
+
+  dock.appendChild(FX.actionBtn('↺ Reiniciar', () => {
+    const fresh = FX.demoHabits();
+    habits.forEach((h, i) => h.progress = fresh[i].progress);
+    N.overlay.innerHTML = '';
+    N.paint();
+  }));
+
+  FX.startGovernor(fps => FX.toast('🐢', 'Bajando de tier', `Sostenía ${fps.toFixed(0)} fps`));
+})();
+</script>
