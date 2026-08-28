@@ -1,8 +1,14 @@
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url)));
+
 export default defineConfig({
   base: '/HabitTrackerNautilus/', // For GitHub Pages deployment
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+  },
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
