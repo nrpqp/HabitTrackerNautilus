@@ -21,17 +21,17 @@
 
 ## 4. Mecánica de hoja compartida
 
-- [ ] 4.1 Crear `src/ui/sheet.js` con la fábrica descrita en `design.md — D6`: velo, panel, trampa de foco, cierre por toque exterior y `Escape`, devolución del foco al origen y exclusión mutua entre hojas. Verificar con la hoja de instalación actual migrada a esta mecánica que se cierra por las tres vías y devuelve el foco al botón de información.
-- [ ] 4.2 Añadir a la fábrica la opción de velo en degradado descrita en `design.md — D5`, transparente sobre el nautilus y opaco junto al panel, con el canvas de efectos elevado por encima. Verificar que con esa opción activa el nautilus se sigue leyendo sin oscurecimiento.
-- [ ] 4.3 Migrar `#info-sheet` a `src/ui/sheet.js` y retirar `openInfoSheet`/`closeInfoSheet` de `src/main.js`. Verificar que la hoja se comporta igual que antes de la migración.
+- [x] 4.1 Crear `src/ui/sheet.js` con la fábrica descrita en `design.md — D6`: velo, panel, trampa de foco, cierre por toque exterior y `Escape`, devolución del foco al origen y exclusión mutua entre hojas. Verificar con la hoja de instalación actual migrada a esta mecánica que se cierra por las tres vías y devuelve el foco al botón de información.
+- [x] 4.2 Añadir a la fábrica la opción de velo en degradado descrita en `design.md — D5`, transparente sobre el nautilus y opaco junto al panel, con el canvas de efectos elevado por encima. Verificar que con esa opción activa el nautilus se sigue leyendo sin oscurecimiento.
+- [x] 4.3 Migrar `#info-sheet` a `src/ui/sheet.js` y retirar `openInfoSheet`/`closeInfoSheet` de `src/main.js`. Verificar que la hoja se comporta igual que antes de la migración.
 
 ## 5. Hoja de ajustes
 
 - [ ] 5.1 Añadir a `index.html` el botón de ajustes en el extremo derecho de la cabecera, con icono de engranaje, acento ámbar, área táctil de 44 px y `aria-expanded`. Verificar que recibe foco visible con el tabulador.
-- [ ] 5.2 Añadir el marcado de `#settings-sheet` con sus tres filas —tema, nivel de efecto visual y fuente— y cablearlo a `src/ui/sheet.js` con la opción de velo en degradado. Verificar que abre y cierra por las tres vías y que no puede quedar abierta a la vez que el manual.
+- [ ] 5.2 Anclar la hoja de ajustes al borde inferior en todas las anchuras, fuera del patrón de diálogo centrado de `style.css:1118`, y añadir el marcado de `#settings-sheet` con sus tres filas —tema, nivel de efecto visual y fuente— y cablearlo a `src/ui/sheet.js` con la opción de velo en degradado. Verificar que abre y cierra por las tres vías y que no puede quedar abierta a la vez que el manual.
 - [ ] 5.3 Mover el control de tema a la fila correspondiente, retirar `#theme-toggle` de la cabecera y verificar que el cambio se aplica al instante con la hoja abierta y persiste tras recargar.
 - [ ] 5.4 Implementar la escala 1–5 como `radiogroup` de cinco `role="radio"` con navegación por flechas y rótulos en los extremos, según `design.md — D7`. Verificar que se recorre y selecciona sólo con teclado y que cada posición se anuncia con su nombre.
-- [ ] 5.5 Conectar la escala a la preferencia y a la muestra: elegir un nivel lo aplica al instante y dispara `burstElement` en el centro del nautilus con el presupuesto de ese nivel. Verificar que la muestra se ve sobre el velo sin cerrar la hoja y que la del nivel 5 es visiblemente mayor que la del 3.
+- [ ] 5.5 Conectar la escala a la preferencia y a la muestra: elegir un nivel lo aplica al instante y dispara `burstElement` en el centro del área de nautilus libre sobre el panel —no en el centro geométrico—, con el presupuesto de ese nivel. Verificar que la muestra se ve sobre el velo sin cerrar la hoja y que la del nivel 5 es visiblemente mayor que la del 3.
 - [ ] 5.6 Mostrar bajo la escala la nota de nivel realmente activo, cubriendo los tres casos: degradación por el gobernador, techo por movimiento reducido y anulación por `?fx=`. Verificar cada caso y comprobar que la preferencia guardada no cambia en ninguno.
 - [ ] 5.7 Añadir la fila de fuente de texto en estado deshabilitado y marcada como próximamente, sin foco de teclado y anunciada como deshabilitada. Verificar que tocarla no hace nada y que ninguna tipografía cambia.
 - [ ] 5.8 Verificar la altura del panel según `design.md — D5`: con las tres filas, en una ventana de 667 px de alto el centro del nautilus queda por encima del borde superior del panel.

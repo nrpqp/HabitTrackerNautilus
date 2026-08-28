@@ -959,6 +959,33 @@ html[data-tier="1"] .today-indicator {
   }
 }
 
+/* ── Velo suave de hoja ──────────────────────────────────── */
+/* Una hoja cuyo contenido actúa sobre lo que hay detrás no puede taparlo.
+   Es el caso de los ajustes: elegir un nivel dispara una muestra sobre el
+   nautilus, y con el velo uniforme al 72% quedaría en una mancha borrosa.
+   El degradado deja limpio el tercio superior y concentra la opacidad en
+   la franja contigua al panel. */
+.sheet-soft [data-sheet-backdrop] {
+  background: linear-gradient(
+    to bottom,
+    rgba(3, 5, 11, 0) 0%,
+    rgba(3, 5, 11, 0) 42%,
+    rgba(3, 5, 11, 0.55) 68%,
+    rgba(3, 5, 11, 0.82) 100%
+  );
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* El canvas vive en .container, que crea contexto de apilamiento con
+   z-index 1; la hoja es hermana suya dentro de ese mismo contexto, así
+   que basta con superar su z-index para que la muestra se dibuje encima.
+   La clase la pone createSheet: `:has()` no llegó a Safari hasta la 15.4
+   y aquí un fallo silencioso dejaría la muestra detrás del velo. */
+body.sheet-soft-open #effect-overlay {
+  z-index: 260;
+}
+
 /* ── Hoja de instalación ─────────────────────────────────── */
 .info-sheet {
   position: fixed;

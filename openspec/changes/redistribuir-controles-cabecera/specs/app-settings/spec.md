@@ -48,6 +48,10 @@ La hoja de ajustes SHALL contener el control de tema claro/oscuro, que SHALL ser
 
 Mientras la hoja de ajustes está abierta, el velo que la acompaña SHALL dejar el nautilus visible y sin oscurecer, y SHALL concentrar su opacidad en la franja contigua al panel. Los efectos que se disparen desde la hoja SHALL dibujarse por encima de ese velo.
 
+La hoja de ajustes SHALL anclarse al borde inferior en todas las anchuras de pantalla, sin adoptar la disposición centrada que usan las demás superficies en escritorio, de modo que siempre quede área de nautilus libre por encima del panel.
+
+Los efectos disparados desde la hoja SHALL originarse en el área de nautilus que queda visible sobre el panel, no en el centro geométrico de la rueda. La muestra no SHALL dibujarse sobre el propio panel.
+
 Esta condición es necesaria para que la muestra de intensidad definida en `effects-preference` sea perceptible y comparable entre dos niveles distintos.
 
 #### Scenario: El nautilus permanece legible
@@ -64,6 +68,16 @@ Esta condición es necesaria para que la muestra de intensidad definida en `effe
 
 - **WHEN** el usuario elige un nivel y a continuación otro superior, sin cerrar la hoja
 - **THEN** la diferencia entre ambas muestras es perceptible
+
+#### Scenario: Anclaje inferior en escritorio
+
+- **WHEN** el usuario abre la hoja de ajustes en una ventana ancha, donde el manual se mostraría centrado como diálogo
+- **THEN** la hoja de ajustes sube igualmente desde el borde inferior y deja el nautilus visible por encima
+
+#### Scenario: La muestra no cae sobre el panel
+
+- **WHEN** el usuario elige un nivel con la hoja abierta, en cualquier tamaño de pantalla
+- **THEN** la muestra se dibuja en el área de nautilus libre sobre el panel, y no sobre el texto del panel
 
 ### Requirement: Hueco reservado para la fuente de texto
 

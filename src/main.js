@@ -14,6 +14,7 @@ import {
 } from './fx/engine.js';
 import { readPreference, writePreference, NONE } from './fx/preference.js';
 import { createDial } from './ui/dial.js';
+import { createSheet } from './ui/sheet.js';
 import {
   streakComet, arrivalBurst, extinguishCell, chargeToCore, setCoreCharge, supernova,
 } from './fx/effects.js';
@@ -216,23 +217,18 @@ function addHabit(name) {
 
 // ── Hoja de instalación ──────────────────────────────────────
 
-/* Sustituye al alert() nativo. Vive aparte de #habit-sheet: aquel arrastra
-   estado de hábito, modo crear/editar y posicionamiento de popover, y no
-   gana nada absorbiendo un tercer modo. */
+/* Sustituye al alert() nativo. La mecánica —velo, foco, Escape, cierre por
+   fuera— la pone `createSheet`; aquí sólo queda el cableado. Vive aparte de
+   #habit-sheet: aquel arrastra estado de hábito, modo crear/editar y
+   posicionamiento de popover, y no gana nada absorbiendo un tercer modo. */
 
-function openInfoSheet() {
-  const el = document.getElementById('info-sheet');
-  el.classList.remove('hidden');
-  requestAnimationFrame(() => el.classList.add('open'));
-  document.getElementById('info-sheet-close').focus();
-}
+let infoSheet = null;
 
-function closeInfoSheet() {
-  const el = document.getElementById('info-sheet');
-  if (el.classList.contains('hidden')) return;
-  el.classList.remove('open');
-  setTimeout(() => el.classList.add('hidden'), 250);
-  document.getElementById('info-btn').focus();
+function setupInfoSheet() {
+  infoSheet = createSheet({ root: document.getElementById('info-sheet') });
+  document.getElementById('info-btn').addEventListener('click', () => infoSheet.open());
+  document.getElementById('info-sheet-close').addEventListener('click', () => infoSheet.close());
+  document.getElementById('info-sheet-ok').addEventListener('click', () => infoSheet.close());
 }
 
 // ── Sheet ────────────────────────────────────────────────────
@@ -436,11 +432,6 @@ function setupEventListeners() {
     toggleTheme(renderSVGOnly);
   });
 
-  document.getElementById('info-btn').addEventListener('click', openInfoSheet);
-  document.getElementById('info-sheet-close').addEventListener('click', closeInfoSheet);
-  document.getElementById('info-sheet-ok').addEventListener('click', closeInfoSheet);
-  document.querySelector('.info-sheet-backdrop').addEventListener('click', closeInfoSheet);
-
   // Sheet: name input
   const nameInput = document.getElementById('sheet-name-input');
   nameInput.addEventListener('blur', () => {
@@ -519,13 +510,10 @@ function setupEventListeners() {
     }
   });
 
+  // Las hojas de `createSheet` atienden Escape en captura y detienen la
+  // propagación, así que aquí sólo llega cuando ninguna está abierta.
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    // La hoja de instalación está por encima: se cierra ella primero.
-    if (!document.getElementById('info-sheet').classList.contains('hidden')) {
-      closeInfoSheet();
-      return;
-    }
     const sheetEl = document.getElementById('habit-sheet');
     if (!sheetEl.classList.contains('hidden')) {
       closeSheet();
@@ -639,6 +627,7 @@ function init() {
   applyStoredTier();
   loadHabits();
   setupEventListeners();
+  setupInfoSheet();
   initFxCanvas();
   setupDial();
   render();

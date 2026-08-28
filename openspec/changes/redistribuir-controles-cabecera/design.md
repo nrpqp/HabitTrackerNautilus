@@ -96,7 +96,26 @@ La muestra de intensidad se dibuja en `#effect-overlay`, dentro de `.container` 
 
 La hoja de ajustes usa un velo propio: transparente en la franja superior —donde vive el nautilus— y opaco junto al panel, con la transición en la zona muerta entre el nautilus y los indicadores. El canvas de efectos se eleva por encima de ese velo mientras la hoja está abierta.
 
-Consecuencia de diseño: **el panel de ajustes no puede crecer.** Con tres filas y altura automática ronda los 300 px; en el móvil más corto soportado (667 px) eso deja el centro del nautilus por encima del borde. Cualquier fila futura debe entrar por scroll interno, no alargando el panel. Por eso la fila de fuente se diseña como fila y no como sección desplegable.
+Elevar el canvas se hace con una clase que pone la propia fábrica de hojas, no con `body:has(...)`: `:has()` no llegó a Safari hasta la 15.4 y en un iPhone más antiguo la muestra se quedaría detrás del velo sin que nada lo avisara.
+
+**Corrección tras medir en la app.** La primera versión de esta decisión daba por hecho que un panel de tres filas dejaba libre el centro del nautilus, y que bastaba con no dejar crecer el panel. Las dos suposiciones eran falsas:
+
+```
+móvil (555×711)                      escritorio (2048×994)
+centro del nautilus   y=387          centro del nautilus   y=514
+panel anclado abajo   y=411  ✓       panel anclado abajo   y=694  ✓
+   margen: 24 px  ← al límite        panel centrado        y=347  ✗
+panel centrado        y=206  ✗
+```
+
+El centro del nautilus no cae al 47 % de la ventana sino al 54 %, porque la cabecera empuja hacia abajo: con 300 px de panel quedan 24 px de margen, y en una pantalla de 667 px el margen es negativo. Y `style.css` ya establece que a partir de 769 px las hojas se centran como diálogo, lo que planta el panel justo sobre el centro —y, con el canvas elevado, dibujaría las partículas *sobre el texto del panel*.
+
+Por tanto:
+
+1. **El origen de la muestra no es el centro geométrico del nautilus, sino el centro del área que queda libre sobre el panel.** Se calcula al disparar, con la geometría real de la hoja abierta.
+2. **La hoja de ajustes se ancla abajo en todas las anchuras**, saliéndose del patrón de diálogo centrado que siguen el manual y el panel de hábito.
+
+Juntas eliminan la restricción «el panel no puede crecer»: la muestra encuentra su hueco sea cual sea la altura del panel. La inconsistencia del punto 2 se justifica igual que el velo: los ajustes son la única hoja cuyo contenido actúa sobre lo que hay detrás.
 
 *Alternativa descartada*: dibujar la muestra dentro de la propia hoja. Duplicaría la lógica de presupuesto de `engine.js` y la muestra podría divergir de lo que ocurre de verdad, que es justo lo que `main.js:606` evita hoy a propósito.
 
