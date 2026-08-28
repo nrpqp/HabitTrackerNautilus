@@ -668,6 +668,7 @@ html[data-tier="1"] .today-indicator {
   backdrop-filter: blur(3px);
   opacity: 0;
   transition: opacity 0.2s ease;
+  overscroll-behavior: none;
 }
 
 .habit-sheet.open .habit-sheet-backdrop {
@@ -691,6 +692,7 @@ html[data-tier="1"] .today-indicator {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overscroll-behavior: none;
 }
 
 .habit-sheet.open .habit-sheet-panel {
@@ -901,6 +903,23 @@ html[data-tier="1"] .today-indicator {
 
 .sheet-action-btn:active {
   transform: scale(0.97);
+}
+
+.sheet-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.sheet-confirm {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: var(--bg-color);
+}
+
+.sheet-confirm:not(:disabled):hover {
+  box-shadow: 0 0 18px var(--glow-cyan);
 }
 
 .sheet-reset {
@@ -1815,6 +1834,15 @@ svg {
   content: ' ✓';
   font-size: 0.7em;
   opacity: 0.7;
+}
+
+/* Bloqueados a la espera de un nombre en modo creación — distinto del
+   estado "taken" (ya asignado), aquí sólo falta escribir el nombre. */
+.element-btn.pending {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+  border-style: dashed;
 }
 
 /* ── Rueda de intensidad ──────────────────────────────────── */

@@ -215,6 +215,16 @@ function addHabit(name) {
   }
 }
 
+/* Vía compartida por el botón de confirmación y por Enter en modo creación:
+   ambos deben producir exactamente el mismo resultado. */
+function confirmCreateHabit() {
+  const nameInput = document.getElementById('sheet-name-input');
+  const name = nameInput.value.trim().slice(0, MAX_NAME_LENGTH);
+  if (!name) return;
+  addHabit(name);
+  closeSheet();
+}
+
 // ── Hoja de instalación ──────────────────────────────────────
 
 /* Sustituye al alert() nativo. La mecánica —velo, foco, Escape, cierre por
@@ -236,6 +246,60 @@ function setupInfoSheet() {
 let sheetCurrentHabitId = null;
 let sheetMode = 'edit'; // 'edit' | 'create'
 let sheetOriginalName = '';
+let sheetScrollY = 0;
+
+/* En modo creación, los íconos de elemento permanecen bloqueados hasta que
+   hay un nombre — elegir elemento antes de nombrar el hábito no tiene
+   sentido y confundía qué estaba realmente disponible. */
+function renderElementSwatches(habit) {
+  const swatchesEl = document.getElementById('sheet-swatches');
+  const nameInput = document.getElementById('sheet-name-input');
+  const usedElements = habits
+    .filter((h) => !(habit && h.id === habit.id))
+    .map((h) => h.element);
+  const lockedByEmptyName = sheetMode === 'create' && !nameInput.value.trim();
+  swatchesEl.innerHTML = ELEMENTS.map((el) => {
+    const taken = usedElements.includes(el.id);
+    const active = habit && habit.element === el.id;
+    const shouldDisable = (taken && !active) || lockedByEmptyName;
+    const title = lockedByEmptyName
+      ? 'Escribe un nombre para elegir elemento'
+      : (taken && !active ? 'Ya asignado a otro hábito' : el.name);
+    return `
+    <button
+      class="element-btn${active ? ' active' : ''}${taken && !active ? ' taken' : ''}${lockedByEmptyName ? ' pending' : ''}"
+      data-element="${el.id}"
+      aria-label="${el.name}"
+      ${shouldDisable ? 'disabled' : ''}
+      title="${title}"
+    >
+      <span class="element-icon">${el.icon}</span>
+      <span class="element-name">${el.name}</span>
+    </button>`;
+  }).join('');
+}
+
+/* Bloquea el scroll/rebote de la página mientras el sheet está abierto.
+   overflow:hidden en body no basta en iOS Safari: el rebote elástico sigue
+   ocurriendo al enfocar el input y desplegarse el teclado. Fijar el body en
+   su posición actual sí lo evita. */
+function lockBodyScroll() {
+  sheetScrollY = window.scrollY || window.pageYOffset || 0;
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${sheetScrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+
+function unlockBodyScroll() {
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, sheetScrollY);
+}
 
 function openHabitSheet(habitId, mode = 'edit', event = null) {
   sheetCurrentHabitId = habitId;
@@ -246,6 +310,7 @@ function openHabitSheet(habitId, mode = 'edit', event = null) {
   const swatchesEl = document.getElementById('sheet-swatches');
   const progressEl = document.getElementById('sheet-progress');
   const actionsEl = document.getElementById('sheet-actions');
+  const confirmBtn = document.getElementById('sheet-confirm-btn');
   const resetBtn = document.getElementById('sheet-reset-btn');
   const deleteBtn = document.getElementById('sheet-delete-btn');
   const panel = sheetEl.querySelector('.habit-sheet-panel');
@@ -258,25 +323,7 @@ function openHabitSheet(habitId, mode = 'edit', event = null) {
   nameInput.maxLength = MAX_NAME_LENGTH;
 
   // Populate element selector — disable elements already used by other habits
-  const usedElements = habits
-    .filter((h) => !(habit && h.id === habit.id))
-    .map((h) => h.element);
-  swatchesEl.innerHTML = ELEMENTS.map((el) => {
-    const taken = usedElements.includes(el.id);
-    const active = habit && habit.element === el.id;
-    const shouldDisable = taken && !active;
-    return `
-    <button
-      class="element-btn${active ? ' active' : ''}${shouldDisable ? ' taken' : ''}"
-      data-element="${el.id}"
-      aria-label="${el.name}"
-      ${shouldDisable ? 'disabled' : ''}
-      title="${shouldDisable ? 'Ya asignado a otro hábito' : el.name}"
-    >
-      <span class="element-icon">${el.icon}</span>
-      <span class="element-name">${el.name}</span>
-    </button>`;
-  }).join('');
+  renderElementSwatches(habit);
 
   // Populate notification section
   const notifSection = document.getElementById('sheet-notification');
@@ -317,6 +364,11 @@ function openHabitSheet(habitId, mode = 'edit', event = null) {
     deleteBtn.style.display = 'none';
   }
 
+  // El botón de confirmación explícito sólo existe en modo creación; en
+  // edición el nombre se confirma con blur/Enter como hasta ahora.
+  confirmBtn.style.display = mode === 'create' ? '' : 'none';
+  confirmBtn.disabled = mode === 'create' && !nameInput.value.trim();
+
   // Position: popover on desktop, bottom sheet on mobile
   const isDesktop = window.innerWidth > 768;
   if (isDesktop && event) {
@@ -327,6 +379,7 @@ function openHabitSheet(habitId, mode = 'edit', event = null) {
     panel.style.removeProperty('transform');
   }
 
+  lockBodyScroll();
   sheetEl.classList.remove('hidden');
   requestAnimationFrame(() => sheetEl.classList.add('open'));
   nameInput.focus();
@@ -338,6 +391,7 @@ function closeSheet() {
   sheetEl.classList.remove('open');
   setTimeout(() => sheetEl.classList.add('hidden'), 200);
   sheetCurrentHabitId = null;
+  unlockBodyScroll();
 }
 
 function positionPopover(panel, event) {
@@ -437,8 +491,7 @@ function setupEventListeners() {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (sheetMode === 'create') {
-        const name = nameInput.value.trim().slice(0, MAX_NAME_LENGTH);
-        if (name) { addHabit(name); closeSheet(); }
+        confirmCreateHabit();
       } else {
         commitSheetName();
         nameInput.blur();
@@ -453,6 +506,19 @@ function setupEventListeners() {
         closeSheet();
       }
     }
+  });
+  // En modo creación, el nombre gobierna el bloqueo de los íconos de
+  // elemento y la habilitación del botón de confirmación.
+  nameInput.addEventListener('input', () => {
+    if (sheetMode !== 'create') return;
+    const confirmBtn = document.getElementById('sheet-confirm-btn');
+    confirmBtn.disabled = !nameInput.value.trim();
+    renderElementSwatches(null);
+  });
+
+  // Sheet: botón de confirmación (modo creación)
+  document.getElementById('sheet-confirm-btn').addEventListener('click', () => {
+    if (sheetMode === 'create') confirmCreateHabit();
   });
 
   // Sheet: element selector
