@@ -58,19 +58,34 @@ export function detectTier() {
 
 const BUDGET = [0, 0, 1, 1.8];   // el nivel 1 no usa el canvas de partículas
 
+/**
+ * Origen del nivel activo. No basta un booleano: "el usuario quiere el
+ * máximo" y "estoy midiendo el nivel 3 y no quiero que se mueva" piden
+ * respuestas opuestas del gobernador.
+ *
+ *   auto        — lo decidió la detección del dispositivo
+ *   preference  — lo eligió el usuario; el rendimiento aún puede rebajarlo
+ *   diagnostic  — anulación por URL; intocable mientras se observa
+ */
+export const SOURCES = { AUTO: 'auto', PREFERENCE: 'preference', DIAGNOSTIC: 'diagnostic' };
+
 export const tier = {
   value: 2,
-  forced: false,
+  source: SOURCES.AUTO,
   _subs: [],
 
-  set(v, forced = true) {
+  set(v, source = SOURCES.PREFERENCE) {
     const next = Math.max(0, Math.min(3, v));
-    if (next === this.value && forced === this.forced) return;
+    if (next === this.value && source === this.source) return;
     this.value = next;
-    this.forced = forced;
+    this.source = source;
     document.documentElement.dataset.tier = String(next);
-    this._subs.forEach((fn) => fn(next));
+    this._subs.forEach((fn) => fn(next, source));
   },
+
+  /** El rendimiento manda sobre la detección y sobre el deseo, pero no
+      sobre una medición en curso. */
+  get degradable() { return this.source !== SOURCES.DIAGNOSTIC; },
 
   onChange(fn) { this._subs.push(fn); },
 
@@ -151,8 +166,10 @@ if (typeof window !== 'undefined') {
   window.__nautilusFx = {
     caps,
     get tier() { return tier.value; },
-    get forzado() { return tier.forced; },
+    get origen() { return tier.source; },
     get detectado() { return detectTier(); },
+    get fps() { return Math.round(govFps); },
+    get avisos() { return govStrikes; },
   };
 }
 
@@ -170,12 +187,16 @@ export const fxCanvas = {
 const effects = new Set();
 let rafId = null;
 
+/** Por encima de esto no es lentitud, es una pausa: no se mide. */
+const MAX_FRAME_SAMPLE_MS = 2000;
+
 // El gobernador mide sólo mientras hay efectos en marcha, que es
 // cuando el rendimiento importa — y así la app en reposo no
 // mantiene vivo un requestAnimationFrame.
 let govFrames = 0;
 let govElapsed = 0;
 let govStrikes = 0;
+let govFps = 0;
 let lastFrameAt = 0;
 
 /** Registra un efecto. `draw(ctx, now)` devuelve false cuando ha terminado. */
@@ -197,17 +218,25 @@ function loop(now) {
 
   const dt = now - lastFrameAt;
   lastFrameAt = now;
-  if (dt > 0 && dt < 500) {
+  // El techo descarta huecos que no miden rendimiento —pestaña en segundo
+  // plano, equipo suspendido—, no frames lentos. Con el límite en 500 ms un
+  // dispositivo tan ahogado que tarda más que eso por frame dejaba de
+  // medirse y no se degradaba nunca: justo el caso que el gobernador existe
+  // para atrapar. `document.hidden` cubre el caso que el techo protegía.
+  if (!document.hidden && dt > 0 && dt < MAX_FRAME_SAMPLE_MS) {
     govFrames++;
     govElapsed += dt;
     if (govElapsed >= 1000) {
       const fps = (govFrames * 1000) / govElapsed;
+      govFps = fps;
       govFrames = 0;
       govElapsed = 0;
       if (fps < 46) govStrikes++; else govStrikes = Math.max(0, govStrikes - 1);
       // Degrada, nunca promociona: subir de nuevo produciría oscilación.
-      if (govStrikes >= 3 && !tier.forced && tier.value > 1) {
-        tier.set(tier.value - 1, false);
+      // Se conserva el origen: un nivel elegido por el usuario que baja
+      // sigue siendo suyo, y la preferencia guardada no se toca.
+      if (govStrikes >= 3 && tier.degradable && tier.value > 1) {
+        tier.set(tier.value - 1, tier.source);
         govStrikes = 0;
       }
     }

@@ -9,8 +9,10 @@ import {
 import { initTheme, toggleTheme } from './theme.js';
 import { renderSVG, view } from './render/svg.js';
 import {
-  tier, detectTier, haptics, initFxCanvas, burstElement, setUnitScale,
+  tier, detectTier, haptics, initFxCanvas, burstElement, setUnitScale, SOURCES,
 } from './fx/engine.js';
+import { readPreference, writePreference, AUTO } from './fx/preference.js';
+import { createDial } from './ui/dial.js';
 import {
   streakComet, arrivalBurst, extinguishCell, chargeToCore, setCoreCharge, supernova,
 } from './fx/effects.js';
@@ -543,23 +545,67 @@ function setupEventListeners() {
 /**
  * `?fx=0..3` fija el nivel de efectos. Sin esto no hay forma de verificar
  * los cuatro niveles en un dispositivo real, donde no existen los overrides
- * de DevTools.
+ * de DevTools. Es diagnóstico: gana sobre la preferencia del usuario, no la
+ * sobrescribe, y el gobernador no lo toca.
  */
-function applyTierOverride() {
+function urlTierOverride() {
   const raw = new URLSearchParams(location.search).get('fx');
-  if (raw === null) return false;
+  if (raw === null) return null;
   const forced = Number(raw);
-  if (!Number.isInteger(forced) || forced < 0 || forced > 3) return false;
-  tier.set(forced, true);
-  return true;
+  if (!Number.isInteger(forced) || forced < 0 || forced > 3) return null;
+  return forced;
+}
+
+/** Prioridad: anulación por URL, preferencia guardada, detección. */
+export function applyStoredTier() {
+  const url = urlTierOverride();
+  if (url !== null) { tier.set(url, SOURCES.DIAGNOSTIC); return; }
+  const pref = readPreference();
+  if (pref === AUTO) tier.set(detectTier(), SOURCES.AUTO);
+  else tier.set(Number(pref), SOURCES.PREFERENCE);
+}
+
+/** Aplica y guarda la elección del usuario desde la rueda. */
+function chooseTier(value) {
+  writePreference(value);
+  if (value === AUTO) tier.set(detectTier(), SOURCES.AUTO);
+  else tier.set(Number(value), SOURCES.PREFERENCE);
+}
+
+/**
+ * Muestra con el nivel ya aplicado, no simulado: simularlo duplicaría la
+ * lógica de presupuesto y podría divergir de lo que luego pasa de verdad.
+ */
+function previewTier() {
+  const c = view.centerPx();
+  const element = habits.length ? habits[0].element : ELEMENTS[0].id;
+  burstElement(c.x, c.y, element, 20, { base: 26, scale: 1.1, spread: 1.3 });
+  haptics.tap();
+}
+
+let dial = null;
+
+function setupDial() {
+  const btn = document.getElementById('fx-toggle');
+  dial = createDial({
+    host: document.getElementById('svg-container'),
+    getChoice: readPreference,
+    onChoose: chooseTier,
+    onPreview: previewTier,
+    // Cerrar por backdrop o Escape no pasa por el botón, así que el estado
+    // lo comunica la propia rueda.
+    onOpenChange: (abierta) => btn.setAttribute('aria-expanded', String(abierta)),
+  });
+  btn.addEventListener('click', () => dial.toggle());
 }
 
 function init() {
   initTheme();
-  if (!applyTierOverride()) tier.set(detectTier(), false);
+  applyStoredTier();
   loadHabits();
   setupEventListeners();
   initFxCanvas();
+  setupDial();
   render();
   window.addEventListener('resize', () => setUnitScale(view.centerPx().scale));
   scheduleNotifications();
