@@ -679,6 +679,7 @@ html[data-tier="1"] .today-indicator {
   position: relative;
   width: 100%;
   max-width: 480px;
+  max-height: 88vh;
   margin: 0 auto;
   background: var(--surface-strong);
   -webkit-backdrop-filter: blur(18px);
@@ -692,6 +693,7 @@ html[data-tier="1"] .today-indicator {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-y: auto;
   overscroll-behavior: none;
 }
 
@@ -1566,6 +1568,14 @@ html {
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* body ya tenía overflow:hidden, pero html no: el documento seguía
+     pudiendo desplazarse (y rebotar en iOS) por fuera de body sin importar
+     el bloqueo de scroll en JS. La app nunca necesita scroll de documento —
+     cada hoja larga (manual, ajustes, sheet de hábito) ya scrollea puertas
+     adentro con su propio overflow-y. */
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 button, input {
