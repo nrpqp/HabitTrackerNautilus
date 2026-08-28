@@ -11,7 +11,7 @@ Aplicación web PWA para rastrear hábitos en un reto de 21 días. Los hábitos 
 - **Offline**: Workbox (service worker)
 - **Estilos**: CSS puro con variables CSS para dark/light mode
 - **Visualización**: SVG generado dinámicamente en JS
-- **Persistencia**: `localStorage` (clave `"habitos_nautilus"`)
+- **Persistencia**: `localStorage` (clave `"habits21"`)
 
 ## Archivos principales
 
@@ -64,6 +64,13 @@ npm run preview  # Preview del build
 3. Implementar las tareas del change
 4. `/02-git-commit` — commitear cada tarea completada
 5. `/03-git-merge` — mergear a main cuando esté listo
+
+Para un fix o feature chica ya implementada y probada, sin pasar por
+OpenSpec, `/04-git-ship` encadena los pasos 2, 4 y 5 (más el bump de
+versión) en una sola confirmación en vez de una por comando. Útil para
+iteraciones rápidas tipo "corregí esto, mándalo a main". Los skills
+individuales siguen disponibles para cambios que ameriten revisar cada
+paso por separado.
 
 ## Sistema de efectos
 
