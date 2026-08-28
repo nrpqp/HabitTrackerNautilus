@@ -58,7 +58,7 @@
 
 - [x] 7.1 Recorrer los cuatro niveles forzados (0, 1, 2, 3) sobre el conjunto completo de interacciones, comprobando que en cada uno el momento de recompensa sigue siendo perceptible y que ningún efecto se ejecuta por debajo de su nivel mínimo.
 - [x] 7.2 Verificar la interacción entre los dos momentos: marcar el último hábito pendiente cuando además extiende una racha larga, comprobando que cometa y supernova se componen sin borrarse mutuamente.
-- [ ] 7.3 Probar en iOS Safari con la app instalada como PWA: fluidez al marcar, ausencia de errores por `navigator.vibrate` inexistente, y que el nivel asignado no es 3.
+- [x] 7.3 Probar en iOS Safari con la app instalada como PWA: fluidez al marcar, ausencia de errores por `navigator.vibrate` inexistente, y que el nivel asignado no es 3.
 - [x] 7.4 Probar en Chrome Android: la háptica se emite y el gobernador no degrada en un dispositivo que sí sostiene el ritmo.
 - [x] 7.5 Comprobar que la app sigue funcionando offline y que el service worker cachea los archivos nuevos de `src/fx/` (hard refresh sobre el build de producción).
 - [x] 7.6 Ejecutar `npm run build` y `npm run preview`, y verificar sobre el build que el anillo renderiza y ambos momentos se disparan correctamente.
@@ -71,5 +71,12 @@
 - [x] 8.2 Corregir la tabla de presupuesto: declaraba 0,35 para el nivel 1 cuando la emisión de partículas ya se corta por debajo del nivel 2. La tabla mentía sobre el comportamiento.
 - [x] 8.3 Centrar la etiqueta del núcleo por CSS en vez de calcular su posición en JS. El SVG ocupa todo el contenedor y `preserveAspectRatio` centra el viewBox, así que ambos centros coinciden siempre; medirlo antes de que el layout se asentara la dejaba desplazada hasta el primer repintado. Verificado con desvío de 0 px en cinco geometrías, incluida una medición a los 60 ms de cargar.
 - [x] 8.4 Exponer `window.__nautilusFx` con las capacidades detectadas y el nivel resultante, para poder diagnosticar desde cualquier navegador sin instrumentar nada.
-- [ ] 8.5 Reconfirmar en iPhone que el contador aparece centrado al cargar y que ahora hay partículas al marcar.
+- [x] 8.5 Reconfirmar en iPhone que el contador aparece centrado al cargar y que ahora hay partículas al marcar.
 - [ ] 8.6 Confirmar en Brave y Safari de escritorio que las animaciones se ven, y contrastar `window.__nautilusFx` si siguen sin verse.
+
+## 9. Verificación diferida al archivar
+
+Confirmado en dispositivo real por el usuario: iOS Safari como PWA, el
+contador centrado al cargar y las partículas al marcar.
+
+- [ ] 9.1 Queda sin confirmar Brave y Safari de escritorio. El síntoma original —caer al nivel 1, el único sin partículas— es ahora estructuralmente imposible en un equipo de escritorio, porque el puntero fino pone suelo en el nivel 2 sin importar lo que el navegador declare. Falta comprobar que no hubiera además un problema distinto.

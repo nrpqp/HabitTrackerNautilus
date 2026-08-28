@@ -33,7 +33,7 @@
 
 - [x] 5.1 Recorrer las cinco posiciones comprobando que el nivel activo resultante es el esperado y que la app sigue usable en todas.
 - [x] 5.2 Verificar el ciclo completo de `Automático`: elegir un nivel fijo, recargar, volver a `Automático`, recargar, y comprobar que se vuelve a la detección.
-- [ ] 5.3 Probar en móvil real que las cinco posiciones se pueden tocar sin fallar y que la rueda cabe en pantalla.
+- [x] 5.3 Probar en móvil real que las cinco posiciones se pueden tocar sin fallar y que la rueda cabe en pantalla.
 - [x] 5.4 Ejecutar `npm run build` y verificar el control sobre el build de producción.
 
 ## 6. Gobernador: techo de muestreo
@@ -44,3 +44,15 @@
 - [x] 6.1 Sustituir el techo de muestreo de 500 ms por 2000 ms más una comprobación de `document.hidden`. Con el límite en 500 ms, un dispositivo tan ahogado que tarda más que eso por frame dejaba de medirse y no se degradaba nunca — justo el caso que el gobernador existe para atrapar. El techo protegía en realidad de los huecos de pestaña en segundo plano, que `document.hidden` cubre de forma explícita.
 - [x] 6.2 Exponer `fps` y `avisos` en `window.__nautilusFx`, para poder diagnosticar el gobernador desde el móvil sin instrumentar nada.
 - [ ] 6.3 Verificar el cambio con carga sintética en una ventana visible: no se pudo comprobar en esta sesión porque la pestaña de automatización está en `document.hidden` y ahí `requestAnimationFrame` no dispara, así que el gobernador no llega a medir por construcción.
+
+## 7. Verificación diferida al archivar
+
+Confirmado en dispositivo real por el usuario: la rueda se abre, las cinco
+posiciones se tocan sin fallar y cabe en pantalla.
+
+Se archiva con una cosa sin ejercitar, y conviene decirlo claro: **nadie ha
+provocado una degradación real del gobernador desde que se tocó**. La
+implementación está completa y las specs describen el comportamiento
+pretendido; lo que falta es la comprobación empírica, no código.
+
+- [ ] 7.1 Provocar una degradación con carga sintética en una ventana visible y comprobar de una vez: que un nivel de origen `preference` baja y uno `diagnostic` no (1.2, 1.3), que la preferencia guardada no se altera (2.4), que la rueda avisa de la discrepancia (4.3) y que el techo de muestreo nuevo mide lo que debe (6.3). No se pudo hacer en sesión porque la pestaña de automatización corre con `document.hidden` y ahí `requestAnimationFrame` no dispara, así que el gobernador no llega a medir por construcción.
