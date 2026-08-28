@@ -9,15 +9,15 @@
 
 ## 2. Preferencia: clave nueva y migración
 
-- [ ] 2.1 En `src/fx/preference.js`, sustituir la clave `fx-level` por `fx-nivel` con valores `'1'..'5'` y retirar la constante `AUTO`. Verificar que una lectura sin nada guardado devuelve ausencia de preferencia, no un nivel.
-- [ ] 2.2 Añadir la migración de un solo sentido descrita en `design.md — D3`: leer `fx-level` cuando falte `fx-nivel`, aplicar `{0:1, 1:2, 2:4, 3:5}`, tratar `'auto'` como ausencia, escribir `fx-nivel` y borrar la clave vieja. Verificar sembrando `fx-level='3'` en localStorage que la app arranca en nivel 5 y que `fx-level` desaparece.
-- [ ] 2.3 Verificar la idempotencia recargando tras la migración: `fx-nivel` no cambia de valor y no se vuelve a consultar la clave vieja.
-- [ ] 2.4 Reducir `detectTier()` a semilla del primer arranque: retirar de él la rama de `prefers-reduced-motion` y devolver niveles de la escala nueva, con 3 para el dispositivo declaradamente limitado y 4 como suelo del puntero fino. Verificar que en un segundo arranque con preferencia guardada la función no se invoca.
+- [x] 2.1 En `src/fx/preference.js`, sustituir la clave `fx-level` por `fx-nivel` con valores `'1'..'5'` y retirar la constante `AUTO`. Verificar que una lectura sin nada guardado devuelve ausencia de preferencia, no un nivel.
+- [x] 2.2 Añadir la migración de un solo sentido descrita en `design.md — D3`: leer `fx-level` cuando falte `fx-nivel`, aplicar `{0:1, 1:2, 2:4, 3:5}`, tratar `'auto'` como ausencia, escribir `fx-nivel` y borrar la clave vieja. Verificar sembrando `fx-level='3'` en localStorage que la app arranca en nivel 5 y que `fx-level` desaparece.
+- [x] 2.3 Verificar la idempotencia recargando tras la migración: `fx-nivel` no cambia de valor y no se vuelve a consultar la clave vieja.
+- [x] 2.4 Reducir `detectTier()` a semilla del primer arranque: retirar de él la rama de `prefers-reduced-motion` y devolver niveles de la escala nueva, con 3 para el dispositivo declaradamente limitado y 4 como suelo del puntero fino. Verificar que en un segundo arranque con preferencia guardada la función no se invoca.
 
 ## 3. Techo por movimiento reducido
 
-- [ ] 3.1 Implementar en `src/fx/engine.js` el techo permanente: cuando `prefers-reduced-motion: reduce` esté activo, el nivel efectivo es 1 sea cual sea la preferencia guardada, con un origen propio no degradable. Verificar con la preferencia en 5 y movimiento reducido activo que no se ejecuta ninguna animación y que `fx-nivel` sigue valiendo `'5'`.
-- [ ] 3.2 Suscribir un listener a la media query para que activar o desactivar el movimiento reducido durante la sesión se refleje sin recargar. Verificar alternando la preferencia en las devtools que el nivel activo cambia entre 1 y el elegido.
+- [x] 3.1 Implementar en `src/fx/engine.js` el techo permanente: cuando `prefers-reduced-motion: reduce` esté activo, el nivel efectivo es 1 sea cual sea la preferencia guardada, con un origen propio no degradable. Verificar con la preferencia en 5 y movimiento reducido activo que no se ejecuta ninguna animación y que `fx-nivel` sigue valiendo `'5'`.
+- [x] 3.2 Suscribir un listener a la media query para que activar o desactivar el movimiento reducido durante la sesión se refleje sin recargar. Verificar alternando la preferencia en las devtools que el nivel activo cambia entre 1 y el elegido.
 
 ## 4. Mecánica de hoja compartida
 

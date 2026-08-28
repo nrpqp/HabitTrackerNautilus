@@ -12,7 +12,7 @@ import { renderSVG, view } from './render/svg.js';
 import {
   tier, detectTier, haptics, initFxCanvas, burstElement, setUnitScale, SOURCES,
 } from './fx/engine.js';
-import { readPreference, writePreference, AUTO } from './fx/preference.js';
+import { readPreference, writePreference, NONE } from './fx/preference.js';
 import { createDial } from './ui/dial.js';
 import {
   streakComet, arrivalBurst, extinguishCell, chargeToCore, setCoreCharge, supernova,
@@ -586,20 +586,25 @@ function urlTierOverride() {
   return forced;
 }
 
-/** Prioridad: anulación por URL, preferencia guardada, detección. */
+/** Prioridad: anulación por URL, preferencia guardada, semilla del dispositivo. */
 export function applyStoredTier() {
   const url = urlTierOverride();
   if (url !== null) { tier.set(url, SOURCES.DIAGNOSTIC); return; }
-  const pref = readPreference();
-  if (pref === AUTO) tier.set(detectTier(), SOURCES.AUTO);
-  else tier.set(Number(pref), SOURCES.PREFERENCE);
+
+  let pref = readPreference();
+  if (pref === NONE) {
+    // Primer arranque: la detección siembra una vez y su resultado queda
+    // ya como elección del usuario. No se vuelve a detectar después.
+    pref = detectTier();
+    writePreference(pref);
+  }
+  tier.set(pref, SOURCES.PREFERENCE);
 }
 
-/** Aplica y guarda la elección del usuario desde la rueda. */
+/** Aplica y guarda la elección del usuario. */
 function chooseTier(value) {
   writePreference(value);
-  if (value === AUTO) tier.set(detectTier(), SOURCES.AUTO);
-  else tier.set(Number(value), SOURCES.PREFERENCE);
+  tier.set(Number(value), SOURCES.PREFERENCE);
 }
 
 /**

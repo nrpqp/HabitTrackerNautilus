@@ -1,6 +1,5 @@
 import { polarToCartesian } from '../utils/svg.js';
-import { tier, SOURCES, TIER_NAMES } from '../fx/engine.js';
-import { AUTO } from '../fx/preference.js';
+import { tier, SOURCES, TIER_NAMES, MIN_TIER, MAX_TIER } from '../fx/engine.js';
 
 /* ============================================================
    Rueda de intensidad.
@@ -10,13 +9,19 @@ import { AUTO } from '../fx/preference.js';
    así que el estado y los avisos van fuera del círculo de opciones.
    ============================================================ */
 
-const OPTIONS = [
-  { value: AUTO, label: 'Auto',     descripcion: 'Según el dispositivo' },
-  { value: '0',  label: 'Calma',    descripcion: 'Sin movimiento' },
-  { value: '1',  label: 'Lite',     descripcion: 'Movimiento sobrio' },
-  { value: '2',  label: 'Estándar', descripcion: 'Partículas y celebraciones' },
-  { value: '3',  label: 'Máximo',   descripcion: 'Todo, sin recortes' },
+const DESCRIPCIONES = [
+  null,
+  'Sin movimiento',
+  'Movimiento sobrio, sin partículas',
+  'Partículas ligeras, sin halo',
+  'Partículas y celebraciones',
+  'Todo, sin recortes',
 ];
+
+const OPTIONS = [];
+for (let n = MIN_TIER; n <= MAX_TIER; n++) {
+  OPTIONS.push({ value: n, label: String(n), nombre: TIER_NAMES[n], descripcion: DESCRIPCIONES[n] });
+}
 
 // Cinco posiciones repartidas desde arriba, en sentido horario.
 const STEP = 360 / OPTIONS.length;
@@ -50,7 +55,7 @@ export function createDial({ host, getChoice, onChoose, onPreview, onOpenChange 
       b.className = 'fx-opt';
       b.dataset.value = opt.value;
       b.setAttribute('role', 'radio');
-      b.setAttribute('aria-label', `${opt.label}. ${opt.descripcion}`);
+      b.setAttribute('aria-label', `Nivel ${opt.value}, ${opt.nombre}. ${opt.descripcion}`);
       b.textContent = opt.label;
 
       // Mismo helper polar que dibuja el anillo de días.
@@ -105,23 +110,24 @@ export function createDial({ host, getChoice, onChoose, onPreview, onOpenChange 
   function sync() {
     const choice = getChoice();
     buttons.forEach((b) => {
-      const on = b.dataset.value === choice;
+      const on = Number(b.dataset.value) === choice;
       b.classList.toggle('on', on);
       b.setAttribute('aria-checked', String(on));
       b.tabIndex = on ? 0 : -1;
     });
 
     const activo = `${TIER_NAMES[tier.value]}`;
-    if (tier.source === SOURCES.DIAGNOSTIC) {
+    if (tier.source === SOURCES.REDUCED_MOTION) {
+      note.textContent = `Tu sistema pide movimiento reducido: el nivel activo es ${activo}. Tu elección se conserva.`;
+      note.classList.add('warn');
+    } else if (tier.source === SOURCES.DIAGNOSTIC) {
       note.textContent = `El nivel lo fija ?fx= en la dirección: ${activo}. Tu elección se conserva.`;
       note.classList.add('warn');
-    } else if (choice !== AUTO && Number(choice) !== tier.value) {
+    } else if (choice !== tier.value) {
       note.textContent = `Tu dispositivo no sostiene ese nivel; ahora va en ${activo}.`;
       note.classList.add('warn');
     } else {
-      note.textContent = choice === AUTO
-        ? `Automático: ${activo}`
-        : `Intensidad ${activo}`;
+      note.textContent = `Nivel ${tier.value} · ${activo}`;
       note.classList.remove('warn');
     }
   }
