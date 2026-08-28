@@ -1,37 +1,80 @@
 /* ============================================================
-   Preferencia de intensidad de efectos.
+   Preferencia de nivel de efecto visual.
 
    Vive en su propia clave, como el tema. Meterla dentro de
-   `habits21` mezclaría ajustes de interfaz con los datos del reto.
+   `habitos_nautilus` mezclaría ajustes de interfaz con los datos
+   del reto.
    ============================================================ */
 
-const KEY = 'fx-level';
+import { MIN_TIER, MAX_TIER } from './engine.js';
 
-/** La posición automática devuelve la decisión a la detección del dispositivo. */
-export const AUTO = 'auto';
+const KEY = 'fx-nivel';
 
-export const OPTIONS = [AUTO, '0', '1', '2', '3'];
+/* Clave y valores anteriores. La escala vieja iba de 0 a 3 y admitía una
+   posición automática; reusar su clave haría que un '3' guardado —Máximo
+   entonces— se leyese como Suave ahora, dos escalones por debajo de lo
+   que el usuario eligió. Por eso la clave cambia de nombre. */
+const OLD_KEY = 'fx-level';
+const OLD_TO_NEW = { 0: 1, 1: 2, 2: 4, 3: 5 };
+
+/** Ausencia de preferencia. Quien la reciba debe sembrar desde el dispositivo. */
+export const NONE = null;
+
+function isValid(n) {
+  return Number.isInteger(n) && n >= MIN_TIER && n <= MAX_TIER;
+}
 
 /**
- * Ausencia de clave, valor desconocido o localStorage inaccesible —modo
- * privado en algunos navegadores— se leen todos como automática, que es
- * el comportamiento que la app tenía antes de existir esta preferencia.
+ * Traslada la preferencia de la escala vieja a la nueva y borra el rastro.
+ * Un solo sentido y una sola vez: el siguiente arranque ya encuentra la
+ * clave nueva y no vuelve a mirar aquí.
+ *
+ * La posición automática se lee como ausencia, no como un nivel: era
+ * "decide tú por mí", y su equivalente ahora es sembrar desde el
+ * dispositivo y guardar el resultado.
+ */
+function migrate() {
+  let raw;
+  try {
+    raw = localStorage.getItem(OLD_KEY);
+  } catch (_) {
+    return NONE;
+  }
+  if (raw === null) return NONE;
+
+  const nuevo = OLD_TO_NEW[Number(raw)];
+  try {
+    localStorage.removeItem(OLD_KEY);
+    if (nuevo !== undefined) localStorage.setItem(KEY, String(nuevo));
+  } catch (_) {
+    /* sin persistencia; la sesión en curso respeta igualmente el traslado */
+  }
+  return nuevo !== undefined ? nuevo : NONE;
+}
+
+/**
+ * Nivel guardado, o `NONE` si no hay ninguno utilizable. Un valor
+ * ilegible —clave manipulada, escala futura, localStorage inaccesible en
+ * modo privado— se trata como ausencia: se siembra de nuevo en vez de
+ * arrancar con un nivel arbitrario.
  */
 export function readPreference() {
+  let raw;
   try {
-    const raw = localStorage.getItem(KEY);
-    return OPTIONS.includes(raw) ? raw : AUTO;
+    raw = localStorage.getItem(KEY);
   } catch (_) {
-    return AUTO;
+    return NONE;
   }
+  if (raw === null) return migrate();
+  const n = Number(raw);
+  return isValid(n) ? n : NONE;
 }
 
 export function writePreference(value) {
+  const n = Number(value);
+  if (!isValid(n)) return;
   try {
-    // Guardar la automática como ausencia mantiene la operación idempotente:
-    // no hay dos formas distintas de representar el mismo estado.
-    if (value === AUTO || !OPTIONS.includes(value)) localStorage.removeItem(KEY);
-    else localStorage.setItem(KEY, value);
+    localStorage.setItem(KEY, String(n));
   } catch (_) {
     /* sin persistencia; la sesión en curso sigue respetando la elección */
   }

@@ -23,6 +23,8 @@ Aplicación web PWA para rastrear hábitos en un reto de 21 días. Los hábitos 
 | `src/render/svg.js` | Construcción y repintado del nautilus; expone `view` |
 | `src/fx/engine.js` | Niveles de dispositivo, bucle de canvas, partículas, háptica |
 | `src/fx/effects.js` | Cometa de racha, medidor del núcleo, supernova |
+| `src/ui/sheet.js` | Mecánica compartida de hoja inferior |
+| `src/ui/settings.js` | Hoja de ajustes: tema, nivel de efecto, fuente |
 | `src/utils/` | Fechas, color e interpolación, geometría polar |
 | `style.css` | Estilos globales y variables de tema |
 | `index.html` | Estructura HTML base |
@@ -69,9 +71,13 @@ npm run preview  # Preview del build
   volver a introducir `innerHTML` en el renderer: mata las animaciones en curso.
 - Sólo `src/fx/engine.js` limpia el canvas y pide frames. Un efecto nuevo se
   registra con `addEffect({ draw(ctx, now) })` y devuelve `false` al terminar.
-- Cada efecto declara su nivel mínimo. Niveles: 0 Calma, 1 Lite, 2 Estándar,
-  3 Máximo. Se detectan al arrancar y el gobernador de FPS puede degradarlos.
-- `?fx=0..3` en la URL fuerza el nivel — la única forma de probarlos en un móvil.
+- Cada efecto declara su nivel mínimo. Niveles: 1 Calma, 2 Lite, 3 Suave,
+  4 Estándar, 5 Máximo. El nivel 3 es el peldaño que dibuja partículas sin
+  blending aditivo ni halo. La detección siembra el valor en el primer
+  arranque y el gobernador de FPS puede degradarlo hasta el nivel 2.
+- `prefers-reduced-motion` es un techo permanente: sujeta el nivel activo a 1
+  sin borrar la preferencia guardada, y gana también a `?fx=`.
+- `?fx=1..5` en la URL fuerza el nivel — la única forma de probarlos en un móvil.
 
 ## Notas importantes
 

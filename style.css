@@ -222,8 +222,8 @@ body {
 /* La escena no anima nada por sí misma; lo único que se mueve es el
    cruce de tema. En nivel 0 y con movimiento reducido, también eso se
    corta, para que no quede ni un fundido. */
-html[data-tier="0"] .scene,
-html[data-tier="0"] .scene-art {
+html[data-tier="1"] .scene,
+html[data-tier="1"] .scene-art {
   transition: none;
 }
 
@@ -242,7 +242,10 @@ html[data-tier="0"] .scene-art {
   height: 100%;
   max-height: 850px;
   border-radius: 24px;
-  padding: 36px;
+  /* El extra inferior es el hueco de la píldora de añadir hábito, que es
+     absoluta y no participa del flujo. Va aquí y no en .stats porque por
+     debajo de 600px de alto los indicadores se ocultan. */
+  padding: 36px 36px 76px;
   position: relative;
   z-index: 1;
   display: flex;
@@ -280,10 +283,8 @@ header p {
 /* ── Header buttons ──────────────────────────────────────── */
 /* Botones circulares con halo, como en el prototipo. El área táctil se
    mantiene en 44 px aunque el círculo se dibuje más pequeño en móvil. */
-.theme-toggle,
 .info-toggle,
-.add-toggle,
-.fx-toggle {
+.settings-toggle {
   position: absolute;
   top: 20px;
   width: 44px;
@@ -304,61 +305,56 @@ header p {
   z-index: 10;
 }
 
-.theme-toggle { right: 20px; }
-.info-toggle  { right: 74px; }
-.fx-toggle    { right: 182px; }
-.add-toggle {
-  right: 128px;
-  font-size: 1.4rem;
-  font-weight: 300;
-  color: var(--accent-cyan);
-}
-
+.info-toggle  { left: 20px; }
+.settings-toggle { right: 20px; }
 /* El tema y los efectos son ajustes: van en ámbar, como en el prototipo. */
-.theme-toggle,
-.fx-toggle {
+.settings-toggle {
   border-color: var(--accent-amber-deep);
   box-shadow: 0 0 18px var(--glow-amber);
 }
 
-.theme-toggle:hover,
 .info-toggle:hover,
-.add-toggle:hover,
-.fx-toggle:hover {
+.settings-toggle:hover {
   border-color: var(--accent-cyan);
   box-shadow: 0 0 26px var(--glow-cyan);
   transform: scale(1.08);
 }
 
-.theme-toggle:active,
 .info-toggle:active,
-.add-toggle:active,
-.fx-toggle:active {
+.settings-toggle:active {
   transform: scale(0.95);
 }
 
-.theme-toggle:focus-visible,
 .info-toggle:focus-visible,
-.add-toggle:focus-visible,
-.fx-toggle:focus-visible {
+.settings-toggle:focus-visible {
   outline: 3px solid var(--accent-cyan);
   outline-offset: 3px;
   border-color: var(--accent-cyan);
 }
 
-.add-toggle:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  pointer-events: none;
-  box-shadow: none;
+
+/* El engranaje se dibuja en SVG, no en emoji: un emoji cambia de forma
+   entre plataformas y aquí compite con el icono de información. */
+.settings-toggle svg {
+  width: 21px;
+  height: 21px;
 }
 
-/* Show/hide icons based on theme */
-.theme-icon-dark  { display: none; }
-.theme-icon-light { display: inline; }
+.settings-toggle .gear-teeth { fill: var(--accent-amber); }
+.settings-toggle .gear-ring  { stroke: var(--accent-amber); }
+.settings-toggle .gear-hole  { fill: var(--surface-solid); }
 
-[data-theme="dark"] .theme-icon-dark  { display: inline; }
-[data-theme="dark"] .theme-icon-light { display: none; }
+
+/* Información en cian: leer. Ajustes en ámbar: cambiar. */
+.info-toggle {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 18px var(--glow-cyan);
+  color: var(--accent-cyan);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
 
 /* ── SVG Container ───────────────────────────────────────── */
 .svg-container {
@@ -402,7 +398,7 @@ header p {
   transition: stroke-dashoffset 0.48s cubic-bezier(0.3, 0.9, 0.3, 1);
 }
 
-html[data-tier="0"] .gauge-arc {
+html[data-tier="1"] .gauge-arc {
   transition: none;
 }
 
@@ -457,8 +453,8 @@ html[data-tier="0"] .gauge-arc {
   animation: core-swap 0.42s ease-out;
 }
 
-html[data-tier="0"] .day-core.swapping .core-value,
-html[data-tier="0"] .day-core.swapping .core-caption {
+html[data-tier="1"] .day-core.swapping .core-value,
+html[data-tier="1"] .day-core.swapping .core-caption {
   animation: none;
 }
 
@@ -534,10 +530,10 @@ html[data-tier="0"] .day-core.swapping .core-caption {
 /* Nivel 0 (Calma): el motor de efectos ya cubre prefers-reduced-motion,
    ahorro de datos y la degradación manual. La media query de arriba se
    mantiene como red de seguridad si el JS no llega a ejecutarse. */
-html[data-tier="0"] .phase-1,
-html[data-tier="0"] .phase-2,
-html[data-tier="0"] .phase-3,
-html[data-tier="0"] .today-indicator {
+html[data-tier="1"] .phase-1,
+html[data-tier="1"] .phase-2,
+html[data-tier="1"] .phase-3,
+html[data-tier="1"] .today-indicator {
   animation: none;
 }
 
@@ -959,6 +955,47 @@ html[data-tier="0"] .today-indicator {
   }
 }
 
+/* ── Velo suave de hoja ──────────────────────────────────── */
+/* Una hoja cuyo contenido actúa sobre lo que hay detrás no puede taparlo.
+   Es el caso de los ajustes: elegir un nivel dispara una muestra sobre el
+   nautilus, y con el velo uniforme al 72% quedaría en una mancha borrosa.
+   El degradado deja limpio el tercio superior y concentra la opacidad en
+   la franja contigua al panel. */
+.sheet-soft [data-sheet-backdrop] {
+  background: linear-gradient(
+    to bottom,
+    rgba(3, 5, 11, 0) 0%,
+    rgba(3, 5, 11, 0) 42%,
+    rgba(3, 5, 11, 0.55) 68%,
+    rgba(3, 5, 11, 0.82) 100%
+  );
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* El canvas vive en .container, que crea contexto de apilamiento con
+   z-index 1; la hoja es hermana suya dentro de ese mismo contexto, así
+   que basta con superar su z-index para que la muestra se dibuje encima.
+   La clase la pone createSheet: `:has()` no llegó a Safari hasta la 15.4
+   y aquí un fallo silencioso dejaría la muestra detrás del velo. */
+body.sheet-soft-open #effect-overlay {
+  z-index: 260;
+  /* Elevar el canvas lo pone también por encima del panel, así que la
+     muestra se recorta antes de llegar a él. Con un desvanecido y no con
+     un corte seco: una línea recta de partículas cortadas se ve peor que
+     no tenerlas. Los dos porcentajes los calcula la hoja al abrirse. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 var(--fx-mask-solid, 100%),
+    transparent var(--fx-mask-fade, 100%)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 var(--fx-mask-solid, 100%),
+    transparent var(--fx-mask-fade, 100%)
+  );
+}
+
 /* ── Hoja de instalación ─────────────────────────────────── */
 .info-sheet {
   position: fixed;
@@ -1040,20 +1077,86 @@ html[data-tier="0"] .today-indicator {
 }
 
 .info-sheet-panel h3 {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent-amber);
-  margin: 16px 0 8px;
+  font-family: var(--font-ui);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 14px 0 5px;
 }
 
-.info-sheet-panel ol {
-  padding-left: 1.15rem;
+/* ── Secciones plegables del manual ──────────────────────── */
+/* <details> aporta el estado y el foco de teclado sin JS. Sólo hay que
+   vestirlo y quitarle el triángulo por defecto, que no encaja aquí. */
+.manual-section {
+  border-top: 1px solid var(--border-soft);
+}
+
+.manual-section:first-of-type { border-top: none; }
+
+.manual-section > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 4px 0;
+  font-family: var(--font-ui);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.manual-section > summary::-webkit-details-marker { display: none; }
+
+/* Chevron propio: rota al desplegar y dice el estado sin depender del color. */
+.manual-section > summary::after {
+  content: '';
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--accent-cyan);
+  border-bottom: 2px solid var(--accent-cyan);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 0.2s ease;
+}
+
+.manual-section[open] > summary::after {
+  transform: rotate(-135deg) translate(-2px, -2px);
+}
+
+.manual-section > summary:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.manual-body {
+  padding: 0 0 14px;
   color: var(--text-secondary);
-  font-size: 0.88rem;
-  line-height: 1.65;
+  font-size: 0.86rem;
+  line-height: 1.62;
+}
+
+.manual-body p { margin-bottom: 9px; }
+.manual-body p:last-child { margin-bottom: 0; }
+
+/* La advertencia sobre los datos no puede leerse como un párrafo más:
+   es lo único del manual que avisa de una pérdida irreversible. */
+.manual-warn {
+  border-left: 2px solid var(--accent-amber);
+  padding-left: 11px;
+  color: var(--text-main);
+}
+
+html[data-tier="1"] .manual-section > summary::after {
+  transition: none;
+}
+
+.manual-body ol {
+  padding-left: 1.15rem;
+  margin-bottom: 9px;
 }
 
 .info-sheet-panel strong { color: var(--text-main); font-weight: 600; }
@@ -1107,6 +1210,303 @@ html[data-tier="0"] .today-indicator {
   .info-sheet-panel {
     padding-bottom: max(32px, env(safe-area-inset-bottom));
   }
+}
+
+/* ── Píldora de añadir hábito ────────────────────────────── */
+/* Un susurro, no un grito: menos contraste que los indicadores y que los
+   botones de la cabecera. Absoluta respecto al contenedor para no comerle
+   margen a las stats en pantallas cortas. */
+.add-habit-pill {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 18px 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.12s;
+}
+
+.add-habit-plus {
+  font-size: 1.15rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--accent-cyan);
+}
+
+.add-habit-pill:hover {
+  border-color: var(--accent-cyan);
+  color: var(--text-main);
+  box-shadow: 0 0 18px var(--glow-cyan);
+}
+
+.add-habit-pill:active { transform: translateX(-50%) scale(0.97); }
+
+.add-habit-pill:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 3px;
+}
+
+.add-habit-pill:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+/* En PWA instalada el indicador del sistema come el borde inferior. */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .add-habit-pill {
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .add-habit-pill { background: var(--surface-solid); }
+}
+
+/* ── Hoja de ajustes ─────────────────────────────────────── */
+/* Comparte panel, bordes y animación con el manual. Difiere en dos cosas,
+   ambas porque su contenido actúa sobre lo que hay detrás: el velo es
+   degradado y el anclaje es inferior también en escritorio. */
+.settings-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.settings-sheet.hidden { display: none; }
+.settings-sheet.open { pointer-events: auto; }
+
+.settings-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.settings-sheet.open .settings-sheet-backdrop { opacity: 1; }
+
+.settings-sheet-panel {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--surface-strong);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid var(--accent-amber);
+  border-radius: 30px 30px 0 0;
+  padding: 22px 24px 28px;
+  box-shadow: var(--shadow-panel);
+  transform: translateY(100%);
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.settings-sheet.open .settings-sheet-panel { transform: translateY(0); }
+
+.settings-sheet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.settings-sheet-head h2 {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-main);
+}
+
+.settings-sheet-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.settings-sheet-close:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ── Filas de ajuste ─────────────────────────────────────── */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+.setting-row:first-of-type { border-top: none; }
+
+.setting-row-block {
+  display: block;
+}
+
+.setting-label {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: var(--text-main);
+}
+
+.setting-row-disabled .setting-label { color: var(--text-muted); }
+
+.setting-soon {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-soft);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+/* ── Interruptor de tema ─────────────────────────────────── */
+.theme-switch {
+  display: flex;
+  gap: 6px;
+}
+
+.theme-opt {
+  min-height: 44px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.theme-opt[aria-checked="true"] {
+  border-color: var(--accent-amber);
+  color: var(--text-main);
+  box-shadow: 0 0 16px var(--glow-amber);
+}
+
+.theme-opt:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* ── Escala de nivel de efecto ───────────────────────────── */
+.fx-scale {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.fx-step {
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.fx-step:hover { border-color: var(--accent-cyan); }
+
+.fx-step[aria-checked="true"] {
+  border-color: var(--accent-cyan);
+  background: var(--accent-cyan);
+  color: var(--surface-solid);
+  box-shadow: 0 0 20px var(--glow-cyan);
+}
+
+.fx-step:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 3px;
+}
+
+.fx-scale-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 7px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.fx-scale-note {
+  margin-top: 10px;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.fx-scale-note.warn { color: var(--accent-amber); }
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .settings-sheet-panel { background: var(--surface-solid); }
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .settings-sheet-panel {
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+  }
+}
+
+/* En pantallas cortas el panel llegaba al 63% del alto y dejaba una banda
+   de nautilus demasiado estrecha para que la muestra se viera. Se comprime
+   todo lo que no sea área táctil: los 44px de los controles no se tocan. */
+@media (max-height: 760px) {
+  .settings-sheet-panel {
+    max-height: 62vh;
+    padding: 14px 20px 18px;
+  }
+
+  @supports (padding: env(safe-area-inset-bottom)) {
+    .settings-sheet-panel {
+      padding-bottom: max(18px, env(safe-area-inset-bottom));
+    }
+  }
+
+  .settings-sheet-head { margin-bottom: 10px; }
+  .settings-sheet-head h2 { font-size: 0.92rem; }
+  .setting-row { padding: 7px 0; }
+  .fx-scale { margin-top: 8px; gap: 6px; }
+  .fx-scale-ends { margin-top: 4px; font-size: 0.62rem; }
+  .fx-scale-note { margin-top: 6px; font-size: 0.72rem; }
 }
 
 /* ── Tooltip ─────────────────────────────────────────────── */
@@ -1173,7 +1573,7 @@ svg {
     padding: 8px;
   }
   .container {
-    padding: 14px;
+    padding: 14px 14px 68px;
     border-radius: 16px;
   }
   header {
@@ -1186,17 +1586,15 @@ svg {
   header p {
     font-size: 0.8rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
+  .info-toggle, .settings-toggle {
     top: 8px;
     width: 44px;
     height: 44px;
     font-size: 0.95rem;
     border-radius: 50%;
   }
-  .theme-toggle { right: 6px; }
-  .info-toggle  { right: 56px; }
-  .add-toggle   { right: 106px; font-size: 1.25rem; }
-  .fx-toggle    { right: 156px; }
+  .info-toggle  { left: 6px; }
+  .settings-toggle { right: 6px; }
 }
 
 /* ▸ Regular phones (380px – 479px) */
@@ -1205,7 +1603,7 @@ svg {
     padding: 10px;
   }
   .container {
-    padding: 16px;
+    padding: 16px 16px 70px;
     border-radius: 18px;
   }
   header {
@@ -1218,17 +1616,15 @@ svg {
   header p {
     font-size: 0.85rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
+  .info-toggle, .settings-toggle {
     top: 10px;
     width: 44px;
     height: 44px;
     font-size: 1rem;
     border-radius: 50%;
   }
-  .theme-toggle { right: 10px; }
-  .info-toggle  { right: 60px; }
-  .add-toggle   { right: 110px; font-size: 1.3rem; }
-  .fx-toggle    { right: 160px; }
+  .info-toggle  { left: 10px; }
+  .settings-toggle { right: 10px; }
 }
 
 /* ▸ Tablets portrait / large phones (480px – 767px) */
@@ -1237,7 +1633,7 @@ svg {
     padding: 16px;
   }
   .container {
-    padding: 24px;
+    padding: 24px 24px 72px;
     border-radius: 20px;
   }
   header {
@@ -1246,16 +1642,14 @@ svg {
   header h1 {
     font-size: 1.6rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
+  .info-toggle, .settings-toggle {
     top: 14px;
     width: 44px;
     height: 44px;
     font-size: 1.05rem;
   }
-  .theme-toggle { right: 14px; }
-  .info-toggle  { right: 64px; }
-  .add-toggle   { right: 114px; font-size: 1.4rem; }
-  .fx-toggle    { right: 164px; }
+  .info-toggle  { left: 14px; }
+  .settings-toggle { right: 14px; }
 }
 
 /* ── Touch device adjustments ────────────────────────────── */
@@ -1277,7 +1671,7 @@ svg {
     align-items: flex-start;
   }
   .container {
-    padding: 16px;
+    padding: 16px 16px 66px;
   }
   header {
     margin-bottom: 14px;
@@ -1312,10 +1706,8 @@ svg {
     max-width: 100%;
   }
   .scene,
-  .theme-toggle,
   .info-toggle,
-  .add-toggle,
-  .fx-toggle,
+  .settings-toggle,
   .habit-sheet,
   .cell-tooltip {
     display: none !important;
@@ -1426,124 +1818,11 @@ svg {
 }
 
 /* ── Rueda de intensidad ──────────────────────────────────── */
-.fx-dial {
-  position: absolute;
-  inset: 0;
-  z-index: 120;
-}
-
-.fx-dial.hidden { display: none; }
-
-.fx-dial-backdrop {
-  position: absolute;
-  inset: 0;
-  /* Oscurece el anillo para que las opciones destaquen. El contador del
-     día se sube por encima de esta capa, así que sigue legible. */
-  background: rgba(3, 5, 11, 0.72);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.fx-dial.open .fx-dial-backdrop { opacity: 1; }
-
-.fx-dial-ring {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) scale(0.94);
-  opacity: 0;
-  transition: transform 0.24s cubic-bezier(0.2, 1.4, 0.35, 1), opacity 0.18s ease;
-}
-
-.fx-dial.open .fx-dial-ring {
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 1;
-}
-
-.fx-opt {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  min-height: 44px;
-  padding: 0 15px;
-  border-radius: 999px;
-  border: 1px solid var(--border-soft);
-  background: var(--surface-strong);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  /* Sobre el velo oscuro, el texto secundario se pierde. */
-  color: var(--text-main);
-  font-family: var(--font-ui);
-  font-size: 0.82rem;
-  font-weight: 600;
-  white-space: nowrap;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
-  transition: transform 0.15s, border-color 0.2s, color 0.2s, background 0.2s;
-}
-
-.fx-opt:hover {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 20px var(--glow-cyan);
-}
-.fx-opt:active { transform: translate(-50%, -50%) scale(0.94); }
-
-.fx-opt:focus-visible {
-  outline: 3px solid var(--accent-cyan);
-  outline-offset: 3px;
-}
-
-.fx-opt.on {
-  background: var(--accent-cyan);
-  border-color: var(--accent-cyan);
-  color: var(--surface-solid);
-  box-shadow: 0 0 24px var(--glow-cyan);
-}
-
-.fx-dial-note {
-  position: absolute;
-  left: 50%;
-  bottom: 8px;
-  transform: translateX(-50%);
-  z-index: 130;
-  max-width: 90%;
-  text-align: center;
-  font-size: 0.76rem;
-  line-height: 1.4;
-  color: var(--text-secondary);
-  background: var(--surface-strong);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border-soft);
-  border-radius: 12px;
-  padding: 6px 12px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.fx-dial.open .fx-dial-note { opacity: 1; }
-
-.fx-dial-note.warn {
-  color: var(--text-main);
-  border-color: var(--accent-amber);
-}
-
-html[data-tier="0"] .fx-dial-backdrop,
-html[data-tier="0"] .fx-dial-ring,
-html[data-tier="0"] .fx-dial-note {
-  transition: none;
-}
-
 /* Respaldo para navegadores sin difuminado: superficies opacas para que
    el texto no compita con la escena de fondo. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .fx-opt,
-  .fx-dial-note,
   .milestone-toast,
   .cell-tooltip {
     background: var(--surface-solid);
-  }
-  .fx-dial-backdrop {
-    background: rgba(3, 5, 11, 0.86);
   }
 }

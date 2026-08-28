@@ -1,59 +1,4 @@
-# effects-preference Specification
-
-## Purpose
-Da al usuario la última palabra sobre cuánta intensidad visual quiere, mediante una escala de cinco niveles dentro de los ajustes que recuerda su elección, sin quitarle al sistema la capacidad de proteger el rendimiento del dispositivo ni de respetar sus preferencias de accesibilidad.
-
-## Requirements
-
-### Requirement: Vista previa al cambiar de intensidad
-
-Al seleccionar un nivel, el sistema SHALL disparar un efecto de muestra ejecutado con ese nivel, de modo que la diferencia entre opciones sea perceptible en el momento de elegir. En el nivel que no produce movimiento, la ausencia de muestra SHALL ser en sí misma la vista previa.
-
-La muestra SHALL ser visible sin cerrar la hoja de ajustes: la superficie desde la que se elige no SHALL ocultar ni atenuar el área donde se dibuja la muestra.
-
-#### Scenario: Muestra al elegir
-
-- **WHEN** el usuario selecciona un nivel con movimiento
-- **THEN** se ejecuta un efecto de muestra con el presupuesto y las capas de ese nivel
-
-#### Scenario: Comparación entre dos intensidades
-
-- **WHEN** el usuario pasa de un nivel a otro superior
-- **THEN** la segunda muestra es visiblemente mayor que la primera
-
-#### Scenario: Sin muestra en la intensidad de calma
-
-- **WHEN** el usuario selecciona el nivel 1
-- **THEN** no se ejecuta ninguna animación
-
-#### Scenario: La muestra no queda tapada
-
-- **WHEN** el usuario selecciona un nivel con la hoja de ajustes abierta
-- **THEN** la muestra se ve por encima del velo de la hoja, sin necesidad de cerrarla
-
-### Requirement: Visibilidad del nivel realmente activo
-
-Cuando el nivel activo no coincida con la preferencia elegida —porque el gobernador de rendimiento lo ha degradado, porque el movimiento reducido está fijando un techo o porque hay una anulación de diagnóstico— el control SHALL indicarlo. Un ajuste que se ignora en silencio SHALL considerarse un fallo de esta capacidad.
-
-#### Scenario: Degradación tras elegir un nivel alto
-
-- **WHEN** el usuario ha elegido el nivel 5 y el gobernador degrada el nivel activo por bajo rendimiento
-- **THEN** el control muestra que el nivel activo es menor que el elegido, y la preferencia guardada no cambia
-
-#### Scenario: Movimiento reducido activo
-
-- **WHEN** el sistema operativo declara movimiento reducido
-- **THEN** el control indica que el nivel activo está sujeto a 1 por esa preferencia del sistema, y sigue mostrando cuál es la elección guardada
-
-#### Scenario: Anulación de diagnóstico activa
-
-- **WHEN** la aplicación se ha abierto con una anulación de diagnóstico por URL
-- **THEN** el control indica que el nivel lo fija la anulación, y la preferencia guardada permanece intacta
-
-#### Scenario: Sin discrepancia
-
-- **WHEN** el nivel activo coincide con la preferencia elegida
-- **THEN** el control no muestra ninguna advertencia
+## ADDED Requirements
 
 ### Requirement: Preferencia de nivel en escala de 1 a 5
 
@@ -141,3 +86,69 @@ La migración SHALL ejecutarse una sola vez y SHALL ser idempotente: repetirla n
 
 - **WHEN** la aplicación arranca de nuevo tras haber migrado la preferencia
 - **THEN** el nivel guardado permanece igual y no vuelve a transformarse
+
+## MODIFIED Requirements
+
+### Requirement: Vista previa al cambiar de intensidad
+
+Al seleccionar un nivel, el sistema SHALL disparar un efecto de muestra ejecutado con ese nivel, de modo que la diferencia entre opciones sea perceptible en el momento de elegir. En el nivel que no produce movimiento, la ausencia de muestra SHALL ser en sí misma la vista previa.
+
+La muestra SHALL ser visible sin cerrar la hoja de ajustes: la superficie desde la que se elige no SHALL ocultar ni atenuar el área donde se dibuja la muestra.
+
+#### Scenario: Muestra al elegir
+
+- **WHEN** el usuario selecciona un nivel con movimiento
+- **THEN** se ejecuta un efecto de muestra con el presupuesto y las capas de ese nivel
+
+#### Scenario: Comparación entre dos intensidades
+
+- **WHEN** el usuario pasa de un nivel a otro superior
+- **THEN** la segunda muestra es visiblemente mayor que la primera
+
+#### Scenario: Sin muestra en la intensidad de calma
+
+- **WHEN** el usuario selecciona el nivel 1
+- **THEN** no se ejecuta ninguna animación
+
+#### Scenario: La muestra no queda tapada
+
+- **WHEN** el usuario selecciona un nivel con la hoja de ajustes abierta
+- **THEN** la muestra se ve por encima del velo de la hoja, sin necesidad de cerrarla
+
+### Requirement: Visibilidad del nivel realmente activo
+
+Cuando el nivel activo no coincida con la preferencia elegida —porque el gobernador de rendimiento lo ha degradado, porque el movimiento reducido está fijando un techo o porque hay una anulación de diagnóstico— el control SHALL indicarlo. Un ajuste que se ignora en silencio SHALL considerarse un fallo de esta capacidad.
+
+#### Scenario: Degradación tras elegir un nivel alto
+
+- **WHEN** el usuario ha elegido el nivel 5 y el gobernador degrada el nivel activo por bajo rendimiento
+- **THEN** el control muestra que el nivel activo es menor que el elegido, y la preferencia guardada no cambia
+
+#### Scenario: Movimiento reducido activo
+
+- **WHEN** el sistema operativo declara movimiento reducido
+- **THEN** el control indica que el nivel activo está sujeto a 1 por esa preferencia del sistema, y sigue mostrando cuál es la elección guardada
+
+#### Scenario: Anulación de diagnóstico activa
+
+- **WHEN** la aplicación se ha abierto con una anulación de diagnóstico por URL
+- **THEN** el control indica que el nivel lo fija la anulación, y la preferencia guardada permanece intacta
+
+#### Scenario: Sin discrepancia
+
+- **WHEN** el nivel activo coincide con la preferencia elegida
+- **THEN** el control no muestra ninguna advertencia
+
+## REMOVED Requirements
+
+### Requirement: Preferencia de intensidad con posición automática
+
+**Reason**: La escala pasa a ser numérica de 1 a 5 y no admite una posición que no sea un nivel. La detección del dispositivo deja de ser un modo persistente y pasa a sembrar el valor inicial una sola vez.
+
+**Migration**: Sustituido por «Preferencia de nivel en escala de 1 a 5», que recoge la persistencia y la aplicación antes del primer render, y por «Migración de la preferencia guardada anterior», que define la correspondencia entre la numeración vieja y la nueva. Quien estuviera en la posición automática recibe una semilla derivada de su dispositivo, guardada ya como elección concreta.
+
+### Requirement: Control radial de intensidad
+
+**Reason**: La intensidad se recoge dentro de la hoja de ajustes junto al tema y a la fuente, de modo que la cabecera queda con dos botones. Un control radial anidado dentro de una hoja no es operable con comodidad en pantallas estrechas, y el espacio alrededor del nautilus deja de estar disponible mientras la hoja está abierta.
+
+**Migration**: Sustituido por «Control de nivel dentro de los ajustes». El cierre por toque exterior y por `Escape` y la aplicación instantánea sin confirmación se conservan, ahora como comportamiento de la hoja que lo contiene, definido en `app-settings`. La garantía de que el nautilus siga legible mientras se elige pasa al requisito de velo de esa misma capacidad.

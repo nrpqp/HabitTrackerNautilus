@@ -23,18 +23,35 @@ export const caps = {
   vibrate: typeof navigator.vibrate === 'function',
 };
 
-export const TIER_NAMES = ['Calma', 'Lite', 'Estándar', 'Máximo'];
+/**
+ * La escala arranca en 1 y el número del nivel es también su índice en
+ * estas tablas. El hueco del índice 0 es deliberado: restar uno para
+ * indexar reintroduciría en cada frontera —CSS, URL, almacenamiento y
+ * mensajes— la conversión que numerar desde 1 elimina.
+ */
+export const TIER_NAMES = [null, 'Calma', 'Lite', 'Suave', 'Estándar', 'Máximo'];
+
+/* Nivel 1 Calma    — sin movimiento
+   Nivel 2 Lite     — sólo transform/opacity, sin partículas ni filtros
+   Nivel 3 Suave    — canvas y partículas con presupuesto corto, sin
+                      blending aditivo ni halo: el peldaño que faltaba
+                      entre no dibujar nada y dibujarlo todo
+   Nivel 4 Estándar — blending aditivo, halo y filtros, presupuesto medio
+   Nivel 5 Máximo   — presupuestos altos y capas extra                    */
 
 /**
- * Nivel 0 Calma    — sin movimiento
- * Nivel 1 Lite     — sólo transform/opacity, sin partículas ni filtros
- * Nivel 2 Estándar — canvas con blending aditivo, presupuesto medio
- * Nivel 3 Máximo   — presupuestos altos y capas extra
+ * Semilla del primer arranque, no un modo permanente: su resultado se
+ * guarda como preferencia del usuario y a partir de ahí manda esa.
+ *
+ * `prefers-reduced-motion` ya no entra aquí. Sujetar el nivel por
+ * movimiento reducido es un techo que debe seguir aplicándose sobre
+ * cualquier elección posterior, no una estimación que la primera
+ * elección del usuario pueda dejar atrás. Vive en `effectiveTier`.
  */
 export function detectTier() {
-  if (caps.reducedMotion || caps.saveData) return 0;
+  if (caps.saveData) return MIN_TIER;
 
-  let score = 2;
+  let score = 4;   // Estándar
 
   // Evidencia positiva fuerte. Si el navegador no declara memoria —Safari y
   // Firefox nunca lo hacen— basta con los núcleos: no declararla no es
@@ -44,6 +61,9 @@ export function detectTier() {
   }
 
   // Evidencia negativa fuerte: sólo valores declarados y bajos de verdad.
+  // Cae a Suave, no a Lite: con la escala de cinco niveles estos aparatos
+  // ya no se quedan sin una sola partícula, y si no lo sostienen el
+  // gobernador los devuelve a Lite midiendo, no estimando.
   if ((caps.memory !== null && caps.memory <= 2) || (caps.cores !== null && caps.cores <= 2)) {
     score -= 1;
   }
@@ -51,31 +71,64 @@ export function detectTier() {
   // Un puntero fino significa escritorio o portátil, y eso aguanta el nivel
   // estándar. Los navegadores centrados en privacidad falsean núcleos y
   // memoria a la baja, y sin este suelo acababan sin partículas.
-  if (!caps.coarsePointer) score = Math.max(2, score);
+  if (!caps.coarsePointer) score = Math.max(4, score);
 
-  return Math.max(1, Math.min(3, score));
+  return Math.max(2, Math.min(MAX_TIER, score));
 }
 
-const BUDGET = [0, 0, 1, 1.8];   // el nivel 1 no usa el canvas de partículas
+// Índice 0 sin uso; los niveles 1 y 2 no llegan al canvas de partículas.
+const BUDGET = [0, 0, 0, 0.5, 1, 1.8];
+
+export const MIN_TIER = 1;
+export const MAX_TIER = 5;
 
 /**
  * Origen del nivel activo. No basta un booleano: "el usuario quiere el
  * máximo" y "estoy midiendo el nivel 3 y no quiero que se mueva" piden
  * respuestas opuestas del gobernador.
  *
- *   auto        — lo decidió la detección del dispositivo
- *   preference  — lo eligió el usuario; el rendimiento aún puede rebajarlo
- *   diagnostic  — anulación por URL; intocable mientras se observa
+ *   preference      — lo eligió el usuario; el rendimiento aún puede rebajarlo
+ *   diagnostic      — anulación por URL; intocable mientras se observa
+ *   reduced-motion  — techo del sistema operativo; gana a todo lo demás
  */
-export const SOURCES = { AUTO: 'auto', PREFERENCE: 'preference', DIAGNOSTIC: 'diagnostic' };
+export const SOURCES = {
+  PREFERENCE: 'preference',
+  DIAGNOSTIC: 'diagnostic',
+  REDUCED_MOTION: 'reduced-motion',
+};
+
+/* Consulta viva, no la instantánea de `caps`: el usuario puede activar el
+   movimiento reducido con la aplicación ya abierta. */
+const reducedMotionQuery = window.matchMedia
+  ? window.matchMedia('(prefers-reduced-motion: reduce)')
+  : { matches: false };
 
 export const tier = {
-  value: 2,
-  source: SOURCES.AUTO,
+  value: 4,
+  source: SOURCES.PREFERENCE,
+
+  /**
+   * Lo que se ha elegido, sin techo aplicado. Se guarda aparte del nivel
+   * activo para que el movimiento reducido pueda sujetar uno sin borrar
+   * el otro: al desactivarlo, la elección sigue ahí.
+   */
+  choice: 4,
+  choiceSource: SOURCES.PREFERENCE,
   _subs: [],
 
   set(v, source = SOURCES.PREFERENCE) {
-    const next = Math.max(0, Math.min(3, v));
+    this.choice = Math.max(MIN_TIER, Math.min(MAX_TIER, v));
+    this.choiceSource = source;
+    this._apply();
+  },
+
+  /** Resuelve elección + techo y publica el resultado si ha cambiado. */
+  _apply() {
+    // El techo gana también a la anulación de diagnóstico: una preferencia
+    // de accesibilidad del sistema no se salta para poder mirar un efecto.
+    const capped = this.capped;
+    const next = capped ? MIN_TIER : this.choice;
+    const source = capped ? SOURCES.REDUCED_MOTION : this.choiceSource;
     if (next === this.value && source === this.source) return;
     this.value = next;
     this.source = source;
@@ -83,9 +136,12 @@ export const tier = {
     this._subs.forEach((fn) => fn(next, source));
   },
 
-  /** El rendimiento manda sobre la detección y sobre el deseo, pero no
-      sobre una medición en curso. */
-  get degradable() { return this.source !== SOURCES.DIAGNOSTIC; },
+  /** ¿Está el sistema operativo sujetando el nivel? */
+  get capped() { return !!reducedMotionQuery.matches; },
+
+  /** El rendimiento manda sobre el deseo, pero no sobre una medición en
+      curso ni sobre un techo de accesibilidad. */
+  get degradable() { return this.source === SOURCES.PREFERENCE; },
 
   onChange(fn) { this._subs.push(fn); },
 
@@ -95,6 +151,19 @@ export const tier = {
   /** Cantidad escalada al nivel activo. */
   budget(base) { return Math.round(base * BUDGET[this.value]); },
 };
+
+/* Activar o desactivar el movimiento reducido se refleja sin recargar.
+   Safari sólo expuso addEventListener sobre MediaQueryList a partir de
+   la 14, y esta app se instala en iPhones más viejos. */
+const onReducedMotionChange = () => tier._apply();
+if (reducedMotionQuery.addEventListener) {
+  reducedMotionQuery.addEventListener('change', onReducedMotionChange);
+} else if (reducedMotionQuery.addListener) {
+  reducedMotionQuery.addListener(onReducedMotionChange);
+}
+
+// El techo debe valer ya en el primer render, antes de que nadie elija.
+tier._apply();
 
 // ── Háptica ──────────────────────────────────────────────────
 // No-op silencioso donde no existe: así ningún punto de llamada
@@ -106,7 +175,7 @@ export const haptics = {
   milestone() { this._go([18, 50, 18, 50, 60]); },
   denied()    { this._go([8, 30, 8]); },
   _go(pattern) {
-    if (!caps.vibrate || tier.value === 0) return;
+    if (!caps.vibrate || tier.value === 1) return;
     try { navigator.vibrate(pattern); } catch (_) { /* sin consecuencias */ }
   },
 };
@@ -133,7 +202,7 @@ export function fitFxCanvas() {
   const rect = container.getBoundingClientRect();
   // El coste de relleno crece con el cuadrado del DPR y un glow difuso
   // no mejora por encima de 2x, así que se acota.
-  const dpr = Math.min(window.devicePixelRatio || 1, tier.value >= 3 ? 2 : 1.5);
+  const dpr = Math.min(window.devicePixelRatio || 1, tier.value >= 5 ? 2 : 1.5);
   cw = rect.width;
   ch = rect.height;
   canvasEl.width = Math.round(cw * dpr);
@@ -235,7 +304,9 @@ function loop(now) {
       // Degrada, nunca promociona: subir de nuevo produciría oscilación.
       // Se conserva el origen: un nivel elegido por el usuario que baja
       // sigue siendo suyo, y la preferencia guardada no se toca.
-      if (govStrikes >= 3 && tier.degradable && tier.value > 1) {
+      // Suelo en Lite: degradar hasta Calma dejaría al usuario sin
+      // movimiento por una medición, no por una elección suya.
+      if (govStrikes >= 3 && tier.degradable && tier.value > 2) {
         tier.set(tier.value - 1, tier.source);
         govStrikes = 0;
       }
@@ -298,7 +369,8 @@ const particles = [];
 
 const particleEffect = {
   draw(c, now) {
-    c.globalCompositeOperation = 'lighter';
+    // El aditivo es composición, no dibujo: el nivel Suave pinta plano.
+    c.globalCompositeOperation = tier.value >= 4 ? 'lighter' : 'source-over';
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.life++;
@@ -363,7 +435,7 @@ function drawParticle(c, p) {
   c.globalAlpha = fade * p.alpha * (p.flicker || 1);
 
   // El halo es lo que da el bloom; es también lo primero que se cae.
-  if (tier.value >= 2) {
+  if (tier.value >= 4) {
     const g = p.size * p.glow;
     c.drawImage(glowSprite(p.rgb), -g, -g, g * 2, g * 2);
   }
@@ -433,7 +505,7 @@ function drawParticle(c, p) {
 
 /** Añade partículas ya construidas al pool compartido. */
 export function emitParticles(count, factory) {
-  if (!ctx || tier.value < 2) return;
+  if (!ctx || tier.value < 3) return;
   const room = MAX_PARTICLES - particles.length;
   const n = Math.min(count, Math.max(0, room));
   for (let i = 0; i < n; i++) particles.push(factory(i, n));
@@ -472,7 +544,7 @@ export function burstElement(x, y, elementId, dayIndex, { base = 22, scale = 1, 
       life: 0,
       maxLife: el.lifeScale * (40 + Math.random() * 26),
       size: (2 + Math.random() * 3.4) * k * el.sizeScale,
-      glow: tier.value >= 3 ? 3.6 : 2.9,
+      glow: tier.value >= 5 ? 3.6 : 2.9,
       alpha: 0.82,
       rgb,
       shape: el.particleType,
@@ -501,7 +573,7 @@ export function burstColor(x, y, rgb, { base = 22, scale = 1, spread = 1, gravit
       life: 0,
       maxLife: 45 + Math.random() * 40,
       size: (2.4 + Math.random() * 3.6) * k,
-      glow: tier.value >= 3 ? 3.6 : 2.9,
+      glow: tier.value >= 5 ? 3.6 : 2.9,
       alpha: 0.82,
       rgb,
       shape: 'dot',

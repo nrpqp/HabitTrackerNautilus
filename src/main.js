@@ -7,13 +7,14 @@ import {
   todayIndexOf, isDoneToday, habitsActiveToday, habitStreak,
   bestStreak, effectiveness, activeSummary,
 } from './store.js';
-import { initTheme, toggleTheme } from './theme.js';
+import { initTheme, applyTheme } from './theme.js';
 import { renderSVG, view } from './render/svg.js';
 import {
   tier, detectTier, haptics, initFxCanvas, burstElement, setUnitScale, SOURCES,
 } from './fx/engine.js';
-import { readPreference, writePreference, AUTO } from './fx/preference.js';
-import { createDial } from './ui/dial.js';
+import { readPreference, writePreference, NONE } from './fx/preference.js';
+import { createSheet } from './ui/sheet.js';
+import { createSettings } from './ui/settings.js';
 import {
   streakComet, arrivalBurst, extinguishCell, chargeToCore, setCoreCharge, supernova,
 } from './fx/effects.js';
@@ -188,13 +189,13 @@ function render() {
 
 function checkLimit() {
   const addBtn = document.getElementById('add-habit-btn');
-  if (habits.length >= MAX_HABITS) {
-    addBtn.disabled = true;
-    addBtn.title = 'Límite de 7 hábitos alcanzado';
-  } else {
-    addBtn.disabled = false;
-    addBtn.title = 'Añadir hábito';
-  }
+  const etiqueta = addBtn.lastChild;   // el nodo de texto tras el «+»
+  const lleno = habits.length >= MAX_HABITS;
+  addBtn.disabled = lleno;
+  addBtn.title = lleno ? `Límite de ${MAX_HABITS} hábitos alcanzado` : 'Añadir hábito';
+  // El motivo va en la propia etiqueta y no sólo en el title: un botón
+  // deshabilitado no recibe hover, así que su tooltip nunca aparecería.
+  etiqueta.textContent = lleno ? `Límite de ${MAX_HABITS} hábitos` : 'Nuevo hábito';
 }
 
 // ── Add habit ────────────────────────────────────────────────
@@ -216,23 +217,18 @@ function addHabit(name) {
 
 // ── Hoja de instalación ──────────────────────────────────────
 
-/* Sustituye al alert() nativo. Vive aparte de #habit-sheet: aquel arrastra
-   estado de hábito, modo crear/editar y posicionamiento de popover, y no
-   gana nada absorbiendo un tercer modo. */
+/* Sustituye al alert() nativo. La mecánica —velo, foco, Escape, cierre por
+   fuera— la pone `createSheet`; aquí sólo queda el cableado. Vive aparte de
+   #habit-sheet: aquel arrastra estado de hábito, modo crear/editar y
+   posicionamiento de popover, y no gana nada absorbiendo un tercer modo. */
 
-function openInfoSheet() {
-  const el = document.getElementById('info-sheet');
-  el.classList.remove('hidden');
-  requestAnimationFrame(() => el.classList.add('open'));
-  document.getElementById('info-sheet-close').focus();
-}
+let infoSheet = null;
 
-function closeInfoSheet() {
-  const el = document.getElementById('info-sheet');
-  if (el.classList.contains('hidden')) return;
-  el.classList.remove('open');
-  setTimeout(() => el.classList.add('hidden'), 250);
-  document.getElementById('info-btn').focus();
+function setupInfoSheet() {
+  infoSheet = createSheet({ root: document.getElementById('info-sheet') });
+  document.getElementById('info-btn').addEventListener('click', () => infoSheet.open());
+  document.getElementById('info-sheet-close').addEventListener('click', () => infoSheet.close());
+  document.getElementById('info-sheet-ok').addEventListener('click', () => infoSheet.close());
 }
 
 // ── Sheet ────────────────────────────────────────────────────
@@ -432,15 +428,6 @@ function setupEventListeners() {
     openHabitSheet(null, 'create', e);
   });
 
-  document.getElementById('theme-toggle').addEventListener('click', () => {
-    toggleTheme(renderSVGOnly);
-  });
-
-  document.getElementById('info-btn').addEventListener('click', openInfoSheet);
-  document.getElementById('info-sheet-close').addEventListener('click', closeInfoSheet);
-  document.getElementById('info-sheet-ok').addEventListener('click', closeInfoSheet);
-  document.querySelector('.info-sheet-backdrop').addEventListener('click', closeInfoSheet);
-
   // Sheet: name input
   const nameInput = document.getElementById('sheet-name-input');
   nameInput.addEventListener('blur', () => {
@@ -519,13 +506,10 @@ function setupEventListeners() {
     }
   });
 
+  // Las hojas de `createSheet` atienden Escape en captura y detienen la
+  // propagación, así que aquí sólo llega cuando ninguna está abierta.
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    // La hoja de instalación está por encima: se cierra ella primero.
-    if (!document.getElementById('info-sheet').classList.contains('hidden')) {
-      closeInfoSheet();
-      return;
-    }
     const sheetEl = document.getElementById('habit-sheet');
     if (!sheetEl.classList.contains('hidden')) {
       closeSheet();
@@ -582,24 +566,57 @@ function urlTierOverride() {
   const raw = new URLSearchParams(location.search).get('fx');
   if (raw === null) return null;
   const forced = Number(raw);
-  if (!Number.isInteger(forced) || forced < 0 || forced > 3) return null;
+  if (!Number.isInteger(forced) || forced < 1 || forced > 5) return null;
   return forced;
 }
 
-/** Prioridad: anulación por URL, preferencia guardada, detección. */
+/** Prioridad: anulación por URL, preferencia guardada, semilla del dispositivo. */
 export function applyStoredTier() {
   const url = urlTierOverride();
   if (url !== null) { tier.set(url, SOURCES.DIAGNOSTIC); return; }
-  const pref = readPreference();
-  if (pref === AUTO) tier.set(detectTier(), SOURCES.AUTO);
-  else tier.set(Number(pref), SOURCES.PREFERENCE);
+
+  let pref = readPreference();
+  if (pref === NONE) {
+    // Primer arranque: la detección siembra una vez y su resultado queda
+    // ya como elección del usuario. No se vuelve a detectar después.
+    pref = detectTier();
+    writePreference(pref);
+  }
+  tier.set(pref, SOURCES.PREFERENCE);
 }
 
-/** Aplica y guarda la elección del usuario desde la rueda. */
+/** Aplica y guarda la elección del usuario. */
 function chooseTier(value) {
   writePreference(value);
-  if (value === AUTO) tier.set(detectTier(), SOURCES.AUTO);
-  else tier.set(Number(value), SOURCES.PREFERENCE);
+  tier.set(Number(value), SOURCES.PREFERENCE);
+}
+
+let settings = null;
+
+/* Margen para que la muestra no roce el borde del panel. */
+const MARGEN_MUESTRA = 44;
+
+/* Banda libre a partir de la cual el burst cabe entero. Por debajo se
+   encoge en proporción, para que en una pantalla corta siga viéndose algo
+   en vez de quedar todo bajo la máscara. */
+const BANDA_HOLGADA = 170;
+
+/**
+ * Origen de la muestra: el centro del área de nautilus que queda libre
+ * sobre el panel, no el centro geométrico de la rueda. Con la hoja
+ * anclada abajo el centro real puede quedar tapado —y en escritorio el
+ * canvas va elevado, así que dibujar ahí pintaría sobre el panel—.
+ */
+function previewOrigin() {
+  const c = view.centerPx();
+  if (!settings || !settings.isOpen) return { ...c, banda: Infinity };
+  const cont = document.getElementById('svg-container').getBoundingClientRect();
+  const topPanel = settings.panelTop() - cont.top;
+  if (topPanel <= 0) return { ...c, banda: Infinity };
+  if (c.y + MARGEN_MUESTRA < topPanel) return { ...c, banda: topPanel };
+  // A la mitad de la banda libre, sin suelo: un suelo fijo empujaría el
+  // origen por debajo de la máscara cuando la banda es más estrecha que él.
+  return { x: c.x, y: topPanel / 2, scale: c.scale, banda: topPanel };
 }
 
 /**
@@ -607,26 +624,23 @@ function chooseTier(value) {
  * lógica de presupuesto y podría divergir de lo que luego pasa de verdad.
  */
 function previewTier() {
-  const c = view.centerPx();
+  const o = previewOrigin();
   const element = habits.length ? habits[0].element : ELEMENTS[0].id;
-  burstElement(c.x, c.y, element, 20, { base: 26, scale: 1.1, spread: 1.3 });
+  // El burst se encoge con la banda disponible: en una pantalla corta un
+  // estallido a tamaño completo se dibujaría casi entero bajo la máscara.
+  const k = Math.max(0.4, Math.min(1, o.banda / BANDA_HOLGADA));
+  burstElement(o.x, o.y, element, 20, { base: 26, scale: 1.1 * k, spread: 1.3 * k });
   haptics.tap();
 }
 
-let dial = null;
-
-function setupDial() {
-  const btn = document.getElementById('fx-toggle');
-  dial = createDial({
-    host: document.getElementById('svg-container'),
-    getChoice: readPreference,
-    onChoose: chooseTier,
+function setupSettings() {
+  settings = createSettings({
+    getTheme: () => document.documentElement.getAttribute('data-theme'),
+    onTheme: (valor) => { applyTheme(valor); renderSVGOnly(); },
+    getLevel: readPreference,
+    onLevel: chooseTier,
     onPreview: previewTier,
-    // Cerrar por backdrop o Escape no pasa por el botón, así que el estado
-    // lo comunica la propia rueda.
-    onOpenChange: (abierta) => btn.setAttribute('aria-expanded', String(abierta)),
   });
-  btn.addEventListener('click', () => dial.toggle());
 }
 
 function init() {
@@ -634,8 +648,9 @@ function init() {
   applyStoredTier();
   loadHabits();
   setupEventListeners();
+  setupInfoSheet();
+  setupSettings();
   initFxCanvas();
-  setupDial();
   render();
   window.addEventListener('resize', () => setUnitScale(view.centerPx().scale));
   scheduleNotifications();
