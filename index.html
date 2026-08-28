@@ -47,8 +47,21 @@
           <span>ℹ️</span>
         </button>
         <button id="add-habit-btn" class="add-toggle" title="Añadir hábito" aria-label="Añadir hábito">+</button>
-        <button id="fx-toggle" class="fx-toggle" title="Intensidad de efectos" aria-label="Intensidad de efectos" aria-haspopup="true" aria-expanded="false">
-          <span aria-hidden="true">🎛️</span>
+        <button id="settings-btn" class="settings-toggle" title="Ajustes" aria-label="Ajustes" aria-haspopup="dialog" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <g class="gear-teeth">
+              <rect x="10.7" y="1.4" width="2.6" height="4.6" rx="1.1"/>
+              <rect x="10.7" y="18" width="2.6" height="4.6" rx="1.1"/>
+              <rect x="1.4" y="10.7" width="4.6" height="2.6" rx="1.1"/>
+              <rect x="18" y="10.7" width="4.6" height="2.6" rx="1.1"/>
+              <rect x="10.7" y="1.4" width="2.6" height="4.6" rx="1.1" transform="rotate(45 12 12)"/>
+              <rect x="10.7" y="18" width="2.6" height="4.6" rx="1.1" transform="rotate(45 12 12)"/>
+              <rect x="1.4" y="10.7" width="4.6" height="2.6" rx="1.1" transform="rotate(45 12 12)"/>
+              <rect x="18" y="10.7" width="4.6" height="2.6" rx="1.1" transform="rotate(45 12 12)"/>
+            </g>
+            <circle class="gear-ring" cx="12" cy="12" r="6.2" fill="none" stroke-width="2.4"/>
+            <circle class="gear-hole" cx="12" cy="12" r="2.2"/>
+          </svg>
         </button>
         <h1>Rastreador de Hábitos</h1>
         <p>Reto de 21 Días - Nautilus</p>
@@ -149,6 +162,46 @@
             <li>Selecciona <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong>.</li>
           </ol>
           <button id="info-sheet-ok" class="info-sheet-ok">Entendido</button>
+        </div>
+      </div>
+
+      <!-- Hoja de ajustes. Se ancla abajo en todas las anchuras: es la única
+           superficie cuyo contenido actúa sobre lo que hay detrás, y la
+           muestra de efectos necesita nautilus visible por encima. -->
+      <div id="settings-sheet" class="settings-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="settings-sheet-title">
+        <div class="settings-sheet-backdrop" data-sheet-backdrop></div>
+        <div class="settings-sheet-panel" data-sheet-panel tabindex="-1">
+          <div class="settings-sheet-head">
+            <h2 id="settings-sheet-title">Ajustes</h2>
+            <button id="settings-sheet-close" class="settings-sheet-close" aria-label="Cerrar">×</button>
+          </div>
+
+          <div class="setting-row">
+            <span class="setting-label" id="setting-theme-label">Tema</span>
+            <div class="theme-switch" role="radiogroup" aria-labelledby="setting-theme-label">
+              <button type="button" class="theme-opt" data-theme-value="light" role="radio" aria-checked="false">
+                <span aria-hidden="true">☀️</span> Claro
+              </button>
+              <button type="button" class="theme-opt" data-theme-value="dark" role="radio" aria-checked="false">
+                <span aria-hidden="true">🌙</span> Oscuro
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-row setting-row-block">
+            <span class="setting-label" id="setting-fx-label">Nivel de efecto visual</span>
+            <div id="fx-scale" class="fx-scale" role="radiogroup" aria-labelledby="setting-fx-label"></div>
+            <div class="fx-scale-ends" aria-hidden="true">
+              <span>calma</span>
+              <span>máximo</span>
+            </div>
+            <p id="fx-scale-note" class="fx-scale-note" aria-live="polite"></p>
+          </div>
+
+          <div class="setting-row setting-row-disabled">
+            <span class="setting-label">Fuente de texto</span>
+            <span class="setting-soon">Próximamente</span>
+          </div>
         </div>
       </div>
 

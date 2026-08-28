@@ -7,14 +7,14 @@ import {
   todayIndexOf, isDoneToday, habitsActiveToday, habitStreak,
   bestStreak, effectiveness, activeSummary,
 } from './store.js';
-import { initTheme, toggleTheme } from './theme.js';
+import { initTheme, applyTheme } from './theme.js';
 import { renderSVG, view } from './render/svg.js';
 import {
   tier, detectTier, haptics, initFxCanvas, burstElement, setUnitScale, SOURCES,
 } from './fx/engine.js';
 import { readPreference, writePreference, NONE } from './fx/preference.js';
-import { createDial } from './ui/dial.js';
 import { createSheet } from './ui/sheet.js';
+import { createSettings } from './ui/settings.js';
 import {
   streakComet, arrivalBurst, extinguishCell, chargeToCore, setCoreCharge, supernova,
 } from './fx/effects.js';
@@ -428,10 +428,6 @@ function setupEventListeners() {
     openHabitSheet(null, 'create', e);
   });
 
-  document.getElementById('theme-toggle').addEventListener('click', () => {
-    toggleTheme(renderSVGOnly);
-  });
-
   // Sheet: name input
   const nameInput = document.getElementById('sheet-name-input');
   nameInput.addEventListener('blur', () => {
@@ -595,31 +591,46 @@ function chooseTier(value) {
   tier.set(Number(value), SOURCES.PREFERENCE);
 }
 
+let settings = null;
+
+/* Margen para que la muestra no roce el borde del panel. */
+const MARGEN_MUESTRA = 44;
+
+/**
+ * Origen de la muestra: el centro del área de nautilus que queda libre
+ * sobre el panel, no el centro geométrico de la rueda. Con la hoja
+ * anclada abajo el centro real puede quedar tapado —y en escritorio el
+ * canvas va elevado, así que dibujar ahí pintaría sobre el panel—.
+ */
+function previewOrigin() {
+  const c = view.centerPx();
+  if (!settings || !settings.isOpen) return c;
+  const cont = document.getElementById('svg-container').getBoundingClientRect();
+  const topPanel = settings.panelTop() - cont.top;
+  if (topPanel <= 0) return c;
+  if (c.y + MARGEN_MUESTRA < topPanel) return c;
+  return { x: c.x, y: Math.max(MARGEN_MUESTRA, topPanel / 2), scale: c.scale };
+}
+
 /**
  * Muestra con el nivel ya aplicado, no simulado: simularlo duplicaría la
  * lógica de presupuesto y podría divergir de lo que luego pasa de verdad.
  */
 function previewTier() {
-  const c = view.centerPx();
+  const o = previewOrigin();
   const element = habits.length ? habits[0].element : ELEMENTS[0].id;
-  burstElement(c.x, c.y, element, 20, { base: 26, scale: 1.1, spread: 1.3 });
+  burstElement(o.x, o.y, element, 20, { base: 26, scale: 1.1, spread: 1.3 });
   haptics.tap();
 }
 
-let dial = null;
-
-function setupDial() {
-  const btn = document.getElementById('fx-toggle');
-  dial = createDial({
-    host: document.getElementById('svg-container'),
-    getChoice: readPreference,
-    onChoose: chooseTier,
+function setupSettings() {
+  settings = createSettings({
+    getTheme: () => document.documentElement.getAttribute('data-theme'),
+    onTheme: (valor) => { applyTheme(valor); renderSVGOnly(); },
+    getLevel: readPreference,
+    onLevel: chooseTier,
     onPreview: previewTier,
-    // Cerrar por backdrop o Escape no pasa por el botón, así que el estado
-    // lo comunica la propia rueda.
-    onOpenChange: (abierta) => btn.setAttribute('aria-expanded', String(abierta)),
   });
-  btn.addEventListener('click', () => dial.toggle());
 }
 
 function init() {
@@ -628,8 +639,8 @@ function init() {
   loadHabits();
   setupEventListeners();
   setupInfoSheet();
+  setupSettings();
   initFxCanvas();
-  setupDial();
   render();
   window.addEventListener('resize', () => setUnitScale(view.centerPx().scale));
   scheduleNotifications();

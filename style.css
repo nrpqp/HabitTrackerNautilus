@@ -283,7 +283,7 @@ header p {
 .theme-toggle,
 .info-toggle,
 .add-toggle,
-.fx-toggle {
+.settings-toggle {
   position: absolute;
   top: 20px;
   width: 44px;
@@ -306,7 +306,7 @@ header p {
 
 .theme-toggle { right: 20px; }
 .info-toggle  { right: 74px; }
-.fx-toggle    { right: 182px; }
+.settings-toggle { right: 182px; }
 .add-toggle {
   right: 128px;
   font-size: 1.4rem;
@@ -316,7 +316,7 @@ header p {
 
 /* El tema y los efectos son ajustes: van en ámbar, como en el prototipo. */
 .theme-toggle,
-.fx-toggle {
+.settings-toggle {
   border-color: var(--accent-amber-deep);
   box-shadow: 0 0 18px var(--glow-amber);
 }
@@ -324,7 +324,7 @@ header p {
 .theme-toggle:hover,
 .info-toggle:hover,
 .add-toggle:hover,
-.fx-toggle:hover {
+.settings-toggle:hover {
   border-color: var(--accent-cyan);
   box-shadow: 0 0 26px var(--glow-cyan);
   transform: scale(1.08);
@@ -333,14 +333,14 @@ header p {
 .theme-toggle:active,
 .info-toggle:active,
 .add-toggle:active,
-.fx-toggle:active {
+.settings-toggle:active {
   transform: scale(0.95);
 }
 
 .theme-toggle:focus-visible,
 .info-toggle:focus-visible,
 .add-toggle:focus-visible,
-.fx-toggle:focus-visible {
+.settings-toggle:focus-visible {
   outline: 3px solid var(--accent-cyan);
   outline-offset: 3px;
   border-color: var(--accent-cyan);
@@ -352,6 +352,18 @@ header p {
   pointer-events: none;
   box-shadow: none;
 }
+
+
+/* El engranaje se dibuja en SVG, no en emoji: un emoji cambia de forma
+   entre plataformas y aquí compite con el icono de información. */
+.settings-toggle svg {
+  width: 21px;
+  height: 21px;
+}
+
+.settings-toggle .gear-teeth { fill: var(--accent-amber); }
+.settings-toggle .gear-ring  { stroke: var(--accent-amber); }
+.settings-toggle .gear-hole  { fill: var(--surface-solid); }
 
 /* Show/hide icons based on theme */
 .theme-icon-dark  { display: none; }
@@ -984,6 +996,20 @@ html[data-tier="1"] .today-indicator {
    y aquí un fallo silencioso dejaría la muestra detrás del velo. */
 body.sheet-soft-open #effect-overlay {
   z-index: 260;
+  /* Elevar el canvas lo pone también por encima del panel, así que la
+     muestra se recorta antes de llegar a él. Con un desvanecido y no con
+     un corte seco: una línea recta de partículas cortadas se ve peor que
+     no tenerlas. Los dos porcentajes los calcula la hoja al abrirse. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 var(--fx-mask-solid, 100%),
+    transparent var(--fx-mask-fade, 100%)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 var(--fx-mask-solid, 100%),
+    transparent var(--fx-mask-fade, 100%)
+  );
 }
 
 /* ── Hoja de instalación ─────────────────────────────────── */
@@ -1136,6 +1162,214 @@ body.sheet-soft-open #effect-overlay {
   }
 }
 
+/* ── Hoja de ajustes ─────────────────────────────────────── */
+/* Comparte panel, bordes y animación con el manual. Difiere en dos cosas,
+   ambas porque su contenido actúa sobre lo que hay detrás: el velo es
+   degradado y el anclaje es inferior también en escritorio. */
+.settings-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.settings-sheet.hidden { display: none; }
+.settings-sheet.open { pointer-events: auto; }
+
+.settings-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.settings-sheet.open .settings-sheet-backdrop { opacity: 1; }
+
+.settings-sheet-panel {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--surface-strong);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid var(--accent-amber);
+  border-radius: 30px 30px 0 0;
+  padding: 22px 24px 28px;
+  box-shadow: var(--shadow-panel);
+  transform: translateY(100%);
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.settings-sheet.open .settings-sheet-panel { transform: translateY(0); }
+
+.settings-sheet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.settings-sheet-head h2 {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-main);
+}
+
+.settings-sheet-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.settings-sheet-close:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ── Filas de ajuste ─────────────────────────────────────── */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+.setting-row:first-of-type { border-top: none; }
+
+.setting-row-block {
+  display: block;
+}
+
+.setting-label {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: var(--text-main);
+}
+
+.setting-row-disabled .setting-label { color: var(--text-muted); }
+
+.setting-soon {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-soft);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+/* ── Interruptor de tema ─────────────────────────────────── */
+.theme-switch {
+  display: flex;
+  gap: 6px;
+}
+
+.theme-opt {
+  min-height: 44px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.theme-opt[aria-checked="true"] {
+  border-color: var(--accent-amber);
+  color: var(--text-main);
+  box-shadow: 0 0 16px var(--glow-amber);
+}
+
+.theme-opt:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* ── Escala de nivel de efecto ───────────────────────────── */
+.fx-scale {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.fx-step {
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.fx-step:hover { border-color: var(--accent-cyan); }
+
+.fx-step[aria-checked="true"] {
+  border-color: var(--accent-cyan);
+  background: var(--accent-cyan);
+  color: var(--surface-solid);
+  box-shadow: 0 0 20px var(--glow-cyan);
+}
+
+.fx-step:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 3px;
+}
+
+.fx-scale-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 7px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.fx-scale-note {
+  margin-top: 10px;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.fx-scale-note.warn { color: var(--accent-amber); }
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .settings-sheet-panel { background: var(--surface-solid); }
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .settings-sheet-panel {
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+  }
+}
+
 /* ── Tooltip ─────────────────────────────────────────────── */
 .cell-tooltip {
   position: fixed;
@@ -1213,7 +1447,7 @@ svg {
   header p {
     font-size: 0.8rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
+  .theme-toggle, .info-toggle, .add-toggle, .settings-toggle {
     top: 8px;
     width: 44px;
     height: 44px;
@@ -1223,7 +1457,7 @@ svg {
   .theme-toggle { right: 6px; }
   .info-toggle  { right: 56px; }
   .add-toggle   { right: 106px; font-size: 1.25rem; }
-  .fx-toggle    { right: 156px; }
+  .settings-toggle { right: 156px; }
 }
 
 /* ▸ Regular phones (380px – 479px) */
@@ -1245,7 +1479,7 @@ svg {
   header p {
     font-size: 0.85rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
+  .theme-toggle, .info-toggle, .add-toggle, .settings-toggle {
     top: 10px;
     width: 44px;
     height: 44px;
@@ -1255,7 +1489,7 @@ svg {
   .theme-toggle { right: 10px; }
   .info-toggle  { right: 60px; }
   .add-toggle   { right: 110px; font-size: 1.3rem; }
-  .fx-toggle    { right: 160px; }
+  .settings-toggle { right: 160px; }
 }
 
 /* ▸ Tablets portrait / large phones (480px – 767px) */
@@ -1273,7 +1507,7 @@ svg {
   header h1 {
     font-size: 1.6rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
+  .theme-toggle, .info-toggle, .add-toggle, .settings-toggle {
     top: 14px;
     width: 44px;
     height: 44px;
@@ -1282,7 +1516,7 @@ svg {
   .theme-toggle { right: 14px; }
   .info-toggle  { right: 64px; }
   .add-toggle   { right: 114px; font-size: 1.4rem; }
-  .fx-toggle    { right: 164px; }
+  .settings-toggle { right: 164px; }
 }
 
 /* ── Touch device adjustments ────────────────────────────── */
@@ -1342,7 +1576,7 @@ svg {
   .theme-toggle,
   .info-toggle,
   .add-toggle,
-  .fx-toggle,
+  .settings-toggle,
   .habit-sheet,
   .cell-tooltip {
     display: none !important;
