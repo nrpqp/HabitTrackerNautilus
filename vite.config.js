@@ -14,8 +14,8 @@ export default defineConfig({
         name: 'Rastreador de Hábitos - Nautilus',
         short_name: 'Hábitos',
         description: 'Rastreador de hábitos personalizable de 21 días (Nautilus)',
-        theme_color: '#0f0f1a',
-        background_color: '#0f0f1a',
+        theme_color: '#04060e',
+        background_color: '#04060e',
         display: 'standalone',
         icons: [
           {

@@ -1,6 +1,21 @@
 import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { CacheFirst } from 'workbox-strategies';
 
 precacheAndRoute(self.__WB_MANIFEST);
+
+/* Las fuentes vienen de Google Fonts, así que el precache del manifiesto
+   no las alcanza: hay que enrutarlas a mano. Sin esto la app instalada
+   arranca sin conexión con la pila de respaldo del sistema. */
+registerRoute(
+  ({ url }) => url.origin === 'https://fonts.googleapis.com',
+  new CacheFirst({ cacheName: 'google-fonts-stylesheets' }),
+);
+
+registerRoute(
+  ({ url }) => url.origin === 'https://fonts.gstatic.com',
+  new CacheFirst({ cacheName: 'google-fonts-webfonts' }),
+);
 
 const scheduledNotifications = new Map();
 

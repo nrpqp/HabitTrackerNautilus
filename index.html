@@ -3,15 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f0f1a" />
+    <meta name="theme-color" content="#04060e" />
     <link rel="apple-touch-icon" href="/icon.svg">
     <title>Rastreador de Hábitos - Nautilus</title>
     <link rel="stylesheet" href="./style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Space Grotesk e IBM Plex Mono visten la interfaz. Outfit se mantiene
+         porque src/render/svg.js la fija como atributo en los labels y los
+         números de la rueda: retirarla cambiaría el aspecto del nautilus. -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   </head>
   <body>
+    <!-- Escena decorativa: vive fuera de #svg-container para no interferir
+         con el SVG del nautilus, su canvas de efectos ni el medidor del
+         núcleo. Sin interacción, sin texto y sin animación. -->
+    <div class="scene" aria-hidden="true">
+      <svg class="scene-art" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+        <g class="scene-circles">
+          <circle cx="500" cy="500" r="220" />
+          <circle cx="500" cy="500" r="300" />
+          <circle cx="500" cy="500" r="380" />
+          <circle cx="500" cy="500" r="470" />
+          <circle cx="500" cy="500" r="560" />
+          <circle cx="500" cy="500" r="660" />
+          <circle cx="500" cy="500" r="780" />
+        </g>
+        <g class="scene-spirals">
+          <path class="spiral-gold" d="M782 603L777 618L771 632L765 647L758 661L750 675L741 688L731 701L721 714L710 726L699 737L687 748L674 758L661 768L647 777L633 785L618 792L603 799L588 805L572 810L555 815L539 818L522 821L506 822L489 823L472 823L455 822L438 821L421 818L404 814L387 810L371 804L355 798L339 791L323 783L308 774L293 765L279 754L265 743L252 731L239 719L227 705L216 691L206 677L196 662L187 646L179 630L171 613L165 596L159 579L154 561L150 543L148 525L146 506L145 488L145 469L146 450L148 432L151 413L155 394L160 376L166 358L172 340L180 323L189 306L199 289L209 273L221 257L233 242L246 227L260 214L274 201L290 188L306 177L322 166L340 156L357 147L376 139L394 132L414 125L433 120L453 116L473 113L493 111L514 110L534 110L555 111L575 113L596 116L616 121L636 126" />
+          <path class="spiral-cyan" d="M240 650L232 637L224 623L217 609L211 594L206 579L201 564L197 548L194 532L192 516L190 500L190 484L190 467L191 451L193 435L196 419L200 403L205 387L210 371L216 355L223 340L231 325L240 311L249 297L260 284L271 271L282 258L294 246L307 235L321 224L335 215L350 205L365 197L381 189L397 183L413 177L430 171L447 167L465 164L482 161L500 160L518 159L536 160L554 161L572 163L589 166L607 170L625 175L642 181L659 188L676 196L692 205L708 214L723 225L738 236L752 248L766 261L779 274L791 288L803 303L814 319L824 335L833 352L841 369L849 387L855 405L861 423L866 442L869 461L872 480L874 500L874 520L874 539L873 559L870 579L867 598L862 618L857 637L850 656L843 675L834 693L825 711L814 728L803 745L790 761L777 777L763 792L748 806L732 820L716 833L699 845" />
+          <path class="spiral-gold" d="M500 200L516 199L532 200L547 201L563 203L579 206L594 209L610 214L625 219L640 225L655 232L669 240L683 248L697 257L710 267L722 278L734 289L746 301L757 313L767 327L777 340L786 355L794 369L801 384L808 400L813 416L818 432L823 449L826 466L828 483L830 500L830 517L830 535L829 552L827 569L823 587L819 604L815 621L809 637L802 654L795 670L786 686L777 701L767 716L756 730L744 744L732 758L719 770L705 782L691 793L676 804L660 814L644 823L627 831L610 838L592 844L574 850L556 854L538 858L519 861L500 862L481 863L462 863L443 861L424 859L405 855L386 851L367 846L349 839L331 832L313 824L296 814L279 804L263 793L247 781L232 768L217 755L203 740L190 725L178 709L166 693L155 676L145 658L136 640L129 621L122 601L116 582L111 562L107 541L104 521L102 500" />
+        </g>
+      </svg>
+    </div>
+
     <div class="container">
       <header>
         <button id="theme-toggle" class="theme-toggle" title="Cambiar tema" aria-label="Cambiar tema">
@@ -36,6 +61,37 @@
         <div class="day-core" id="day-core" aria-live="polite">
           <div class="core-value" id="core-value">0/0</div>
           <div class="core-caption" id="core-caption">hoy</div>
+        </div>
+      </div>
+
+      <!-- Indicadores del reto. Informativos: sin interacción. -->
+      <div class="stats" aria-label="Resumen del reto">
+        <div class="stat-card">
+          <svg class="stat-ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path class="ico-fire-a" d="M12 2c3 4.2 6 6.4 6 10.4A6 6 0 0 1 6 12.4C6 8.4 9 6.2 12 2Z"/>
+            <path class="ico-fire-b" d="M12 9c1.6 2 2.8 3 2.8 5a2.8 2.8 0 0 1-5.6 0c0-2 1.2-3 2.8-5Z"/>
+          </svg>
+          <div class="stat-value" id="stat-streak">0d</div>
+          <div class="stat-label">Racha</div>
+        </div>
+        <div class="stat-card">
+          <svg class="stat-ico" viewBox="0 0 24 24" aria-hidden="true">
+            <rect class="ico-bar-a" x="3" y="14" width="4" height="7" rx="1"/>
+            <rect class="ico-bar-b" x="10" y="9" width="4" height="12" rx="1"/>
+            <rect class="ico-bar-c" x="17" y="4" width="4" height="17" rx="1"/>
+          </svg>
+          <div class="stat-value" id="stat-effectiveness">0%</div>
+          <div class="stat-label">Efectividad</div>
+        </div>
+        <div class="stat-card">
+          <svg class="stat-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle class="ico-ring" cx="11" cy="13" r="8" stroke-width="1.6"/>
+            <circle class="ico-ring" cx="11" cy="13" r="3.4" stroke-width="1.6"/>
+            <circle class="ico-dot" cx="11" cy="13" r="1.2"/>
+            <line class="ico-arrow" x1="14" y1="10" x2="21" y2="3" stroke-width="1.6"/>
+          </svg>
+          <div class="stat-value" id="stat-active">0/0</div>
+          <div class="stat-label">Activos</div>
         </div>
       </div>
 
@@ -68,6 +124,31 @@
             <button id="sheet-reset-btn" class="sheet-action-btn sheet-reset">↺ Reiniciar</button>
             <button id="sheet-delete-btn" class="sheet-action-btn sheet-danger">× Eliminar</button>
           </div>
+        </div>
+      </div>
+
+      <!-- Hoja de instalación. Estructura propia: no comparte JS con
+           #habit-sheet, que ya gobierna estado de hábito, modo y popover. -->
+      <div id="info-sheet" class="info-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="info-sheet-title">
+        <div class="info-sheet-backdrop"></div>
+        <div class="info-sheet-panel">
+          <div class="info-sheet-head">
+            <h2 id="info-sheet-title">Cómo instalar la app</h2>
+            <button id="info-sheet-close" class="info-sheet-close" aria-label="Cerrar">×</button>
+          </div>
+          <h3>iOS (iPhone / iPad)</h3>
+          <ol>
+            <li>Abre este enlace en Safari.</li>
+            <li>Toca el botón <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba).</li>
+            <li>Selecciona <strong>Añadir a pantalla de inicio</strong>.</li>
+          </ol>
+          <h3>Android</h3>
+          <ol>
+            <li>Abre este enlace en Chrome.</li>
+            <li>Toca el menú de tres puntos (arriba a la derecha).</li>
+            <li>Selecciona <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong>.</li>
+          </ol>
+          <button id="info-sheet-ok" class="info-sheet-ok">Entendido</button>
         </div>
       </div>
 

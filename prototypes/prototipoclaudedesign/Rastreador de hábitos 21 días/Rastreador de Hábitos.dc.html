@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#03050b;font-family:'Space Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#5fd0e8;text-decoration:none}a:hover{color:#9be9f7}
+input{font-family:inherit}
+@keyframes fabPulse{0%,100%{box-shadow:0 0 0 0 rgba(34,211,238,.5),0 0 30px rgba(34,211,238,.5),inset 0 0 12px rgba(255,255,255,.25)}50%{box-shadow:0 0 0 16px rgba(34,211,238,0),0 0 48px rgba(34,211,238,.8),inset 0 0 12px rgba(255,255,255,.35)}}
+@keyframes sheetUp{from{transform:translateY(105%)}to{transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes driftSpin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(120% 90% at 50% 0%,#0b1424 0%,#03050b 70%)">
+<div style="position:relative;width:390px;height:844px;border-radius:44px;overflow:hidden;background:#040711;border:1px solid rgba(120,180,220,.14);box-shadow:0 40px 120px rgba(0,0,0,.8),0 0 0 10px #070a12">
+
+<div style="position:absolute;inset:0;background:radial-gradient(70% 44% at 50% 50%,rgba(34,211,238,.13) 0%,rgba(4,7,17,0) 68%),radial-gradient(90% 50% at 50% 104%,rgba(245,166,35,.16) 0%,rgba(4,7,17,0) 70%),linear-gradient(180deg,#070c18 0%,#04060e 55%,#03050b 100%)"></div>
+
+<svg viewBox="0 0 390 844" width="390" height="844" style="position:absolute;inset:0;opacity:.55" aria-hidden="true">
+<sc-for list="{{ bgCircles }}" as="c" hint-placeholder-count="8">
+<circle cx="195" cy="420" r="{{ c.r }}" fill="none" stroke="#2a6f8c" strokeWidth="0.6" strokeOpacity="{{ c.o }}"></circle>
+</sc-for>
+<sc-for list="{{ bgSpirals }}" as="s" hint-placeholder-count="5">
+<path d="{{ s.d }}" fill="none" stroke="{{ s.stroke }}" strokeWidth="0.7" strokeOpacity="{{ s.o }}"></path>
+</sc-for>
+</svg>
+
+<div style="position:relative;height:100%;display:flex;flex-direction:column">
+
+<div style="display:flex;align-items:center;justify-content:space-between;padding:52px 24px 0">
+<button onClick="{{ openInfo }}" style="width:38px;height:38px;border-radius:50%;border:1px solid rgba(34,211,238,.55);background:radial-gradient(circle at 35% 25%,rgba(34,211,238,.35),rgba(6,24,34,.85));color:#a8ecfa;font:600 16px 'Space Grotesk',sans-serif;cursor:pointer;box-shadow:0 0 18px rgba(34,211,238,.45)">i</button>
+<div style="flex:1"></div>
+<button onClick="{{ openSettings }}" style="width:38px;height:38px;border-radius:50%;border:1px solid rgba(245,180,80,.6);background:radial-gradient(circle at 35% 25%,rgba(245,180,80,.35),rgba(38,22,6,.85));cursor:pointer;box-shadow:0 0 18px rgba(245,166,35,.4);display:flex;align-items:center;justify-content:center">
+<svg width="20" height="20" viewBox="0 0 24 24"><g fill="#f6d28a"><rect x="10.7" y="1.4" width="2.6" height="4.6" rx="1.1"></rect><rect x="10.7" y="18" width="2.6" height="4.6" rx="1.1"></rect><rect x="1.4" y="10.7" width="4.6" height="2.6" rx="1.1"></rect><rect x="18" y="10.7" width="4.6" height="2.6" rx="1.1"></rect><rect x="10.7" y="1.4" width="2.6" height="4.6" rx="1.1" transform="rotate(45 12 12)"></rect><rect x="10.7" y="18" width="2.6" height="4.6" rx="1.1" transform="rotate(45 12 12)"></rect><rect x="1.4" y="10.7" width="4.6" height="2.6" rx="1.1" transform="rotate(45 12 12)"></rect><rect x="18" y="10.7" width="4.6" height="2.6" rx="1.1" transform="rotate(45 12 12)"></rect></g><circle cx="12" cy="12" r="6.2" fill="none" stroke="#f6d28a" strokeWidth="2.4"></circle><circle cx="12" cy="12" r="2.2" fill="#2a1806"></circle></svg>
+</button>
+</div>
+
+<div style="padding:18px 24px 0;text-align:center">
+<h1 style="margin:0;font:700 25px/1.1 'Space Grotesk',sans-serif;letter-spacing:.13em;color:#fff;text-shadow:0 0 26px rgba(34,211,238,.45)">RASTREADOR<br>DE HÁBITOS</h1>
+</div>
+
+<div style="flex:1;display:flex;align-items:center;justify-content:center;margin-top:-6px">
+<svg viewBox="0 0 400 400" width="378" height="378" style="overflow:visible">
+<defs>
+<radialGradient id="coreGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#0d1a2c"></stop><stop offset="100%" stopColor="#05080f"></stop></radialGradient>
+<radialGradient id="webGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="rgba(34,211,238,.16)"></stop><stop offset="100%" stopColor="rgba(34,211,238,0)"></stop></radialGradient>
+</defs>
+<circle cx="200" cy="200" r="170" fill="url(#webGlow)"></circle>
+<sc-for list="{{ gridCircles }}" as="g" hint-placeholder-count="5">
+<circle cx="200" cy="200" r="{{ g.r }}" fill="none" stroke="#1b3d63" strokeWidth="0.7" strokeOpacity="{{ g.o }}"></circle>
+</sc-for>
+<sc-for list="{{ spokes }}" as="s" hint-placeholder-count="21">
+<line x1="{{ s.x1 }}" y1="{{ s.y1 }}" x2="{{ s.x2 }}" y2="{{ s.y2 }}" stroke="#1b3d63" strokeWidth="0.7" strokeOpacity=".55"></line>
+</sc-for>
+<sc-for list="{{ spirals }}" as="s" hint-placeholder-count="4">
+<path d="{{ s.d }}" fill="none" stroke="#c9a44c" strokeWidth="0.7" strokeOpacity=".25"></path>
+</sc-for>
+
+<path d="{{ todayWedge }}" fill="rgba(34,211,238,.07)" stroke="rgba(34,211,238,.22)" strokeWidth="0.7"></path>
+
+<sc-for list="{{ rings }}" as="ring" hint-placeholder-count="4">
+<circle cx="200" cy="200" r="{{ ring.r }}" fill="none" stroke="rgba(140,180,215,.13)" strokeWidth="13"></circle>
+<path id="{{ ring.labelId }}" d="{{ ring.labelPath }}" fill="none"></path>
+</sc-for>
+
+<sc-for list="{{ segs }}" as="seg" hint-placeholder-count="16">
+<path d="{{ seg.d }}" fill="none" stroke="{{ seg.color }}" strokeWidth="13" strokeOpacity="{{ seg.o }}" strokeLinecap="butt"></path>
+</sc-for>
+
+{{ labelLayer }}
+
+<circle cx="200" cy="200" r="66" fill="url(#coreGlow)" stroke="rgba(120,170,210,.2)" strokeWidth="1"></circle>
+<sc-for list="{{ coreArcs }}" as="a" hint-placeholder-count="4">
+<path d="{{ a.d }}" fill="none" stroke="{{ a.color }}" strokeWidth="5" strokeOpacity="{{ a.o }}" strokeLinecap="round"></path>
+</sc-for>
+{{ coreTextLayer }}
+</svg>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 20px 128px">
+
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:13px 12px;border-radius:16px;background:rgba(18,30,48,.5);backdrop-filter:blur(14px);border:1px solid rgba(140,190,225,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.07)">
+<svg width="17" height="17" viewBox="0 0 24 24"><path d="M12 2c3 4.2 6 6.4 6 10.4A6 6 0 0 1 6 12.4C6 8.4 9 6.2 12 2Z" fill="#f2792e"></path><path d="M12 9c1.6 2 2.8 3 2.8 5a2.8 2.8 0 0 1-5.6 0c0-2 1.2-3 2.8-5Z" fill="#ffd07a"></path></svg>
+<div style="font:700 21px/1 'Space Grotesk',sans-serif;color:#f6d28a">{{ streak }}</div>
+<div style="font:400 10px/1 'IBM Plex Mono',monospace;letter-spacing:.12em;color:rgba(216,236,248,.66)">RACHA</div>
+</div>
+
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:13px 12px;border-radius:16px;background:rgba(18,30,48,.5);backdrop-filter:blur(14px);border:1px solid rgba(140,190,225,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.07)">
+<svg width="17" height="17" viewBox="0 0 24 24"><rect x="3" y="14" width="4" height="7" rx="1" fill="#5fd0e8"></rect><rect x="10" y="9" width="4" height="12" rx="1" fill="#8fe3f2"></rect><rect x="17" y="4" width="4" height="17" rx="1" fill="#d9f4fb"></rect></svg>
+<div style="font:700 21px/1 'Space Grotesk',sans-serif;color:#f6d28a">{{ eff }}</div>
+<div style="font:400 10px/1 'IBM Plex Mono',monospace;letter-spacing:.12em;color:rgba(216,236,248,.66)">EFECTIVIDAD</div>
+</div>
+
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:13px 12px;border-radius:16px;background:rgba(18,30,48,.5);backdrop-filter:blur(14px);border:1px solid rgba(140,190,225,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.07)">
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="13" r="8" stroke="#59d99b" strokeWidth="1.6"></circle><circle cx="11" cy="13" r="3.4" stroke="#59d99b" strokeWidth="1.6"></circle><circle cx="11" cy="13" r="1.2" fill="#f6d28a"></circle><line x1="14" y1="10" x2="21" y2="3" stroke="#f6d28a" strokeWidth="1.6"></line></svg>
+<div style="font:700 21px/1 'Space Grotesk',sans-serif;color:#f6d28a">{{ active }}</div>
+<div style="font:400 10px/1 'IBM Plex Mono',monospace;letter-spacing:.12em;color:rgba(216,236,248,.66)">ACTIVOS</div>
+</div>
+</div>
+</div>
+
+<button onClick="{{ openAdd }}" style="position:absolute;left:50%;bottom:38px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:9px 16px 9px 13px;border-radius:22px;border:1px solid rgba(140,190,225,.22);background:rgba(14,26,42,.55);backdrop-filter:blur(10px);color:rgba(216,236,248,.72);font:400 12px/1 'Space Grotesk',sans-serif;letter-spacing:.06em;cursor:pointer" style-hover="border:1px solid rgba(34,211,238,.5);color:#dff4fb">
+<span style="font:300 17px/1 'Space Grotesk',sans-serif;color:rgba(140,220,240,.85)">+</span>Nuevo hábito</button>
+
+<sc-if value="{{ showAdd }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(3,5,11,.72);backdrop-filter:blur(3px);animation:fadeIn .2s ease"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;padding:24px 24px 34px;border-radius:30px 30px 44px 44px;background:rgba(12,22,38,.96);border-top:1px solid rgba(34,211,238,.35);box-shadow:0 -20px 60px rgba(0,0,0,.6);animation:sheetUp .3s cubic-bezier(.2,.9,.2,1)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px">
+<h2 style="margin:0;font:600 17px 'Space Grotesk',sans-serif;letter-spacing:.06em;color:#fff">NUEVO HÁBITO</h2>
+<button onClick="{{ closeSheet }}" style="background:none;border:none;color:rgba(216,236,248,.6);font:400 20px 'Space Grotesk',sans-serif;cursor:pointer">×</button>
+</div>
+<input value="{{ draftName }}" onChange="{{ onDraftName }}" placeholder="Nombre del hábito" style="width:100%;box-sizing:border-box;padding:13px 15px;border-radius:12px;border:1px solid rgba(140,190,225,.25);background:rgba(6,12,22,.9);color:#fff;font-size:14px;outline:none"></input>
+<div style="display:flex;gap:10px;margin:18px 0 22px">
+<sc-for list="{{ palette }}" as="p" hint-placeholder-count="6">
+<button onClick="{{ p.pick }}" style="{{ p.style }}"></button>
+</sc-for>
+</div>
+<button onClick="{{ addHabit }}" style="width:100%;padding:15px;border-radius:14px;border:1px solid rgba(140,240,255,.7);background:linear-gradient(180deg,rgba(34,211,238,.35),rgba(8,40,56,.9));color:#eafcff;font:600 14px 'Space Grotesk',sans-serif;letter-spacing:.1em;cursor:pointer">AÑADIR AL RETO</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ showInfo }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(3,5,11,.72);backdrop-filter:blur(3px);animation:fadeIn .2s ease"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;padding:24px 24px 34px;border-radius:30px 30px 44px 44px;background:rgba(12,22,38,.96);border-top:1px solid rgba(34,211,238,.35);animation:sheetUp .3s cubic-bezier(.2,.9,.2,1)">
+<h2 style="margin:0 0 14px;font:600 17px 'Space Grotesk',sans-serif;letter-spacing:.06em;color:#fff">EL NAUTILUS</h2>
+<p style="margin:0 0 10px;font:400 13px/1.6 'Space Grotesk',sans-serif;color:rgba(216,236,248,.72)">Cada anillo es un hábito. Cada sector es un día del reto. El segmento se enciende cuando cumples ese hábito ese día.</p>
+<p style="margin:0 0 10px;font:400 13px/1.6 'Space Grotesk',sans-serif;color:rgba(216,236,248,.72)">Toca el nombre de un hábito para marcarlo hoy. Toca un número dorado para revisar cualquier día.</p>
+<p style="margin:0;font:400 12px/1.6 'IBM Plex Mono',monospace;color:rgba(216,236,248,.45)">Núcleo = hábitos cumplidos del día visible.</p>
+<button onClick="{{ closeSheet }}" style="margin-top:20px;width:100%;padding:14px;border-radius:14px;border:1px solid rgba(140,190,225,.3);background:rgba(6,12,22,.9);color:#dff4fb;font:600 13px 'Space Grotesk',sans-serif;letter-spacing:.1em;cursor:pointer">ENTENDIDO</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ showSettings }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(3,5,11,.72);backdrop-filter:blur(3px);animation:fadeIn .2s ease"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;padding:24px 24px 34px;border-radius:30px 30px 44px 44px;background:rgba(12,22,38,.96);border-top:1px solid rgba(245,180,80,.35);animation:sheetUp .3s cubic-bezier(.2,.9,.2,1)">
+<h2 style="margin:0 0 18px;font:600 17px 'Space Grotesk',sans-serif;letter-spacing:.06em;color:#fff">AJUSTES</h2>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="font:400 13px 'Space Grotesk',sans-serif;color:rgba(216,236,248,.8)">Espirales doradas</span>
+<button onClick="{{ toggleSpirals }}" style="{{ tglSpirals }}"></button>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="font:400 13px 'Space Grotesk',sans-serif;color:rgba(216,236,248,.8)">Telaraña radial</span>
+<button onClick="{{ toggleWeb }}" style="{{ tglWeb }}"></button>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="font:400 13px 'Space Grotesk',sans-serif;color:rgba(216,236,248,.8)">Duración del reto</span>
+<div style="display:flex;gap:6px">
+<sc-for list="{{ lengths }}" as="l" hint-placeholder-count="3">
+<button onClick="{{ l.pick }}" style="{{ l.style }}">{{ l.label }}</button>
+</sc-for>
+</div>
+</div>
+</div>
+<button onClick="{{ closeSheet }}" style="margin-top:22px;width:100%;padding:14px;border-radius:14px;border:1px solid rgba(245,180,80,.4);background:rgba(30,18,6,.9);color:#f6d28a;font:600 13px 'Space Grotesk',sans-serif;letter-spacing:.1em;cursor:pointer">CERRAR</button>
+</div>
+</sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:438,&quot;height&quot;:892}}">
+const RAD = Math.PI / 180;
+const pt = (r, a, cx, cy) => [ (cx ?? 200) + r * Math.cos(a * RAD), (cy ?? 200) + r * Math.sin(a * RAD) ];
+const arc = (r, a0, a1, cx, cy) => {
+  const [x0, y0] = pt(r, a0, cx, cy), [x1, y1] = pt(r, a1, cx, cy);
+  const large = Math.abs(a1 - a0) > 180 ? 1 : 0;
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)}A${r} ${r} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+};
+const spiral = (a0, turns, r0, k, cx, cy) => {
+  let d = '';
+  for (let i = 0; i <= 220; i++) {
+    const th = (i / 220) * turns * 360;
+    const r = r0 * Math.exp(k * th * RAD);
+    const [x, y] = pt(r, a0 + th, cx, cy);
+    d += (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+  }
+  return d;
+};
+
+class Component extends DCLogic {
+  state = {
+    total: 21,
+    today: 4,
+    view: 4,
+    sheet: null,
+    draftName: '',
+    draftColor: '#f6d28a',
+    spirals: true,
+    web: true,
+    habits: [
+      { name: 'Skincare Nocturn.', color: '#d9a679', days: [1, 0, 1, 1] },
+      { name: 'Skincare diurno', color: '#b9a8e8', days: [1, 1, 1, 1] },
+      { name: 'Tomar agua', color: '#5fd0e8', days: [1, 1, 0, 1] },
+      { name: 'Pastilla', color: '#59d99b', days: [1, 1, 1, 1] }
+    ]
+  };
+
+  done(h, day) { return !!h.days[day - 1]; }
+
+  toggle(i) {
+    this.setState(s => {
+      const habits = s.habits.map((h, k) => {
+        if (k !== i) return h;
+        const days = h.days.slice();
+        while (days.length < s.view) days.push(0);
+        days[s.view - 1] = days[s.view - 1] ? 0 : 1;
+        return Object.assign({}, h, { days });
+      });
+      return { habits };
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const N = s.total, step = 360 / N, gap = Math.min(3.2, step * 0.22);
+    const habits = s.habits;
+    const radii = [140, 124, 108, 92, 76];
+
+    const segs = [], rings = [];
+    habits.forEach((h, i) => {
+      const r = radii[Math.min(i, radii.length - 1)] - (i > 4 ? (i - 4) * 14 : 0);
+      for (let d = 1; d <= N; d++) {
+        if (!this.done(h, d)) continue;
+        const a0 = -90 + (d - 1) * step + gap / 2, a1 = -90 + d * step - gap / 2;
+        segs.push({ d: arc(r, a0, a1), color: h.color, o: d === s.view ? 1 : 0.62 });
+      }
+      const lo = -176, hi = -104;
+      rings.push({
+        r, color: h.color, name: h.name,
+        labelId: 'lbl' + i, labelHref: '#lbl' + i,
+        labelPath: arc(r, lo, hi),
+        hit: arc(r, lo - 6, hi + 6),
+        labelO: this.done(h, s.view) ? 1 : 0.45,
+        toggle: () => this.toggle(i)
+      });
+    });
+
+    const dayMarks = [];
+    for (let d = 1; d <= N; d++) {
+      const a = -90 + (d - 0.5) * step;
+      const [x, y] = pt(176, a);
+      const isView = d === s.view, isPast = d < s.today, isToday = d === s.today;
+      dayMarks.push({
+        n: d, x: x.toFixed(1), y: y.toFixed(1),
+        fill: isView ? '#ffe6a8' : isToday ? '#f6d28a' : '#c9a44c',
+        o: isView ? 1 : isPast ? 0.85 : 0.4,
+        size: isView ? 13 : 11,
+        onClick: () => this.setState({ view: d })
+      });
+    }
+
+    const doneView = habits.filter(h => this.done(h, s.view)).length;
+    const coreArcs = habits.map((h, i) => {
+      const a0 = -90 + i * (360 / habits.length) + 4, a1 = -90 + (i + 1) * (360 / habits.length) - 4;
+      return { d: arc(68, a0, a1), color: h.color, o: this.done(h, s.view) ? 1 : 0.18 };
+    });
+
+    let streak = 0;
+    for (let d = s.today; d >= 1; d--) {
+      if (habits.some(h => this.done(h, d))) streak++; else break;
+    }
+    let tot = 0, got = 0;
+    for (let d = 1; d <= s.today; d++) habits.forEach(h => { tot++; if (this.done(h, d)) got++; });
+    const activeDays = [];
+    for (let d = Math.max(1, s.today - 6); d <= s.today; d++) if (habits.some(h => this.done(h, d))) activeDays.push(d);
+
+    const gridCircles = [56, 84, 112, 140, 158, 176].map((r, i) => ({ r, o: i > 3 ? 0.35 : 0.6 }));
+    const spokes = [];
+    if (s.web) for (let d = 0; d < N; d++) {
+      const a = -90 + d * step;
+      const [x1, y1] = pt(58, a), [x2, y2] = pt(168, a);
+      spokes.push({ x1: x1.toFixed(1), y1: y1.toFixed(1), x2: x2.toFixed(1), y2: y2.toFixed(1) });
+    }
+    const spirals = s.spirals ? [0, 90, 180, 270].map(a => ({ d: spiral(a, 0.85, 26, 0.328) })) : [];
+    const bgCircles = [220, 300, 380, 470, 560, 660, 780].map((r, i) => ({ r, o: (0.4 - i * 0.045).toFixed(2) }));
+    const bgSpirals = s.spirals
+      ? [{ d: spiral(20, 0.75, 118, 0.06, 195, 420), stroke: '#c9a44c', o: .07 },
+         { d: spiral(150, 0.75, 118, 0.06, 195, 420), stroke: '#2f8ba8', o: .1 },
+         { d: spiral(270, 0.75, 118, 0.06, 195, 420), stroke: '#c9a44c', o: .06 }]
+      : [];
+
+    const swatch = c => ({
+      pick: () => this.setState({ draftColor: c }),
+      style: `width:34px;height:34px;border-radius:50%;cursor:pointer;background:${c};border:2px solid ${s.draftColor === c ? '#fff' : 'rgba(255,255,255,.15)'};box-shadow:0 0 14px ${s.draftColor === c ? c : 'transparent'}`
+    });
+    const tgl = on => `width:46px;height:26px;border-radius:13px;cursor:pointer;border:1px solid ${on ? 'rgba(34,211,238,.7)' : 'rgba(140,190,225,.25)'};background:${on ? 'rgba(34,211,238,.35)' : 'rgba(6,12,22,.9)'};position:relative;box-shadow:${on ? '0 0 16px rgba(34,211,238,.45)' : 'none'};display:flex;align-items:center;justify-content:${on ? 'flex-end' : 'flex-start'};padding:0 3px`;
+
+    const h = React.createElement;
+    const labelLayer = h('g', { key: 'lbls' }, [
+      ...rings.map((rg, i) => h('g', { key: 'r' + i, onClick: rg.toggle, style: { cursor: 'pointer' } }, [
+        h('path', { key: 'hit', d: rg.hit, fill: 'none', stroke: 'rgba(0,0,0,0)', strokeWidth: 15 }),
+        h('text', { key: 't', fill: rg.color, fontSize: 11.5, fontFamily: "'Space Grotesk',sans-serif", fontWeight: 500, letterSpacing: '.05em', fillOpacity: rg.labelO },
+          h('textPath', { href: rg.labelHref, startOffset: '50%', textAnchor: 'middle' }, rg.name))
+      ])),
+      ...dayMarks.map((d, i) => h('text', {
+        key: 'd' + i, x: d.x, y: d.y, fill: d.fill, fillOpacity: d.o, fontSize: d.size,
+        fontFamily: "'IBM Plex Mono',monospace", textAnchor: 'middle', dominantBaseline: 'middle',
+        onClick: d.onClick, style: { cursor: 'pointer' }
+      }, String(d.n)))
+    ]);
+    const coreTextLayer = h('g', { key: 'core' }, [
+      h('text', { key: 'c', x: 200, y: 194, fill: '#fff', fontSize: 34, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif", textAnchor: 'middle', dominantBaseline: 'middle' }, doneView + '/' + habits.length),
+      h('text', { key: 'l', x: 200, y: 220, fill: 'rgba(216,236,248,.6)', fontSize: 10, fontFamily: "'IBM Plex Mono',monospace", letterSpacing: '.22em', textAnchor: 'middle', dominantBaseline: 'middle' }, s.view === s.today ? 'HOY' : 'DÍA ' + s.view)
+    ]);
+
+    return {
+      labelLayer, coreTextLayer,
+      total: N,
+      rings, segs, dayMarks, coreArcs, gridCircles, spokes, spirals, bgCircles, bgSpirals,
+      todayWedge: (() => {
+        const a0 = -90 + (s.view - 1) * step, a1 = -90 + s.view * step;
+        const [x0, y0] = pt(58, a0), [x1, y1] = pt(168, a0), [x2, y2] = pt(168, a1), [x3, y3] = pt(58, a1);
+        return `M${x0.toFixed(1)} ${y0.toFixed(1)}L${x1.toFixed(1)} ${y1.toFixed(1)}A168 168 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}L${x3.toFixed(1)} ${y3.toFixed(1)}A58 58 0 0 0 ${x0.toFixed(1)} ${y0.toFixed(1)}Z`;
+      })(),
+      coreCount: doneView + '/' + habits.length,
+      coreLabel: s.view === s.today ? 'HOY' : 'DÍA ' + s.view,
+      streak: streak + 'd',
+      eff: (tot ? Math.round(got / tot * 100) : 0) + '%',
+      active: activeDays.length + '/7',
+      showAdd: s.sheet === 'add', showInfo: s.sheet === 'info', showSettings: s.sheet === 'set',
+      openAdd: () => this.setState({ sheet: 'add' }),
+      openInfo: () => this.setState({ sheet: 'info' }),
+      openSettings: () => this.setState({ sheet: 'set' }),
+      closeSheet: () => this.setState({ sheet: null }),
+      draftName: s.draftName,
+      onDraftName: e => this.setState({ draftName: e.target.value }),
+      palette: ['#d9a679', '#b9a8e8', '#5fd0e8', '#59d99b', '#f6d28a', '#ef8f8f'].map(swatch),
+      addHabit: () => this.setState(st => st.draftName.trim()
+        ? { habits: st.habits.concat([{ name: st.draftName.trim(), color: st.draftColor, days: [] }]), sheet: null, draftName: '' }
+        : { sheet: null }),
+      toggleSpirals: () => this.setState(st => ({ spirals: !st.spirals })),
+      toggleWeb: () => this.setState(st => ({ web: !st.web })),
+      tglSpirals: tgl(s.spirals), tglWeb: tgl(s.web),
+      lengths: [21, 30, 66].map(n => ({
+        label: String(n),
+        pick: () => this.setState(st => ({ total: n, view: Math.min(st.view, n), today: Math.min(st.today, n) })),
+        style: `padding:7px 11px;border-radius:9px;cursor:pointer;font:500 12px 'IBM Plex Mono',monospace;border:1px solid ${s.total === n ? 'rgba(245,180,80,.7)' : 'rgba(140,190,225,.2)'};background:${s.total === n ? 'rgba(60,38,10,.95)' : 'rgba(6,12,22,.9)'};color:${s.total === n ? '#f6d28a' : 'rgba(216,236,248,.6)'}`
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

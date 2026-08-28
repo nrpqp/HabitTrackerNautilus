@@ -1,16 +1,14 @@
-/* ── Light Theme (default) ────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   TOKENS DE LA RUEDA — NO EDITAR
+
+   Estos diez tokens los lee getThemeColors() en src/theme.js para
+   pintar el nautilus. Cambiar cualquiera de ellos altera el aspecto
+   de la rueda de 21 días, que es el componente central del producto.
+   El resto del sistema visual se construye alrededor de estos valores,
+   nunca al revés.
+   ═══════════════════════════════════════════════════════════════ */
+
 :root {
-  --bg-color: #f0ece4;
-  --text-main: #1a1a2e;
-  --text-secondary: #4a4a5a;
-  --text-muted: #6b7280;
-  --border-color: #d1d5db;
-  --card-bg: #ffffff;
-  --panel-bg: #ffffff;
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --danger: #ef4444;
-  --danger-hover: #dc2626;
   --empty-cell-fill: #e8e4dc;
   --empty-cell-stroke: #c5c0b6;
   --locked-cell-fill: #d5d1c9;
@@ -21,26 +19,9 @@
   --center-stroke: #c8c4bc;
   --guide-stroke: #d6d2ca;
   --day-label-fill: #b8860b;
-  --tooltip-bg: #1a1a2e;
-  --tooltip-color: #ffffff;
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08);
-  --shadow-panel: 0 -4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
-  --handle-color: #d1d5db;
 }
 
-/* ── Dark Theme ──────────────────────────────────────────── */
 [data-theme="dark"] {
-  --bg-color: #08080f;
-  --text-main: #f0eef8;
-  --text-secondary: #c8c5d8;
-  --text-muted: #908ea5;
-  --border-color: #3e3c58;
-  --card-bg: #141424;
-  --panel-bg: #1e1e35;
-  --primary: #a0a8ff;
-  --primary-hover: #818cf8;
-  --danger: #ff6b6b;
-  --danger-hover: #ef4444;
   --empty-cell-fill: #2c2c4a;
   --empty-cell-stroke: #504e70;
   --locked-cell-fill: #1a1a30;
@@ -51,11 +32,131 @@
   --center-stroke: #504e70;
   --guide-stroke: #3e3c58;
   --day-label-fill: #f0c640;
-  --tooltip-bg: #f0eef8;
-  --tooltip-color: #141424;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SISTEMA VISUAL
+
+   Escena, superficies, bordes, texto y acentos. Todo lo que no es
+   la rueda vive aquí y puede editarse con libertad.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Tipografía ─────────────────────────────────────────────── */
+:root {
+  --font-ui: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ── Tema claro (por defecto) ───────────────────────────────── */
+/* Contraparte luminosa de la escena. Las celdas de la rueda en claro son
+   crema cálido y el núcleo es blanco puro, así que el fondo se enfría
+   arriba pero se mantiene cálido abajo: así el núcleo sigue destacando. */
+:root {
+  /* Escena */
+  --scene-top: #eaf1f5;
+  --scene-mid: #f2efe8;
+  --scene-bottom: #ece5d8;
+  --scene-glow-cyan: rgba(14, 127, 150, 0.10);
+  --scene-glow-amber: rgba(169, 118, 27, 0.12);
+  --scene-circle: #7fa8bb;
+  --scene-spiral-gold: #b8860b;
+  --scene-spiral-cyan: #4d90a8;
+  --scene-opacity: 0.35;
+
+  /* Acentos */
+  --accent-cyan: #0c7286;
+  --accent-cyan-soft: #10879e;
+  --accent-amber: #8a5f12;
+  --accent-amber-deep: #6d4a0d;
+  --glow-cyan: rgba(12, 114, 134, 0.28);
+  --glow-amber: rgba(169, 118, 27, 0.25);
+
+  /* Iconos de los indicadores: tonos oscurecidos, porque los del
+     prototipo son para fondo negro y aquí se perderían. */
+  --ico-fire-a: #d2541a;
+  --ico-fire-b: #e08a10;
+  --ico-bar-a: #0c7286;
+  --ico-bar-b: #2a93aa;
+  --ico-bar-c: #57b3c7;
+  --ico-ring: #1a8a5c;
+  --ico-accent: #a9761b;
+
+  /* Superficies */
+  --surface: rgba(255, 255, 255, 0.62);
+  --surface-solid: #ffffff;
+  --surface-strong: rgba(255, 255, 255, 0.96);
+  --border-soft: rgba(20, 60, 80, 0.16);
+
+  --bg-color: #f2efe8;
+  --text-main: #12202b;
+  --text-secondary: #445565;
+  --text-muted: #5f6d78;
+  --border-color: rgba(20, 60, 80, 0.18);
+  --card-bg: #ffffff;
+  --panel-bg: rgba(255, 255, 255, 0.96);
+  --primary: #0c7286;
+  --primary-hover: #095a6a;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --tooltip-bg: rgba(18, 32, 43, 0.96);
+  --tooltip-color: #ffffff;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08);
+  --shadow-panel: 0 -18px 50px rgba(20,40,60,0.16), 0 0 0 1px rgba(20,60,80,0.08);
+  --handle-color: rgba(20, 60, 80, 0.25);
+}
+
+/* ── Tema oscuro ────────────────────────────────────────────── */
+[data-theme="dark"] {
+  /* Escena */
+  --scene-top: #070c18;
+  --scene-mid: #04060e;
+  --scene-bottom: #03050b;
+  --scene-glow-cyan: rgba(34, 211, 238, 0.13);
+  --scene-glow-amber: rgba(245, 166, 35, 0.16);
+  --scene-circle: #2a6f8c;
+  --scene-spiral-gold: #c9a44c;
+  --scene-spiral-cyan: #2f8ba8;
+  --scene-opacity: 0.55;
+
+  /* Acentos */
+  --accent-cyan: #22d3ee;
+  --accent-cyan-soft: #5fd0e8;
+  --accent-amber: #f6d28a;
+  --accent-amber-deep: #c9a44c;
+  --glow-cyan: rgba(34, 211, 238, 0.45);
+  --glow-amber: rgba(245, 180, 80, 0.40);
+
+  /* Iconos de los indicadores: los tonos del prototipo. */
+  --ico-fire-a: #f2792e;
+  --ico-fire-b: #ffd07a;
+  --ico-bar-a: #5fd0e8;
+  --ico-bar-b: #8fe3f2;
+  --ico-bar-c: #d9f4fb;
+  --ico-ring: #59d99b;
+  --ico-accent: #f6d28a;
+
+  /* Superficies */
+  --surface: rgba(18, 30, 48, 0.55);
+  --surface-solid: #101b2c;
+  --surface-strong: rgba(12, 22, 38, 0.96);
+  --border-soft: rgba(140, 190, 225, 0.18);
+
+  --bg-color: #04060e;
+  --text-main: #eaf3fa;
+  --text-secondary: #bcd4e4;
+  --text-muted: #8ba3b6;
+  --border-color: rgba(140, 190, 225, 0.22);
+  --card-bg: #101b2c;
+  --panel-bg: rgba(12, 22, 38, 0.96);
+  --primary: #22d3ee;
+  --primary-hover: #67e8f9;
+  --danger: #ff6b6b;
+  --danger-hover: #ef4444;
+  --tooltip-bg: rgba(12, 22, 38, 0.96);
+  --tooltip-color: #eaf3fa;
   --shadow-card: 0 2px 6px rgba(0,0,0,0.5), 0 12px 32px rgba(0,0,0,0.6);
-  --shadow-panel: 0 -4px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
-  --handle-color: #504e70;
+  --shadow-panel: 0 -20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(140,190,225,0.10);
+  --handle-color: rgba(140, 190, 225, 0.35);
 }
 
 /* ── Global ──────────────────────────────────────────────── */
@@ -66,7 +167,7 @@
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-ui);
   background-color: var(--bg-color);
   color: var(--text-main);
   display: flex;
@@ -78,43 +179,107 @@ body {
   transition: background-color 0.4s ease, color 0.4s ease;
 }
 
+/* ── Escena decorativa ───────────────────────────────────── */
+/* Capa de fondo a pantalla completa: degradados de acento más círculos
+   concéntricos y espirales doradas. Es puramente ornamental — sin
+   interacción, sin texto y sin animación, así que no cuesta nada en los
+   dispositivos de nivel 0 ni compite con el canvas de partículas. */
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 44% at 50% 42%, var(--scene-glow-cyan) 0%, transparent 68%),
+    radial-gradient(90% 50% at 50% 104%, var(--scene-glow-amber) 0%, transparent 70%),
+    linear-gradient(180deg, var(--scene-top) 0%, var(--scene-mid) 55%, var(--scene-bottom) 100%);
+  transition: background 0.4s ease;
+}
+
+.scene-art {
+  width: 100%;
+  height: 100%;
+  opacity: var(--scene-opacity);
+  transition: opacity 0.4s ease;
+}
+
+.scene-circles circle {
+  fill: none;
+  stroke: var(--scene-circle);
+  stroke-width: 0.9;
+  stroke-opacity: 0.30;
+}
+
+.scene-spirals path {
+  fill: none;
+  stroke-width: 1.1;
+}
+
+.scene-spirals .spiral-gold { stroke: var(--scene-spiral-gold); stroke-opacity: 0.16; }
+.scene-spirals .spiral-cyan { stroke: var(--scene-spiral-cyan); stroke-opacity: 0.20; }
+
+/* La escena no anima nada por sí misma; lo único que se mueve es el
+   cruce de tema. En nivel 0 y con movimiento reducido, también eso se
+   corta, para que no quede ni un fundido. */
+html[data-tier="0"] .scene,
+html[data-tier="0"] .scene-art {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene,
+  .scene-art {
+    transition: none;
+  }
+}
+
+/* El contenido flota sobre la escena: ya no es una tarjeta. El fondo lo
+   pinta `body` y la decoración vive en `.scene`, detrás de todo. */
 .container {
   width: 100%;
   max-width: 900px;
   height: 100%;
   max-height: 850px;
-  background: var(--card-bg);
   border-radius: 24px;
   padding: 36px;
-  box-shadow: var(--shadow-card);
   position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  transition: background-color 0.4s ease, box-shadow 0.4s ease;
 }
 
 /* ── Header ──────────────────────────────────────────────── */
 header {
   text-align: center;
+  /* Los botones son absolutos y terminan en y=64; el título arranca debajo. */
+  margin-top: 34px;
   margin-bottom: 24px;
   flex-shrink: 0;
 }
 
 header h1 {
-  font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: 3px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--text-main);
+  text-shadow: 0 0 26px var(--glow-cyan);
+  line-height: 1.15;
 }
 
 header p {
-  color: var(--text-secondary);
-  font-weight: 300;
-  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-top: 8px;
 }
 
 /* ── Header buttons ──────────────────────────────────────── */
+/* Botones circulares con halo, como en el prototipo. El área táctil se
+   mantiene en 44 px aunque el círculo se dibuje más pequeño en móvil. */
 .theme-toggle,
 .info-toggle,
 .add-toggle,
@@ -123,28 +288,45 @@ header p {
   top: 20px;
   width: 44px;
   height: 44px;
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  background: var(--panel-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 25%, var(--surface), transparent 70%),
+    var(--surface-solid);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
-  transition: background 0.3s, border-color 0.3s, transform 0.15s;
+  font-size: 1.1rem;
+  line-height: 1;
+  box-shadow: 0 0 18px var(--glow-cyan);
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.15s;
   z-index: 10;
 }
 
 .theme-toggle { right: 20px; }
 .info-toggle  { right: 74px; }
 .fx-toggle    { right: 182px; }
-.add-toggle   { right: 128px; font-size: 1.5rem; font-weight: 300; color: var(--text-main); }
+.add-toggle {
+  right: 128px;
+  font-size: 1.4rem;
+  font-weight: 300;
+  color: var(--accent-cyan);
+}
+
+/* El tema y los efectos son ajustes: van en ámbar, como en el prototipo. */
+.theme-toggle,
+.fx-toggle {
+  border-color: var(--accent-amber-deep);
+  box-shadow: 0 0 18px var(--glow-amber);
+}
 
 .theme-toggle:hover,
 .info-toggle:hover,
 .add-toggle:hover,
 .fx-toggle:hover {
-  border-color: var(--primary);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 26px var(--glow-cyan);
   transform: scale(1.08);
 }
 
@@ -155,10 +337,20 @@ header p {
   transform: scale(0.95);
 }
 
+.theme-toggle:focus-visible,
+.info-toggle:focus-visible,
+.add-toggle:focus-visible,
+.fx-toggle:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 3px;
+  border-color: var(--accent-cyan);
+}
+
 .add-toggle:disabled {
   opacity: 0.35;
   cursor: not-allowed;
   pointer-events: none;
+  box-shadow: none;
 }
 
 /* Show/hide icons based on theme */
@@ -349,6 +541,111 @@ html[data-tier="0"] .today-indicator {
   animation: none;
 }
 
+/* ── Indicadores del reto ────────────────────────────────── */
+/* Alto fijo: la rueda sigue en `flex: 1` y nunca cede su espacio a esta
+   fila. Cuando la pantalla es baja, la fila se comprime y acaba
+   desapareciendo antes que encoger el nautilus. */
+.stats {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* Sin difuminado, el fondo translúcido deja pasar la escena y el texto
+   pierde contraste: se cae a una superficie opaca. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .stat-card {
+    background: var(--surface-solid);
+  }
+}
+
+.stat-ico {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+/* El color vive en tokens, no en el marcado: los tonos claros del
+   prototipo son para fondo negro y desaparecen en el tema claro. */
+.ico-fire-a { fill: var(--ico-fire-a); }
+.ico-fire-b { fill: var(--ico-fire-b); }
+.ico-bar-a  { fill: var(--ico-bar-a); }
+.ico-bar-b  { fill: var(--ico-bar-b); }
+.ico-bar-c  { fill: var(--ico-bar-c); }
+.ico-ring   { stroke: var(--ico-ring); }
+.ico-dot    { fill: var(--ico-accent); }
+.ico-arrow  { stroke: var(--ico-accent); }
+
+.stat-value {
+  font-family: var(--font-ui);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent-amber);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Pantallas bajas: la fila se comprime a una línea, y por debajo de
+   600 px desaparece para no robarle alto a la rueda. */
+@media (max-height: 700px) {
+  .stats {
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .stat-card {
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 12px;
+  }
+  .stat-label {
+    display: none;
+  }
+  .stat-value {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-height: 600px) {
+  .stats {
+    display: none;
+  }
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .stats {
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 /* ── Habit Sheet (bottom sheet / popover) ────────────────── */
 .habit-sheet {
   position: fixed;
@@ -370,7 +667,9 @@ html[data-tier="0"] .today-indicator {
 .habit-sheet-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(3, 5, 11, 0.72);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -384,8 +683,11 @@ html[data-tier="0"] .today-indicator {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  background: var(--panel-bg);
-  border-radius: 20px 20px 0 0;
+  background: var(--surface-strong);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid var(--accent-cyan);
+  border-radius: 30px 30px 0 0;
   padding: 12px 20px 32px;
   box-shadow: var(--shadow-panel);
   transform: translateY(100%);
@@ -408,24 +710,33 @@ html[data-tier="0"] .today-indicator {
   flex-shrink: 0;
 }
 
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .habit-sheet-panel {
+    background: var(--surface-solid);
+  }
+  .habit-sheet-backdrop {
+    background: rgba(3, 5, 11, 0.86);
+  }
+}
+
 /* ── Sheet name input ───────────────────────────────────── */
 .sheet-name-input {
   width: 100%;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-ui);
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--text-main);
-  background: var(--card-bg);
-  border: 2px solid var(--border-color);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-soft);
   border-radius: 12px;
-  padding: 10px 14px;
+  padding: 12px 15px;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .sheet-name-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px var(--glow-cyan);
 }
 
 /* ── Sheet swatches ─────────────────────────────────────── */
@@ -461,8 +772,9 @@ html[data-tier="0"] .today-indicator {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: var(--bg-color);
-  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
   gap: 12px;
 }
 
@@ -474,8 +786,8 @@ html[data-tier="0"] .today-indicator {
 .progress-badge {
   font-size: 0.78rem;
   font-weight: 600;
-  background: var(--primary);
-  color: white;
+  background: var(--accent-cyan);
+  color: var(--surface-solid);
   padding: 3px 10px;
   border-radius: 8px;
   white-space: nowrap;
@@ -553,11 +865,11 @@ html[data-tier="0"] .today-indicator {
 .notif-time-input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-soft);
   border-radius: 10px;
-  background: var(--bg-color);
+  background: var(--surface-solid);
   color: var(--text-main);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-ui);
   font-size: 1rem;
 }
 
@@ -582,12 +894,13 @@ html[data-tier="0"] .today-indicator {
   flex: 1;
   padding: 10px 16px;
   border: none;
-  border-radius: 12px;
-  font-family: 'Outfit', sans-serif;
+  border-radius: 14px;
+  font-family: var(--font-ui);
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
 }
 
 .sheet-action-btn:active {
@@ -595,21 +908,25 @@ html[data-tier="0"] .today-indicator {
 }
 
 .sheet-reset {
-  background: rgba(99,102,241,0.1);
-  color: var(--primary);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  color: var(--accent-cyan);
 }
 
 .sheet-reset:hover {
-  background: rgba(99,102,241,0.18);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 18px var(--glow-cyan);
 }
 
 .sheet-danger {
-  background: rgba(239,68,68,0.1);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
   color: var(--danger);
 }
 
 .sheet-danger:hover {
-  background: rgba(239,68,68,0.18);
+  border-color: var(--danger);
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.28);
 }
 
 /* ── Desktop: popover instead of bottom sheet ────────────── */
@@ -623,7 +940,8 @@ html[data-tier="0"] .today-indicator {
     width: 320px;
     max-width: 320px;
     margin: 0;
-    border-radius: 16px;
+    border-radius: 20px;
+    border-top: 1px solid var(--accent-cyan);
     padding: 16px 20px 20px;
     transform: scale(0.95);
     opacity: 0;
@@ -641,15 +959,169 @@ html[data-tier="0"] .today-indicator {
   }
 }
 
+/* ── Hoja de instalación ─────────────────────────────────── */
+.info-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.info-sheet.hidden { display: none; }
+.info-sheet.open { pointer-events: auto; }
+
+.info-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 5, 11, 0.72);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.info-sheet.open .info-sheet-backdrop { opacity: 1; }
+
+.info-sheet-panel {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--surface-strong);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid var(--accent-cyan);
+  border-radius: 30px 30px 0 0;
+  padding: 22px 24px 32px;
+  box-shadow: var(--shadow-panel);
+  transform: translateY(100%);
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.info-sheet.open .info-sheet-panel { transform: translateY(0); }
+
+.info-sheet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.info-sheet-head h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-main);
+}
+
+.info-sheet-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.info-sheet-close:hover { color: var(--accent-cyan); }
+
+.info-sheet-close:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.info-sheet-panel h3 {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-amber);
+  margin: 16px 0 8px;
+}
+
+.info-sheet-panel ol {
+  padding-left: 1.15rem;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.info-sheet-panel strong { color: var(--text-main); font-weight: 600; }
+
+.info-sheet-ok {
+  margin-top: 22px;
+  width: 100%;
+  min-height: 48px;
+  border-radius: 14px;
+  border: 1px solid var(--accent-cyan);
+  background: var(--surface);
+  color: var(--accent-cyan);
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.1s;
+}
+
+.info-sheet-ok:hover { box-shadow: 0 0 24px var(--glow-cyan); }
+.info-sheet-ok:active { transform: scale(0.98); }
+
+.info-sheet-ok:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 3px;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .info-sheet-panel { background: var(--surface-solid); }
+  .info-sheet-backdrop { background: rgba(3, 5, 11, 0.86); }
+}
+
+/* En escritorio se centra como diálogo en vez de subir desde abajo. */
+@media (min-width: 769px) {
+  .info-sheet { align-items: center; }
+  .info-sheet-panel {
+    border-radius: 20px;
+    transform: scale(0.95);
+    opacity: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .info-sheet.open .info-sheet-panel {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .info-sheet-panel {
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
+  }
+}
+
 /* ── Tooltip ─────────────────────────────────────────────── */
 .cell-tooltip {
   position: fixed;
   padding: 6px 12px;
   background: var(--tooltip-bg);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-soft);
   color: var(--tooltip-color);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.8rem;
-  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  border-radius: 10px;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s;
@@ -705,7 +1177,7 @@ svg {
     border-radius: 16px;
   }
   header {
-    margin-top: 36px;
+    margin-top: 60px;
   }
   header h1 {
     font-size: 1.2rem;
@@ -716,15 +1188,15 @@ svg {
   }
   .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
     top: 8px;
-    width: 34px;
-    height: 34px;
-    font-size: 0.9rem;
-    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    font-size: 0.95rem;
+    border-radius: 50%;
   }
-  .theme-toggle { right: 8px; }
-  .info-toggle  { right: 50px; }
-  .add-toggle   { right: 92px; font-size: 1.2rem; }
-  .fx-toggle    { right: 134px; }
+  .theme-toggle { right: 6px; }
+  .info-toggle  { right: 56px; }
+  .add-toggle   { right: 106px; font-size: 1.25rem; }
+  .fx-toggle    { right: 156px; }
 }
 
 /* ▸ Regular phones (380px – 479px) */
@@ -737,7 +1209,7 @@ svg {
     border-radius: 18px;
   }
   header {
-    margin-top: 32px;
+    margin-top: 60px;
   }
   header h1 {
     font-size: 1.35rem;
@@ -748,15 +1220,15 @@ svg {
   }
   .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
     top: 10px;
-    width: 36px;
-    height: 36px;
-    font-size: 0.95rem;
-    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+    border-radius: 50%;
   }
   .theme-toggle { right: 10px; }
-  .info-toggle  { right: 54px; }
-  .add-toggle   { right: 98px; font-size: 1.3rem; }
-  .fx-toggle    { right: 142px; }
+  .info-toggle  { right: 60px; }
+  .add-toggle   { right: 110px; font-size: 1.3rem; }
+  .fx-toggle    { right: 160px; }
 }
 
 /* ▸ Tablets portrait / large phones (480px – 767px) */
@@ -769,21 +1241,21 @@ svg {
     border-radius: 20px;
   }
   header {
-    margin-top: 28px;
+    margin-top: 64px;
   }
   header h1 {
     font-size: 1.6rem;
   }
   .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
     top: 14px;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     font-size: 1.05rem;
   }
   .theme-toggle { right: 14px; }
-  .info-toggle  { right: 62px; }
-  .add-toggle   { right: 110px; font-size: 1.4rem; }
-  .fx-toggle    { right: 158px; }
+  .info-toggle  { right: 64px; }
+  .add-toggle   { right: 114px; font-size: 1.4rem; }
+  .fx-toggle    { right: 164px; }
 }
 
 /* ── Touch device adjustments ────────────────────────────── */
@@ -839,6 +1311,7 @@ svg {
     border-radius: 0;
     max-width: 100%;
   }
+  .scene,
   .theme-toggle,
   .info-toggle,
   .add-toggle,
@@ -855,9 +1328,12 @@ svg {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.85);
-  background: var(--panel-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 20px;
+  background: var(--surface-strong);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border: 1px solid var(--border-soft);
+  border-top: 1px solid var(--accent-amber);
+  border-radius: 24px;
   padding: 24px 36px;
   text-align: center;
   pointer-events: none;
@@ -887,9 +1363,11 @@ svg {
 }
 
 .milestone-sub {
-  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* ── Element selector in sheet ───────────────────────────── */
@@ -904,7 +1382,7 @@ svg {
   background: transparent;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-ui);
   flex: 1;
   min-width: 0;
 }
@@ -961,7 +1439,9 @@ svg {
   inset: 0;
   /* Oscurece el anillo para que las opciones destaquen. El contador del
      día se sube por encima de esta capa, así que sigue legible. */
-  background: rgba(0, 0, 0, 0.58);
+  background: rgba(3, 5, 11, 0.72);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -988,11 +1468,13 @@ svg {
   min-height: 44px;
   padding: 0 15px;
   border-radius: 999px;
-  border: 2px solid var(--border-color);
-  background: var(--panel-bg);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-strong);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   /* Sobre el velo oscuro, el texto secundario se pierde. */
   color: var(--text-main);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-ui);
   font-size: 0.82rem;
   font-weight: 600;
   white-space: nowrap;
@@ -1000,21 +1482,23 @@ svg {
   transition: transform 0.15s, border-color 0.2s, color 0.2s, background 0.2s;
 }
 
-.fx-opt:hover { border-color: var(--primary); }
+.fx-opt:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 20px var(--glow-cyan);
+}
 .fx-opt:active { transform: translate(-50%, -50%) scale(0.94); }
 
 .fx-opt:focus-visible {
-  outline: 3px solid var(--primary);
-  outline-offset: 2px;
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 3px;
 }
 
 .fx-opt.on {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #ffffff;
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  color: var(--surface-solid);
+  box-shadow: 0 0 24px var(--glow-cyan);
 }
-
-[data-theme="dark"] .fx-opt.on { color: #10101c; }
 
 .fx-dial-note {
   position: absolute;
@@ -1027,9 +1511,11 @@ svg {
   font-size: 0.76rem;
   line-height: 1.4;
   color: var(--text-secondary);
-  background: var(--panel-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
+  background: var(--surface-strong);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
   padding: 6px 12px;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -1039,11 +1525,25 @@ svg {
 
 .fx-dial-note.warn {
   color: var(--text-main);
-  border-color: #f0b429;
+  border-color: var(--accent-amber);
 }
 
 html[data-tier="0"] .fx-dial-backdrop,
 html[data-tier="0"] .fx-dial-ring,
 html[data-tier="0"] .fx-dial-note {
   transition: none;
+}
+
+/* Respaldo para navegadores sin difuminado: superficies opacas para que
+   el texto no compita con la escena de fondo. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .fx-opt,
+  .fx-dial-note,
+  .milestone-toast,
+  .cell-tooltip {
+    background: var(--surface-solid);
+  }
+  .fx-dial-backdrop {
+    background: rgba(3, 5, 11, 0.86);
+  }
 }
