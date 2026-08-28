@@ -42,7 +42,6 @@
         <button id="info-btn" class="info-toggle" title="Información" aria-label="Información" aria-haspopup="dialog">
           <span aria-hidden="true">i</span>
         </button>
-        <button id="add-habit-btn" class="add-toggle" title="Añadir hábito" aria-label="Añadir hábito">+</button>
         <button id="settings-btn" class="settings-toggle" title="Ajustes" aria-label="Ajustes" aria-haspopup="dialog" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <g class="gear-teeth">
@@ -135,6 +134,13 @@
           </div>
         </div>
       </div>
+
+      <!-- Acceso a añadir hábito. Deliberadamente discreto: menos contraste
+           que los indicadores y que los botones de la cabecera. Absoluto
+           respecto al contenedor para no robar margen a las stats. -->
+      <button id="add-habit-btn" class="add-habit-pill" title="Añadir hábito">
+        <span class="add-habit-plus" aria-hidden="true">+</span>Nuevo hábito
+      </button>
 
       <!-- Manual de la aplicación. Secciones plegables con <details>: el
            estado desplegado/plegado y la operabilidad por teclado son

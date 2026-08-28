@@ -47,9 +47,9 @@
 
 ## 7. Píldora de añadir hábito
 
-- [ ] 7.1 Retirar `#add-habit-btn` de la cabecera y añadir la píldora `.add-habit-pill` centrada en el borde inferior, absoluta respecto al contenedor y con `bottom` calculado sobre `env(safe-area-inset-bottom)`, según `design.md — D8`. Verificar que no solapa los indicadores ni el nautilus en 390, 768 y 1280 px de ancho.
-- [ ] 7.2 Recablear `checkLimit()` en `src/main.js` a la píldora: atenuada y no accionable con 7 hábitos, con el texto que explica el límite. Verificar creando 7 hábitos que la píldora deja de responder.
-- [ ] 7.3 Verificar el tratamiento visual discreto: la píldora tiene menos contraste que los indicadores del reto y que los botones de la cabecera, y su área táctil mide al menos 44 px de alto.
+- [x] 7.1 Retirar `#add-habit-btn` de la cabecera y añadir la píldora `.add-habit-pill` centrada en el borde inferior, absoluta respecto al contenedor y con `bottom` calculado sobre `env(safe-area-inset-bottom)`, según `design.md — D8`. Verificar que no solapa los indicadores ni el nautilus en 390, 768 y 1280 px de ancho.
+- [x] 7.2 Recablear `checkLimit()` en `src/main.js` a la píldora: atenuada y no accionable con 7 hábitos, con el texto que explica el límite. Verificar creando 7 hábitos que la píldora deja de responder.
+- [x] 7.3 Verificar el tratamiento visual discreto: la píldora tiene menos contraste que los indicadores del reto y que los botones de la cabecera, y su área táctil mide al menos 44 px de alto.
 
 ## 8. Retirada del control radial
 

@@ -189,13 +189,13 @@ function render() {
 
 function checkLimit() {
   const addBtn = document.getElementById('add-habit-btn');
-  if (habits.length >= MAX_HABITS) {
-    addBtn.disabled = true;
-    addBtn.title = 'Límite de 7 hábitos alcanzado';
-  } else {
-    addBtn.disabled = false;
-    addBtn.title = 'Añadir hábito';
-  }
+  const etiqueta = addBtn.lastChild;   // el nodo de texto tras el «+»
+  const lleno = habits.length >= MAX_HABITS;
+  addBtn.disabled = lleno;
+  addBtn.title = lleno ? `Límite de ${MAX_HABITS} hábitos alcanzado` : 'Añadir hábito';
+  // El motivo va en la propia etiqueta y no sólo en el title: un botón
+  // deshabilitado no recibe hover, así que su tooltip nunca aparecería.
+  etiqueta.textContent = lleno ? `Límite de ${MAX_HABITS} hábitos` : 'Nuevo hábito';
 }
 
 // ── Add habit ────────────────────────────────────────────────

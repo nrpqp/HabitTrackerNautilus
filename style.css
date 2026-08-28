@@ -242,7 +242,10 @@ html[data-tier="1"] .scene-art {
   height: 100%;
   max-height: 850px;
   border-radius: 24px;
-  padding: 36px;
+  /* El extra inferior es el hueco de la píldora de añadir hábito, que es
+     absoluta y no participa del flujo. Va aquí y no en .stats porque por
+     debajo de 600px de alto los indicadores se ocultan. */
+  padding: 36px 36px 76px;
   position: relative;
   z-index: 1;
   display: flex;
@@ -281,7 +284,6 @@ header p {
 /* Botones circulares con halo, como en el prototipo. El área táctil se
    mantiene en 44 px aunque el círculo se dibuje más pequeño en móvil. */
 .info-toggle,
-.add-toggle,
 .settings-toggle {
   position: absolute;
   top: 20px;
@@ -305,13 +307,6 @@ header p {
 
 .info-toggle  { left: 20px; }
 .settings-toggle { right: 20px; }
-.add-toggle {
-  right: 128px;
-  font-size: 1.4rem;
-  font-weight: 300;
-  color: var(--accent-cyan);
-}
-
 /* El tema y los efectos son ajustes: van en ámbar, como en el prototipo. */
 .settings-toggle {
   border-color: var(--accent-amber-deep);
@@ -319,7 +314,6 @@ header p {
 }
 
 .info-toggle:hover,
-.add-toggle:hover,
 .settings-toggle:hover {
   border-color: var(--accent-cyan);
   box-shadow: 0 0 26px var(--glow-cyan);
@@ -327,24 +321,15 @@ header p {
 }
 
 .info-toggle:active,
-.add-toggle:active,
 .settings-toggle:active {
   transform: scale(0.95);
 }
 
 .info-toggle:focus-visible,
-.add-toggle:focus-visible,
 .settings-toggle:focus-visible {
   outline: 3px solid var(--accent-cyan);
   outline-offset: 3px;
   border-color: var(--accent-cyan);
-}
-
-.add-toggle:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  pointer-events: none;
-  box-shadow: none;
 }
 
 
@@ -1227,6 +1212,72 @@ html[data-tier="1"] .manual-section > summary::after {
   }
 }
 
+/* ── Píldora de añadir hábito ────────────────────────────── */
+/* Un susurro, no un grito: menos contraste que los indicadores y que los
+   botones de la cabecera. Absoluta respecto al contenedor para no comerle
+   margen a las stats en pantallas cortas. */
+.add-habit-pill {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 18px 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.12s;
+}
+
+.add-habit-plus {
+  font-size: 1.15rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--accent-cyan);
+}
+
+.add-habit-pill:hover {
+  border-color: var(--accent-cyan);
+  color: var(--text-main);
+  box-shadow: 0 0 18px var(--glow-cyan);
+}
+
+.add-habit-pill:active { transform: translateX(-50%) scale(0.97); }
+
+.add-habit-pill:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 3px;
+}
+
+.add-habit-pill:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+/* En PWA instalada el indicador del sistema come el borde inferior. */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .add-habit-pill {
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .add-habit-pill { background: var(--surface-solid); }
+}
+
 /* ── Hoja de ajustes ─────────────────────────────────────── */
 /* Comparte panel, bordes y animación con el manual. Difiere en dos cosas,
    ambas porque su contenido actúa sobre lo que hay detrás: el velo es
@@ -1522,7 +1573,7 @@ svg {
     padding: 8px;
   }
   .container {
-    padding: 14px;
+    padding: 14px 14px 68px;
     border-radius: 16px;
   }
   header {
@@ -1535,7 +1586,7 @@ svg {
   header p {
     font-size: 0.8rem;
   }
-  .info-toggle, .add-toggle, .settings-toggle {
+  .info-toggle, .settings-toggle {
     top: 8px;
     width: 44px;
     height: 44px;
@@ -1543,7 +1594,6 @@ svg {
     border-radius: 50%;
   }
   .info-toggle  { left: 6px; }
-  .add-toggle   { right: 106px; font-size: 1.25rem; }
   .settings-toggle { right: 6px; }
 }
 
@@ -1553,7 +1603,7 @@ svg {
     padding: 10px;
   }
   .container {
-    padding: 16px;
+    padding: 16px 16px 70px;
     border-radius: 18px;
   }
   header {
@@ -1566,7 +1616,7 @@ svg {
   header p {
     font-size: 0.85rem;
   }
-  .info-toggle, .add-toggle, .settings-toggle {
+  .info-toggle, .settings-toggle {
     top: 10px;
     width: 44px;
     height: 44px;
@@ -1574,7 +1624,6 @@ svg {
     border-radius: 50%;
   }
   .info-toggle  { left: 10px; }
-  .add-toggle   { right: 110px; font-size: 1.3rem; }
   .settings-toggle { right: 10px; }
 }
 
@@ -1584,7 +1633,7 @@ svg {
     padding: 16px;
   }
   .container {
-    padding: 24px;
+    padding: 24px 24px 72px;
     border-radius: 20px;
   }
   header {
@@ -1593,14 +1642,13 @@ svg {
   header h1 {
     font-size: 1.6rem;
   }
-  .info-toggle, .add-toggle, .settings-toggle {
+  .info-toggle, .settings-toggle {
     top: 14px;
     width: 44px;
     height: 44px;
     font-size: 1.05rem;
   }
   .info-toggle  { left: 14px; }
-  .add-toggle   { right: 114px; font-size: 1.4rem; }
   .settings-toggle { right: 14px; }
 }
 
@@ -1623,7 +1671,7 @@ svg {
     align-items: flex-start;
   }
   .container {
-    padding: 16px;
+    padding: 16px 16px 66px;
   }
   header {
     margin-bottom: 14px;
@@ -1659,7 +1707,6 @@ svg {
   }
   .scene,
   .info-toggle,
-  .add-toggle,
   .settings-toggle,
   .habit-sheet,
   .cell-tooltip {
