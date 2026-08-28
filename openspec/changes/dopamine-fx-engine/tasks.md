@@ -14,7 +14,7 @@
 - [x] 2.1 Crear `src/fx/engine.js` con el objeto de nivel (valor, fijar, suscriptores, presupuesto) anclado a 2 y sin gobernador, e integrarlo sin que ningún efecto lo consulte todavía. Verificar que la app arranca sin cambios visibles.
 - [x] 2.2 Implementar la detección de capacidades y la fórmula de nivel de design.md §2. Verificar los cuatro casos con overrides de DevTools: movimiento reducido da 0; ahorro de datos da 0; 8 núcleos y 8 GB dan 3; ausencia de memoria declarada con puntero grueso no da 3.
 - [x] 2.3 Implementar el gobernador de FPS (tres segundos consecutivos bajo 46 fps bajan un nivel, suelo en 1, sin promoción). Verificar con throttling de CPU 6× en DevTools que el nivel baja y no vuelve a subir al quitarlo.
-- [ ] 2.4 Implementar la háptica con los cuatro patrones, como no-op silencioso si `navigator.vibrate` no existe y en nivel 0. Verificar en Chrome Android que vibra y en un navegador sin soporte que no lanza errores en consola.
+- [x] 2.4 Implementar la háptica con los cuatro patrones, como no-op silencioso si `navigator.vibrate` no existe y en nivel 0. Verificar en Chrome Android que vibra y en un navegador sin soporte que no lanza errores en consola.
 - [x] 2.5 Reflejar el nivel activo en `document.documentElement.dataset.tier` y anular bajo `[data-tier="0"]` las animaciones de fase que hoy dependen de `prefers-reduced-motion`. Verificar que forzar el nivel 0 deja todas las celdas estáticas.
 - [x] 2.6 Implementar el bucle único de canvas: limpia una vez por frame, pide a cada efecto activo que se dibuje, se detiene sin efectos activos y se reanuda con el primero nuevo. Verificar en el panel Performance que la app en reposo no hace trabajo de canvas por frame.
 
@@ -59,6 +59,17 @@
 - [x] 7.1 Recorrer los cuatro niveles forzados (0, 1, 2, 3) sobre el conjunto completo de interacciones, comprobando que en cada uno el momento de recompensa sigue siendo perceptible y que ningún efecto se ejecuta por debajo de su nivel mínimo.
 - [x] 7.2 Verificar la interacción entre los dos momentos: marcar el último hábito pendiente cuando además extiende una racha larga, comprobando que cometa y supernova se componen sin borrarse mutuamente.
 - [ ] 7.3 Probar en iOS Safari con la app instalada como PWA: fluidez al marcar, ausencia de errores por `navigator.vibrate` inexistente, y que el nivel asignado no es 3.
-- [ ] 7.4 Probar en Chrome Android: la háptica se emite y el gobernador no degrada en un dispositivo que sí sostiene el ritmo.
+- [x] 7.4 Probar en Chrome Android: la háptica se emite y el gobernador no degrada en un dispositivo que sí sostiene el ritmo.
 - [x] 7.5 Comprobar que la app sigue funcionando offline y que el service worker cachea los archivos nuevos de `src/fx/` (hard refresh sobre el build de producción).
 - [x] 7.6 Ejecutar `npm run build` y `npm run preview`, y verificar sobre el build que el anillo renderiza y ambos momentos se disparan correctamente.
+
+## 8. Correcciones de las pruebas en dispositivo
+
+> Salidas de la verificación en iPhone, Android y navegadores de escritorio.
+
+- [x] 8.1 Rehacer la fórmula de nivel para que sólo se mueva con evidencia fuerte, con suelo en 2 para punteros finos. La versión anterior mandaba todos los iPhone y los navegadores con defensa antihuella al nivel 1, el único sin partículas. Verificado contra el código real con doce perfiles de dispositivo simulados.
+- [x] 8.2 Corregir la tabla de presupuesto: declaraba 0,35 para el nivel 1 cuando la emisión de partículas ya se corta por debajo del nivel 2. La tabla mentía sobre el comportamiento.
+- [x] 8.3 Centrar la etiqueta del núcleo por CSS en vez de calcular su posición en JS. El SVG ocupa todo el contenedor y `preserveAspectRatio` centra el viewBox, así que ambos centros coinciden siempre; medirlo antes de que el layout se asentara la dejaba desplazada hasta el primer repintado. Verificado con desvío de 0 px en cinco geometrías, incluida una medición a los 60 ms de cargar.
+- [x] 8.4 Exponer `window.__nautilusFx` con las capacidades detectadas y el nivel resultante, para poder diagnosticar desde cualquier navegador sin instrumentar nada.
+- [ ] 8.5 Reconfirmar en iPhone que el contador aparece centrado al cargar y que ahora hay partículas al marcar.
+- [ ] 8.6 Confirmar en Brave y Safari de escritorio que las animaciones se ven, y contrastar `window.__nautilusFx` si siguen sin verse.

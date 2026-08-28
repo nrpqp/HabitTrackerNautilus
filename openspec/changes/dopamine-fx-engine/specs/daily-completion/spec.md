@@ -23,6 +23,11 @@ El núcleo central del nautilus SHALL mostrar cuántos hábitos del día en curs
 - **WHEN** el usuario desmarca el día de hoy de un hábito que estaba marcado
 - **THEN** el segmento de ese hábito se vacía y la cuenta del núcleo disminuye en uno
 
+#### Scenario: El medidor aparece colocado desde el primer pintado
+
+- **WHEN** la aplicación termina de cargar, antes de cualquier interacción
+- **THEN** la cuenta del día aparece centrada sobre el núcleo del nautilus, sin depender de un repintado posterior para colocarse
+
 #### Scenario: Marcar un día que no es hoy
 
 - **WHEN** el usuario marca el día de ayer de un hábito

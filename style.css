@@ -211,7 +211,15 @@ html[data-tier="0"] .gauge-arc {
 }
 
 .day-core {
+  /* El SVG ocupa el 100 % del contenedor y `preserveAspectRatio` centra el
+     viewBox dentro de su caja, así que el centro del nautilus es siempre el
+     centro del contenedor. Centrarlo por CSS en vez de calcularlo en JS lo
+     hace inmune al orden de carga: al medir antes de que la fuente y el
+     layout se asienten, la etiqueta aparecía desplazada hasta el primer
+     repintado. */
   position: absolute;
+  left: 50%;
+  top: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
   pointer-events: none;
