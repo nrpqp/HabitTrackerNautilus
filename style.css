@@ -1792,15 +1792,23 @@ svg {
   border: 1.5px solid var(--border-color);
   background: transparent;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.15s, background 0.15s, transform 0.12s, box-shadow 0.15s;
   font-family: var(--font-ui);
   flex: 1;
   min-width: 0;
 }
 
+/* Feedback táctil inmediato al presionar, antes incluso de que se procese
+   el click — sin esto, elegir un elemento no se sentía como una selección
+   real en móvil. */
+.element-btn:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
 .element-btn .element-icon {
   font-size: 18px;
   line-height: 1;
+  transition: transform 0.15s;
 }
 
 .element-btn .element-name {
@@ -1817,11 +1825,18 @@ svg {
 
 .element-btn.active {
   border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+  box-shadow: 0 0 0 1px var(--primary), 0 0 14px var(--glow-cyan);
+  transform: scale(1.06);
+}
+
+.element-btn.active .element-icon {
+  transform: scale(1.15);
 }
 
 .element-btn.active .element-name {
   color: var(--primary);
+  font-weight: 700;
 }
 
 .element-btn.taken {
