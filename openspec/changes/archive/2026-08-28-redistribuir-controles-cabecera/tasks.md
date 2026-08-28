@@ -60,7 +60,7 @@
 ## 9. Cierre
 
 - [x] 9.1 Actualizar `CLAUDE.md`: niveles `1 Calma, 2 Lite, 3 Suave, 4 Estándar, 5 Máximo` y `?fx=1..5`. Verificar que la sección «Sistema de efectos» no menciona ya cuatro niveles.
-- [ ] 9.2 Actualizar el `## Purpose` de `openspec/specs/motion-tiers/spec.md` («cuatro niveles» → cinco) y el de `openspec/specs/effects-preference/spec.md` («control radial» → control en los ajustes), que los deltas no arrastran. Hacerlo al archivar el cambio.
+- [x] 9.2 Actualizar el `## Purpose` de `openspec/specs/motion-tiers/spec.md` («cuatro niveles» → cinco) y el de `openspec/specs/effects-preference/spec.md` («control radial» → control en los ajustes), que los deltas no arrastran. Hacerlo al archivar el cambio.
 - [x] 9.3 Verificar que la rueda principal sigue intacta: `git diff --stat` no muestra cambios en `src/render/svg.js` ni en `src/constants.js`, y el nautilus renderiza y responde igual que antes.
 - [ ] 9.4 Probar en iOS/Safari y en la PWA instalada: las dos hojas suben y se cierran correctamente, la píldora queda por encima del área segura inferior y la muestra de efectos se ve con la hoja de ajustes abierta.
 - [x] 9.5 Ejecutar `npm run build` y `npm run preview` con recarga forzada, y verificar que el service worker sirve la versión nueva y que la app arranca offline con el nivel guardado.

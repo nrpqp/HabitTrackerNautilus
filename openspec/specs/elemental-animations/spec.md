@@ -76,13 +76,13 @@ Las animaciones SHALL respetar `prefers-reduced-motion: reduce`; en ese caso tod
 
 El sistema SHALL mostrar un burst de partículas específicas del elemento al interactuar con una celda (marcar, desmarcar, o hacer click en una ya marcada). Las partículas se renderizan en un canvas overlay posicionado sobre el SVG con `pointer-events: none`, de modo que el repintado del anillo no interrumpa ni elimine las partículas en vuelo.
 
-El tamaño del burst SHALL escalar con el nivel de dispositivo: en nivel 0 no se emite ninguna partícula, y a partir del nivel 2 la cantidad crece con el nivel. En todos los niveles que emiten partículas el burst SHALL ser perceptible.
+El tamaño del burst SHALL escalar con el nivel de efecto visual: en los niveles 1 y 2 no se emite ninguna partícula, y a partir del nivel 3 la cantidad crece con el nivel. En todos los niveles que emiten partículas el burst SHALL ser perceptible.
 
 Las partículas SHALL componerse de forma aditiva, de manera que el solapamiento de varias partículas del mismo elemento produzca un núcleo más luminoso que cada una por separado. Cada elemento SHALL tener un comportamiento de movimiento propio y distinguible del resto.
 
 #### Scenario: Partículas al marcar una celda
 
-- **WHEN** el usuario hace click en la celda del día siguiente (siguiente a completar) y el nivel activo es 2 o superior
+- **WHEN** el usuario hace click en la celda del día siguiente (siguiente a completar) y el nivel activo es 3 o superior
 - **THEN** aparece un burst de partículas con la forma y movimiento específicos del elemento desde el centro de esa celda
 
 #### Scenario: Partículas al visitar una celda ya completada
@@ -107,8 +107,8 @@ Las partículas SHALL componerse de forma aditiva, de manera que el solapamiento
 
 #### Scenario: Burst proporcional al nivel del dispositivo
 
-- **WHEN** el mismo marcado ocurre en nivel 2 y en nivel 3
-- **THEN** el burst de nivel 3 contiene más partículas que el de nivel 2, y ambos resultan perceptibles
+- **WHEN** el mismo marcado ocurre en niveles 3, 4 y 5
+- **THEN** el burst crece con el nivel y en los tres casos resulta perceptible
 
 #### Scenario: Burst proporcional en milestone
 
@@ -117,8 +117,13 @@ Las partículas SHALL componerse de forma aditiva, de manera que el solapamiento
 
 #### Scenario: Sin partículas en nivel de calma
 
-- **WHEN** el usuario marca una celda y el nivel activo es 0
+- **WHEN** el usuario marca una celda y el nivel activo es 1
 - **THEN** no se emite ninguna partícula y la celda refleja igualmente su nuevo estado
+
+#### Scenario: Sin partículas en el nivel sin canvas
+
+- **WHEN** el usuario marca una celda y el nivel activo es 2
+- **THEN** no se dibuja ninguna partícula y la celda refleja su nuevo estado con animaciones de `transform` y `opacity`
 
 ### Requirement: Celebración de milestone
 
