@@ -53,14 +53,14 @@
 
 ## 8. Retirada del control radial
 
-- [ ] 8.1 Eliminar `src/ui/dial.js`, su importación y `setupDial()` de `src/main.js`, y el botón `#fx-toggle` de `index.html`. Verificar con `grep -rn "dial\|fx-toggle" src/ index.html` que no queda ninguna referencia.
-- [ ] 8.2 Eliminar el bloque `.fx-dial*` de `style.css` conservando las reglas de respaldo sin difuminado que también aplican a `.milestone-toast` y `.cell-tooltip`. Verificar que el toast y el tooltip siguen con fondo opaco en un navegador sin `backdrop-filter`.
-- [ ] 8.3 Retirar de la cabecera las cuatro coordenadas `right` por breakpoint y sustituirlas por el posicionamiento a dos extremos. Verificar en los cuatro breakpoints de `style.css` que no queda ninguna coordenada huérfana.
+- [x] 8.1 Eliminar `src/ui/dial.js`, su importación y `setupDial()` de `src/main.js`, y el botón `#fx-toggle` de `index.html`. Verificar con `grep -rn "dial\|fx-toggle" src/ index.html` que no queda ninguna referencia.
+- [x] 8.2 Eliminar el bloque `.fx-dial*` de `style.css` conservando las reglas de respaldo sin difuminado que también aplican a `.milestone-toast` y `.cell-tooltip`. Verificar que el toast y el tooltip siguen con fondo opaco en un navegador sin `backdrop-filter`.
+- [x] 8.3 Retirar de la cabecera las cuatro coordenadas `right` por breakpoint y sustituirlas por el posicionamiento a dos extremos. Verificar en los cuatro breakpoints de `style.css` que no queda ninguna coordenada huérfana.
 
 ## 9. Cierre
 
-- [ ] 9.1 Actualizar `CLAUDE.md`: niveles `1 Calma, 2 Lite, 3 Suave, 4 Estándar, 5 Máximo` y `?fx=1..5`. Verificar que la sección «Sistema de efectos» no menciona ya cuatro niveles.
+- [x] 9.1 Actualizar `CLAUDE.md`: niveles `1 Calma, 2 Lite, 3 Suave, 4 Estándar, 5 Máximo` y `?fx=1..5`. Verificar que la sección «Sistema de efectos» no menciona ya cuatro niveles.
 - [ ] 9.2 Actualizar el `## Purpose` de `openspec/specs/motion-tiers/spec.md` («cuatro niveles» → cinco) y el de `openspec/specs/effects-preference/spec.md` («control radial» → control en los ajustes), que los deltas no arrastran. Hacerlo al archivar el cambio.
-- [ ] 9.3 Verificar que la rueda principal sigue intacta: `git diff --stat` no muestra cambios en `src/render/svg.js` ni en `src/constants.js`, y el nautilus renderiza y responde igual que antes.
+- [x] 9.3 Verificar que la rueda principal sigue intacta: `git diff --stat` no muestra cambios en `src/render/svg.js` ni en `src/constants.js`, y el nautilus renderiza y responde igual que antes.
 - [ ] 9.4 Probar en iOS/Safari y en la PWA instalada: las dos hojas suben y se cierran correctamente, la píldora queda por encima del área segura inferior y la muestra de efectos se ve con la hoja de ajustes abierta.
-- [ ] 9.5 Ejecutar `npm run build` y `npm run preview` con recarga forzada, y verificar que el service worker sirve la versión nueva y que la app arranca offline con el nivel guardado.
+- [x] 9.5 Ejecutar `npm run build` y `npm run preview` con recarga forzada, y verificar que el service worker sirve la versión nueva y que la app arranca offline con el nivel guardado.
