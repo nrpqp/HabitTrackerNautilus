@@ -22,6 +22,9 @@ const FOCUSABLE = [
   'select:not([disabled])',
   'textarea:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
+  // <summary> es enfocable de forma nativa y no lo recoge ningún otro
+  // selector: sin esto, la trampa de foco se saltaría el manual entero.
+  'summary',
 ].join(',');
 
 /** Nunca hay dos hojas abiertas: la que se abre cierra a la anterior. */

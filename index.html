@@ -39,12 +39,8 @@
 
     <div class="container">
       <header>
-        <button id="theme-toggle" class="theme-toggle" title="Cambiar tema" aria-label="Cambiar tema">
-          <span class="theme-icon-light">☀️</span>
-          <span class="theme-icon-dark">🌙</span>
-        </button>
-        <button id="info-btn" class="info-toggle" title="Cómo instalar" aria-label="Cómo instalar">
-          <span>ℹ️</span>
+        <button id="info-btn" class="info-toggle" title="Información" aria-label="Información" aria-haspopup="dialog">
+          <span aria-hidden="true">i</span>
         </button>
         <button id="add-habit-btn" class="add-toggle" title="Añadir hábito" aria-label="Añadir hábito">+</button>
         <button id="settings-btn" class="settings-toggle" title="Ajustes" aria-label="Ajustes" aria-haspopup="dialog" aria-expanded="false">
@@ -140,27 +136,86 @@
         </div>
       </div>
 
-      <!-- Hoja de instalación. Estructura propia: no comparte JS con
-           #habit-sheet, que ya gobierna estado de hábito, modo y popover. -->
+      <!-- Manual de la aplicación. Secciones plegables con <details>: el
+           estado desplegado/plegado y la operabilidad por teclado son
+           nativos, y no hay que replicarlos con aria-expanded a mano. -->
       <div id="info-sheet" class="info-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="info-sheet-title">
         <div class="info-sheet-backdrop" data-sheet-backdrop></div>
         <div class="info-sheet-panel" data-sheet-panel tabindex="-1">
           <div class="info-sheet-head">
-            <h2 id="info-sheet-title">Cómo instalar la app</h2>
+            <h2 id="info-sheet-title">Información</h2>
             <button id="info-sheet-close" class="info-sheet-close" aria-label="Cerrar">×</button>
           </div>
-          <h3>iOS (iPhone / iPad)</h3>
-          <ol>
-            <li>Abre este enlace en Safari.</li>
-            <li>Toca el botón <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba).</li>
-            <li>Selecciona <strong>Añadir a pantalla de inicio</strong>.</li>
-          </ol>
-          <h3>Android</h3>
-          <ol>
-            <li>Abre este enlace en Chrome.</li>
-            <li>Toca el menú de tres puntos (arriba a la derecha).</li>
-            <li>Selecciona <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong>.</li>
-          </ol>
+
+          <details class="manual-section" open>
+            <summary>El nautilus</summary>
+            <div class="manual-body">
+              <p>Cada <strong>anillo</strong> es un hábito. Cada <strong>sector</strong> es uno de los 21 días del reto, numerados por fuera en dorado.</p>
+              <p>Una celda encendida significa que ese día cumpliste ese hábito. El color madura a lo largo del reto: los primeros días son apagados y los últimos, plenos.</p>
+              <p>El <strong>núcleo central</strong> resume el día de hoy: cuántos hábitos llevas cerrados de los que están activos.</p>
+            </div>
+          </details>
+
+          <details class="manual-section">
+            <summary>Cómo se marca un día</summary>
+            <div class="manual-body">
+              <p>Toca la celda del día en el anillo del hábito. Vuelve a tocarla para desmarcarla.</p>
+              <p>Toca el <strong>nombre</strong> de un hábito, escrito sobre su anillo, para abrir su panel: ahí puedes renombrarlo, cambiar su elemento, poner un recordatorio, reiniciarlo o eliminarlo.</p>
+              <p>Cuando cierras el último hábito pendiente del día, el núcleo lo celebra.</p>
+            </div>
+          </details>
+
+          <details class="manual-section">
+            <summary>Preguntas frecuentes</summary>
+            <div class="manual-body">
+              <h3>¿Por qué no puedo marcar un día de la semana pasada?</h3>
+              <p>Sólo se pueden marcar y desmarcar <strong>hoy y ayer</strong>. Los días anteriores quedan congelados tal como estaban, estén marcados o no. El reto mide lo que hiciste, no lo que recuerdas haber hecho.</p>
+
+              <h3>¿Y un día futuro?</h3>
+              <p>Tampoco. Las celdas por venir no responden al toque.</p>
+
+              <h3>¿Cuántos hábitos puedo llevar a la vez?</h3>
+              <p>Hasta <strong>7</strong>, cada uno con su anillo. El nombre admite <strong>15 caracteres</strong> como máximo, porque tiene que caber curvado sobre el anillo.</p>
+
+              <h3>¿Qué pasa si reinicio un hábito?</h3>
+              <p>Se borra todo su avance y su reto vuelve a empezar hoy. Pide confirmación antes. Los demás hábitos no se tocan.</p>
+
+              <h3>¿Y si lo elimino?</h3>
+              <p>Desaparece con todo su historial y su anillo se retira de la rueda. También pide confirmación, y no se puede deshacer.</p>
+
+              <h3>¿Por qué no me llegó el recordatorio?</h3>
+              <p>Los recordatorios son locales: se programan mientras la app está abierta y sólo se disparan si ese día llegaste a abrirla. Si el hábito ya está marcado a esa hora, no se avisa.</p>
+              <p>En <strong>iOS</strong> hay un límite del sistema: la entrega en segundo plano es poco fiable, así que un recordatorio puede no llegar aunque esté bien configurado. Si el navegador tiene las notificaciones bloqueadas, el panel del hábito te lo dice.</p>
+            </div>
+          </details>
+
+          <details class="manual-section">
+            <summary>Dónde se guardan tus datos</summary>
+            <div class="manual-body">
+              <p class="manual-warn">Tus hábitos viven <strong>sólo en este navegador y en este dispositivo</strong>. No hay cuenta de usuario, no hay servidor y no hay copia en la nube.</p>
+              <p>Eso significa que nadie más puede verlos — y también que <strong>se pierden para siempre</strong> si borras los datos del navegador, usas el modo privado o desinstalas la aplicación.</p>
+              <p>Abrir la app en otro dispositivo, o en otro navegador del mismo dispositivo, empieza un reto en blanco.</p>
+            </div>
+          </details>
+
+          <details class="manual-section">
+            <summary>Cómo instalar la app</summary>
+            <div class="manual-body">
+              <h3>iOS (iPhone / iPad)</h3>
+              <ol>
+                <li>Abre este enlace en Safari.</li>
+                <li>Toca el botón <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba).</li>
+                <li>Selecciona <strong>Añadir a pantalla de inicio</strong>.</li>
+              </ol>
+              <h3>Android</h3>
+              <ol>
+                <li>Abre este enlace en Chrome.</li>
+                <li>Toca el menú de tres puntos (arriba a la derecha).</li>
+                <li>Selecciona <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong>.</li>
+              </ol>
+            </div>
+          </details>
+
           <button id="info-sheet-ok" class="info-sheet-ok">Entendido</button>
         </div>
       </div>

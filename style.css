@@ -280,7 +280,6 @@ header p {
 /* ── Header buttons ──────────────────────────────────────── */
 /* Botones circulares con halo, como en el prototipo. El área táctil se
    mantiene en 44 px aunque el círculo se dibuje más pequeño en móvil. */
-.theme-toggle,
 .info-toggle,
 .add-toggle,
 .settings-toggle {
@@ -304,9 +303,8 @@ header p {
   z-index: 10;
 }
 
-.theme-toggle { right: 20px; }
-.info-toggle  { right: 74px; }
-.settings-toggle { right: 182px; }
+.info-toggle  { left: 20px; }
+.settings-toggle { right: 20px; }
 .add-toggle {
   right: 128px;
   font-size: 1.4rem;
@@ -315,13 +313,11 @@ header p {
 }
 
 /* El tema y los efectos son ajustes: van en ámbar, como en el prototipo. */
-.theme-toggle,
 .settings-toggle {
   border-color: var(--accent-amber-deep);
   box-shadow: 0 0 18px var(--glow-amber);
 }
 
-.theme-toggle:hover,
 .info-toggle:hover,
 .add-toggle:hover,
 .settings-toggle:hover {
@@ -330,14 +326,12 @@ header p {
   transform: scale(1.08);
 }
 
-.theme-toggle:active,
 .info-toggle:active,
 .add-toggle:active,
 .settings-toggle:active {
   transform: scale(0.95);
 }
 
-.theme-toggle:focus-visible,
 .info-toggle:focus-visible,
 .add-toggle:focus-visible,
 .settings-toggle:focus-visible {
@@ -365,12 +359,17 @@ header p {
 .settings-toggle .gear-ring  { stroke: var(--accent-amber); }
 .settings-toggle .gear-hole  { fill: var(--surface-solid); }
 
-/* Show/hide icons based on theme */
-.theme-icon-dark  { display: none; }
-.theme-icon-light { display: inline; }
 
-[data-theme="dark"] .theme-icon-dark  { display: inline; }
-[data-theme="dark"] .theme-icon-light { display: none; }
+/* Información en cian: leer. Ajustes en ámbar: cambiar. */
+.info-toggle {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 18px var(--glow-cyan);
+  color: var(--accent-cyan);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
 
 /* ── SVG Container ───────────────────────────────────────── */
 .svg-container {
@@ -1093,20 +1092,86 @@ body.sheet-soft-open #effect-overlay {
 }
 
 .info-sheet-panel h3 {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent-amber);
-  margin: 16px 0 8px;
+  font-family: var(--font-ui);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 14px 0 5px;
 }
 
-.info-sheet-panel ol {
-  padding-left: 1.15rem;
+/* ── Secciones plegables del manual ──────────────────────── */
+/* <details> aporta el estado y el foco de teclado sin JS. Sólo hay que
+   vestirlo y quitarle el triángulo por defecto, que no encaja aquí. */
+.manual-section {
+  border-top: 1px solid var(--border-soft);
+}
+
+.manual-section:first-of-type { border-top: none; }
+
+.manual-section > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 4px 0;
+  font-family: var(--font-ui);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.manual-section > summary::-webkit-details-marker { display: none; }
+
+/* Chevron propio: rota al desplegar y dice el estado sin depender del color. */
+.manual-section > summary::after {
+  content: '';
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--accent-cyan);
+  border-bottom: 2px solid var(--accent-cyan);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 0.2s ease;
+}
+
+.manual-section[open] > summary::after {
+  transform: rotate(-135deg) translate(-2px, -2px);
+}
+
+.manual-section > summary:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.manual-body {
+  padding: 0 0 14px;
   color: var(--text-secondary);
-  font-size: 0.88rem;
-  line-height: 1.65;
+  font-size: 0.86rem;
+  line-height: 1.62;
+}
+
+.manual-body p { margin-bottom: 9px; }
+.manual-body p:last-child { margin-bottom: 0; }
+
+/* La advertencia sobre los datos no puede leerse como un párrafo más:
+   es lo único del manual que avisa de una pérdida irreversible. */
+.manual-warn {
+  border-left: 2px solid var(--accent-amber);
+  padding-left: 11px;
+  color: var(--text-main);
+}
+
+html[data-tier="1"] .manual-section > summary::after {
+  transition: none;
+}
+
+.manual-body ol {
+  padding-left: 1.15rem;
+  margin-bottom: 9px;
 }
 
 .info-sheet-panel strong { color: var(--text-main); font-weight: 600; }
@@ -1470,17 +1535,16 @@ svg {
   header p {
     font-size: 0.8rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle, .settings-toggle {
+  .info-toggle, .add-toggle, .settings-toggle {
     top: 8px;
     width: 44px;
     height: 44px;
     font-size: 0.95rem;
     border-radius: 50%;
   }
-  .theme-toggle { right: 6px; }
-  .info-toggle  { right: 56px; }
+  .info-toggle  { left: 6px; }
   .add-toggle   { right: 106px; font-size: 1.25rem; }
-  .settings-toggle { right: 156px; }
+  .settings-toggle { right: 6px; }
 }
 
 /* ▸ Regular phones (380px – 479px) */
@@ -1502,17 +1566,16 @@ svg {
   header p {
     font-size: 0.85rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle, .settings-toggle {
+  .info-toggle, .add-toggle, .settings-toggle {
     top: 10px;
     width: 44px;
     height: 44px;
     font-size: 1rem;
     border-radius: 50%;
   }
-  .theme-toggle { right: 10px; }
-  .info-toggle  { right: 60px; }
+  .info-toggle  { left: 10px; }
   .add-toggle   { right: 110px; font-size: 1.3rem; }
-  .settings-toggle { right: 160px; }
+  .settings-toggle { right: 10px; }
 }
 
 /* ▸ Tablets portrait / large phones (480px – 767px) */
@@ -1530,16 +1593,15 @@ svg {
   header h1 {
     font-size: 1.6rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle, .settings-toggle {
+  .info-toggle, .add-toggle, .settings-toggle {
     top: 14px;
     width: 44px;
     height: 44px;
     font-size: 1.05rem;
   }
-  .theme-toggle { right: 14px; }
-  .info-toggle  { right: 64px; }
+  .info-toggle  { left: 14px; }
   .add-toggle   { right: 114px; font-size: 1.4rem; }
-  .settings-toggle { right: 164px; }
+  .settings-toggle { right: 14px; }
 }
 
 /* ── Touch device adjustments ────────────────────────────── */
@@ -1596,7 +1658,6 @@ svg {
     max-width: 100%;
   }
   .scene,
-  .theme-toggle,
   .info-toggle,
   .add-toggle,
   .settings-toggle,

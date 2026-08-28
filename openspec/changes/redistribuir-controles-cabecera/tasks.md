@@ -38,12 +38,12 @@
 
 ## 6. Manual
 
-- [ ] 6.1 Convertir `#info-sheet` en el manual: cabecera nueva y secciones plegables operables con teclado, con `aria-expanded` en cada encabezado y como máximo una desplegada al abrir. Verificar que se despliegan y pliegan con el tabulador y `Enter`.
-- [ ] 6.2 Redactar la sección de lectura del nautilus —anillos, sectores, segmentos encendidos, núcleo— y la de cómo se marca un día. Verificar que lo descrito coincide con el comportamiento real de la app.
-- [ ] 6.3 Redactar las preguntas frecuentes: ventana de edición de hoy y ayer, bloqueo de días futuros, límite de 7 hábitos y 15 caracteres, qué hacen reiniciar y eliminar, y por qué un recordatorio puede no llegar incluyendo la limitación de iOS. Verificar cada respuesta contra las specs `day-window`, `habit-edit-sheet` y `habit-notifications`.
-- [ ] 6.4 Redactar la sección sobre dónde viven los datos: sólo en ese navegador, sin cuenta ni copia remota, y se pierden al borrar los datos del navegador o desinstalar. Verificar que su título es localizable sin conocer el término técnico del almacenamiento.
-- [ ] 6.5 Mover las instrucciones de instalación de iOS y Android a una sección del manual, sin perder ningún paso. Verificar comparando con el contenido actual de `#info-sheet`.
-- [ ] 6.6 Reubicar el botón de información al extremo izquierdo de la cabecera, con acento cian. Verificar que los dos botones de cabecera se distinguen por color y que el título se lee completo entre ambos en 390 px.
+- [x] 6.1 Convertir `#info-sheet` en el manual: cabecera nueva y secciones plegables operables con teclado, con `aria-expanded` en cada encabezado y como máximo una desplegada al abrir. Verificar que se despliegan y pliegan con el tabulador y `Enter`.
+- [x] 6.2 Redactar la sección de lectura del nautilus —anillos, sectores, segmentos encendidos, núcleo— y la de cómo se marca un día. Verificar que lo descrito coincide con el comportamiento real de la app.
+- [x] 6.3 Redactar las preguntas frecuentes: ventana de edición de hoy y ayer, bloqueo de días futuros, límite de 7 hábitos y 15 caracteres, qué hacen reiniciar y eliminar, y por qué un recordatorio puede no llegar incluyendo la limitación de iOS. Verificar cada respuesta contra las specs `day-window`, `habit-edit-sheet` y `habit-notifications`.
+- [x] 6.4 Redactar la sección sobre dónde viven los datos: sólo en ese navegador, sin cuenta ni copia remota, y se pierden al borrar los datos del navegador o desinstalar. Verificar que su título es localizable sin conocer el término técnico del almacenamiento.
+- [x] 6.5 Mover las instrucciones de instalación de iOS y Android a una sección del manual, sin perder ningún paso. Verificar comparando con el contenido actual de `#info-sheet`.
+- [x] 6.6 Reubicar el botón de información al extremo izquierdo de la cabecera, con acento cian. Verificar que los dos botones de cabecera se distinguen por color y que el título se lee completo entre ambos en 390 px.
 
 ## 7. Píldora de añadir hábito
 
