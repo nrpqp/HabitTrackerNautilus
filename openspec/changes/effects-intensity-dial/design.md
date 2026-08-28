@@ -71,7 +71,17 @@ Ver `proposal.md` — *Why*. Lo que condiciona el diseño:
 
 **Por qué**: sigue el patrón de `theme`, que ya vive en su propia clave. Meterla dentro de `habits21` mezclaría preferencias de interfaz con los datos del reto y complicaría un futuro export.
 
+### 8. El techo de muestreo del gobernador mide lentitud, no pausas
+
+**Decisión**: la ventana de medición descarta un frame sólo si dura más de 2 s o si la pestaña está oculta, en lugar del techo anterior de 500 ms.
+
+**Por qué**: apareció al intentar verificar la decisión 2. Con el techo en 500 ms, un dispositivo tan ahogado que tarda más de medio segundo por frame quedaba fuera de la medición y no se degradaba **nunca** — el gobernador dejaba de funcionar exactamente en el caso para el que existe. El techo pretendía descartar huecos que no miden rendimiento (pestaña en segundo plano, equipo suspendido), y eso se expresa mejor con `document.hidden` y un margen mucho más alto.
+
+**No verificado en sesión**: la pestaña de automatización corre con `document.hidden`, y ahí `requestAnimationFrame` no dispara, así que el gobernador no llega a medir. Queda como tarea 6.3.
+
 ## Risks / Trade-offs
+
+- **El cambio del techo de muestreo va sin verificar** → Sólo puede provocar *más* degradación, nunca menos, y hacen falta tres segundos malos seguidos con decremento en los buenos, así que un tirón aislado no degrada. Aun así es una modificación a la red de seguridad y necesita la comprobación 6.3 en una ventana visible.
 
 - **La rueda tapa el nautilus mientras está abierta** → Es transitoria y se cierra tocando fuera. El estado del día debe seguir legible detrás; hay tarea de verificación para eso.
 

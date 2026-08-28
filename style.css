@@ -117,7 +117,8 @@ header p {
 /* ── Header buttons ──────────────────────────────────────── */
 .theme-toggle,
 .info-toggle,
-.add-toggle {
+.add-toggle,
+.fx-toggle {
   position: absolute;
   top: 20px;
   width: 44px;
@@ -136,18 +137,21 @@ header p {
 
 .theme-toggle { right: 20px; }
 .info-toggle  { right: 74px; }
+.fx-toggle    { right: 182px; }
 .add-toggle   { right: 128px; font-size: 1.5rem; font-weight: 300; color: var(--text-main); }
 
 .theme-toggle:hover,
 .info-toggle:hover,
-.add-toggle:hover {
+.add-toggle:hover,
+.fx-toggle:hover {
   border-color: var(--primary);
   transform: scale(1.08);
 }
 
 .theme-toggle:active,
 .info-toggle:active,
-.add-toggle:active {
+.add-toggle:active,
+.fx-toggle:active {
   transform: scale(0.95);
 }
 
@@ -225,6 +229,8 @@ html[data-tier="0"] .gauge-arc {
   pointer-events: none;
   user-select: none;
   line-height: 1;
+  /* Por encima del velo de la rueda: el estado del día no se oscurece. */
+  z-index: 130;
 }
 
 .core-value {
@@ -708,7 +714,7 @@ svg {
   header p {
     font-size: 0.8rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle {
+  .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
     top: 8px;
     width: 34px;
     height: 34px;
@@ -718,6 +724,7 @@ svg {
   .theme-toggle { right: 8px; }
   .info-toggle  { right: 50px; }
   .add-toggle   { right: 92px; font-size: 1.2rem; }
+  .fx-toggle    { right: 134px; }
 }
 
 /* ▸ Regular phones (380px – 479px) */
@@ -739,7 +746,7 @@ svg {
   header p {
     font-size: 0.85rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle {
+  .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
     top: 10px;
     width: 36px;
     height: 36px;
@@ -749,6 +756,7 @@ svg {
   .theme-toggle { right: 10px; }
   .info-toggle  { right: 54px; }
   .add-toggle   { right: 98px; font-size: 1.3rem; }
+  .fx-toggle    { right: 142px; }
 }
 
 /* ▸ Tablets portrait / large phones (480px – 767px) */
@@ -766,7 +774,7 @@ svg {
   header h1 {
     font-size: 1.6rem;
   }
-  .theme-toggle, .info-toggle, .add-toggle {
+  .theme-toggle, .info-toggle, .add-toggle, .fx-toggle {
     top: 14px;
     width: 40px;
     height: 40px;
@@ -775,6 +783,7 @@ svg {
   .theme-toggle { right: 14px; }
   .info-toggle  { right: 62px; }
   .add-toggle   { right: 110px; font-size: 1.4rem; }
+  .fx-toggle    { right: 158px; }
 }
 
 /* ── Touch device adjustments ────────────────────────────── */
@@ -833,6 +842,7 @@ svg {
   .theme-toggle,
   .info-toggle,
   .add-toggle,
+  .fx-toggle,
   .habit-sheet,
   .cell-tooltip {
     display: none !important;
@@ -935,4 +945,105 @@ svg {
   content: ' ✓';
   font-size: 0.7em;
   opacity: 0.7;
+}
+
+/* ── Rueda de intensidad ──────────────────────────────────── */
+.fx-dial {
+  position: absolute;
+  inset: 0;
+  z-index: 120;
+}
+
+.fx-dial.hidden { display: none; }
+
+.fx-dial-backdrop {
+  position: absolute;
+  inset: 0;
+  /* Oscurece el anillo para que las opciones destaquen. El contador del
+     día se sube por encima de esta capa, así que sigue legible. */
+  background: rgba(0, 0, 0, 0.58);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.fx-dial.open .fx-dial-backdrop { opacity: 1; }
+
+.fx-dial-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.94);
+  opacity: 0;
+  transition: transform 0.24s cubic-bezier(0.2, 1.4, 0.35, 1), opacity 0.18s ease;
+}
+
+.fx-dial.open .fx-dial-ring {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+
+.fx-opt {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-height: 44px;
+  padding: 0 15px;
+  border-radius: 999px;
+  border: 2px solid var(--border-color);
+  background: var(--panel-bg);
+  /* Sobre el velo oscuro, el texto secundario se pierde. */
+  color: var(--text-main);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  transition: transform 0.15s, border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.fx-opt:hover { border-color: var(--primary); }
+.fx-opt:active { transform: translate(-50%, -50%) scale(0.94); }
+
+.fx-opt:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.fx-opt.on {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .fx-opt.on { color: #10101c; }
+
+.fx-dial-note {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 130;
+  max-width: 90%;
+  text-align: center;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 6px 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.fx-dial.open .fx-dial-note { opacity: 1; }
+
+.fx-dial-note.warn {
+  color: var(--text-main);
+  border-color: #f0b429;
+}
+
+html[data-tier="0"] .fx-dial-backdrop,
+html[data-tier="0"] .fx-dial-ring,
+html[data-tier="0"] .fx-dial-note {
+  transition: none;
 }
