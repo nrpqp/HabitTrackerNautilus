@@ -222,8 +222,8 @@ body {
 /* La escena no anima nada por sí misma; lo único que se mueve es el
    cruce de tema. En nivel 0 y con movimiento reducido, también eso se
    corta, para que no quede ni un fundido. */
-html[data-tier="0"] .scene,
-html[data-tier="0"] .scene-art {
+html[data-tier="1"] .scene,
+html[data-tier="1"] .scene-art {
   transition: none;
 }
 
@@ -402,7 +402,7 @@ header p {
   transition: stroke-dashoffset 0.48s cubic-bezier(0.3, 0.9, 0.3, 1);
 }
 
-html[data-tier="0"] .gauge-arc {
+html[data-tier="1"] .gauge-arc {
   transition: none;
 }
 
@@ -457,8 +457,8 @@ html[data-tier="0"] .gauge-arc {
   animation: core-swap 0.42s ease-out;
 }
 
-html[data-tier="0"] .day-core.swapping .core-value,
-html[data-tier="0"] .day-core.swapping .core-caption {
+html[data-tier="1"] .day-core.swapping .core-value,
+html[data-tier="1"] .day-core.swapping .core-caption {
   animation: none;
 }
 
@@ -534,10 +534,10 @@ html[data-tier="0"] .day-core.swapping .core-caption {
 /* Nivel 0 (Calma): el motor de efectos ya cubre prefers-reduced-motion,
    ahorro de datos y la degradación manual. La media query de arriba se
    mantiene como red de seguridad si el JS no llega a ejecutarse. */
-html[data-tier="0"] .phase-1,
-html[data-tier="0"] .phase-2,
-html[data-tier="0"] .phase-3,
-html[data-tier="0"] .today-indicator {
+html[data-tier="1"] .phase-1,
+html[data-tier="1"] .phase-2,
+html[data-tier="1"] .phase-3,
+html[data-tier="1"] .today-indicator {
   animation: none;
 }
 
@@ -1528,9 +1528,9 @@ svg {
   border-color: var(--accent-amber);
 }
 
-html[data-tier="0"] .fx-dial-backdrop,
-html[data-tier="0"] .fx-dial-ring,
-html[data-tier="0"] .fx-dial-note {
+html[data-tier="1"] .fx-dial-backdrop,
+html[data-tier="1"] .fx-dial-ring,
+html[data-tier="1"] .fx-dial-note {
   transition: none;
 }
 

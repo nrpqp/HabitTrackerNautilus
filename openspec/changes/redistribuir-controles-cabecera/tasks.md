@@ -1,11 +1,11 @@
 ## 1. Motor: escala de cinco niveles
 
-- [ ] 1.1 En `src/fx/engine.js`, ampliar `TIER_NAMES` a `['Calma','Lite','Suave','Estándar','Máximo']` indexado desde 1, sustituir `BUDGET` por `[_, 0, 0, 0.5, 1, 1.8]` con el índice 0 sin uso y comentado, y recortar `tier.set()` a `1..5`. Verificar en consola que `tier.set(0)` y `tier.set(9)` dejan `tier.value` en 1 y 5 respectivamente.
-- [ ] 1.2 Re-mapear los tres umbrales de `src/fx/effects.js`: `=== 0` → `=== 1`, el `< 2` que apaga el canvas → `< 3`, el `< 2` que apaga los filtros → `< 4`, y `>= 3` → `>= 5`. Verificar que los 14 puntos de llamada quedan cubiertos con `grep -n "tier.value" src/fx/effects.js` y que ninguno compara contra 0.
-- [ ] 1.3 Ajustar en `src/fx/engine.js` los umbrales internos que dependen del nivel —densidad del canvas (`dpr`), radio de glow y estelas— a la numeración nueva. Verificar que el canvas se dimensiona a dpr 2 sólo en nivel 5.
-- [ ] 1.4 Mover el suelo del gobernador de FPS a nivel 2 en `src/fx/engine.js`. Verificar que con degradación forzada el nivel se detiene en 2 y no llega a 1.
-- [ ] 1.5 Aceptar `?fx=1..5` en la anulación de diagnóstico y renumerar los selectores `html[data-tier="0"]` de `style.css` a `html[data-tier="1"]`. Verificar abriendo la app con `?fx=1` que el fondo escénico y la rueda de efectos no animan.
-- [ ] 1.6 Comprobar los cinco niveles con `?fx=1` a `?fx=5`: el 2 no dibuja ninguna partícula, el 3 dibuja partículas sin filtros, el 4 las dibuja con filtros y el 5 añade las capas extra.
+- [x] 1.1 En `src/fx/engine.js`, ampliar `TIER_NAMES` a `['Calma','Lite','Suave','Estándar','Máximo']` indexado desde 1, sustituir `BUDGET` por `[_, 0, 0, 0.5, 1, 1.8]` con el índice 0 sin uso y comentado, y recortar `tier.set()` a `1..5`. Verificar en consola que `tier.set(0)` y `tier.set(9)` dejan `tier.value` en 1 y 5 respectivamente.
+- [x] 1.2 Re-mapear los tres umbrales de `src/fx/effects.js`: `=== 0` → `=== 1`, el `< 2` que apaga el canvas → `< 3`, el `< 2` que apaga los filtros → `< 4`, y `>= 3` → `>= 5`. Verificar que los 14 puntos de llamada quedan cubiertos con `grep -n "tier.value" src/fx/effects.js` y que ninguno compara contra 0.
+- [x] 1.3 Ajustar en `src/fx/engine.js` los umbrales internos que dependen del nivel —densidad del canvas (`dpr`), radio de glow y estelas— a la numeración nueva. Verificar que el canvas se dimensiona a dpr 2 sólo en nivel 5.
+- [x] 1.4 Mover el suelo del gobernador de FPS a nivel 2 en `src/fx/engine.js`. Verificar que con degradación forzada el nivel se detiene en 2 y no llega a 1.
+- [x] 1.5 Aceptar `?fx=1..5` en la anulación de diagnóstico y renumerar los selectores `html[data-tier="0"]` de `style.css` a `html[data-tier="1"]`. Verificar abriendo la app con `?fx=1` que el fondo escénico y la rueda de efectos no animan.
+- [x] 1.6 Comprobar los cinco niveles con `?fx=1` a `?fx=5`: el 2 no dibuja ninguna partícula, el 3 dibuja partículas sin filtros, el 4 las dibuja con filtros y el 5 añade las capas extra.
 
 ## 2. Preferencia: clave nueva y migración
 

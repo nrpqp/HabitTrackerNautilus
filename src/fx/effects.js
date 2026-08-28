@@ -20,7 +20,7 @@ const GOLD = [255, 214, 120];
 // feedback de marcado.
 
 export function igniteCell(habitId, dayIndex, strength = 1, delay = 0) {
-  if (tier.value === 0) return;
+  if (tier.value === 1) return;
   const cell = view.cell(habitId, dayIndex);
   if (!cell) return;
 
@@ -35,7 +35,7 @@ export function igniteCell(habitId, dayIndex, strength = 1, delay = 0) {
   ];
   // `filter` obliga a repintar la capa; `transform` se resuelve en el
   // compositor. Es lo primero que se sacrifica y lo que menos se echa en falta.
-  if (tier.value < 2) frames.forEach((f) => delete f.filter);
+  if (tier.value < 4) frames.forEach((f) => delete f.filter);
 
   cell.animate(frames, {
     duration: 400 + 120 * strength,
@@ -46,7 +46,7 @@ export function igniteCell(habitId, dayIndex, strength = 1, delay = 0) {
 
 /** Apagado: la celda pierde color y las posteriores parpadean en cascada. */
 export function extinguishCell(habitId, dayIndex) {
-  if (tier.value === 0) return;
+  if (tier.value === 1) return;
   const cell = view.cell(habitId, dayIndex);
   if (cell) {
     const frames = [
@@ -54,7 +54,7 @@ export function extinguishCell(habitId, dayIndex) {
       { filter: 'brightness(.55) saturate(.15)', offset: 0.45 },
       { filter: 'brightness(1) saturate(1)' },
     ];
-    if (tier.value < 2) {
+    if (tier.value < 4) {
       cell.animate(
         [{ opacity: 1 }, { opacity: 0.35, offset: 0.45 }, { opacity: 1 }],
         { duration: 440, easing: 'ease-out' }
@@ -84,7 +84,7 @@ let activeComet = null;
  * correcta con cualquier número de anillos.
  */
 export function streakComet(habitId, fromDay, toDay, elementId, onArrive) {
-  if (tier.value < 2) {
+  if (tier.value < 3) {
     // Variante sin canvas: el mismo recorrido en encendidos escalonados.
     for (let d = fromDay; d <= toDay; d++) {
       igniteCell(habitId, d, d === toDay ? 1.4 : 0.55, (d - fromDay) * 55);
@@ -104,7 +104,8 @@ export function streakComet(habitId, fromDay, toDay, elementId, onArrive) {
   const duration = Math.min(1250, 130 + span * 78);
   const rgb = elementRGB(elementId, toDay);
   const sprite = glowSprite(rgb);
-  const trailMax = tier.value >= 3 ? 26 : 16;
+  // La spec pide que la densidad crezca con el nivel, no que salte una vez.
+  const trailMax = [0, 0, 0, 12, 18, 26][tier.value];
   const trail = [];
   const passed = new Set();
   const angleStep = sweepAngle / TOTAL_DAYS;
@@ -164,7 +165,7 @@ function polar(cx, cy, r, deg) {
 // ── Traza de carga hacia el núcleo ───────────────────────────
 
 export function chargeToCore(habitId, dayIndex, elementId) {
-  if (tier.value < 2) return;
+  if (tier.value < 3) return;
   const from = view.cellCenterPx(habitId, dayIndex);
   const to = view.centerPx();
   const sprite = glowSprite(elementRGB(elementId, dayIndex));
@@ -192,7 +193,7 @@ export function chargeToCore(habitId, dayIndex, elementId) {
 }
 
 export function pulseCore(scale = 1.14, duration = 480) {
-  if (tier.value === 0) return;
+  if (tier.value === 1) return;
   const core = view.core;
   if (!core) return;
   core.style.transformBox = 'fill-box';
@@ -211,7 +212,7 @@ export function pulseCore(scale = 1.14, duration = 480) {
 export function setCoreCharge(fraction) {
   const core = view.core;
   if (!core) return;
-  if (tier.value < 2 || fraction <= 0) {
+  if (tier.value < 4 || fraction <= 0) {
     core.style.filter = '';
     return;
   }
@@ -224,7 +225,7 @@ export function setCoreCharge(fraction) {
 
 export function supernova(elementIds) {
   const flash = document.getElementById('fx-flash');
-  if (tier.value === 0) return;
+  if (tier.value === 1) return;
 
   if (flash) {
     flash.animate(
@@ -234,7 +235,7 @@ export function supernova(elementIds) {
   }
   pulseCore(1.5, 1100);
 
-  if (tier.value < 2) return;
+  if (tier.value < 3) return;
 
   const center = view.centerPx();
   const k = pxScale();
@@ -248,8 +249,8 @@ export function supernova(elementIds) {
 
   // Anillos de choque y rayos.
   const start = performance.now();
-  const duration = tier.value >= 3 ? 1400 : 1000;
-  const rayCount = tier.value >= 3 ? 16 : 8;
+  const duration = tier.value >= 5 ? 1400 : 1000;
+  const rayCount = tier.value >= 5 ? 16 : 8;
 
   addEffect({
     draw(ctx, now) {
@@ -270,7 +271,7 @@ export function supernova(elementIds) {
         ctx.stroke();
       }
 
-      if (tier.value >= 3 || u < 0.6) {
+      if (tier.value >= 5 || u < 0.6) {
         ctx.rotate(u * 0.7);
         ctx.globalAlpha = Math.pow(1 - u, 2.4) * 0.55;
         ctx.strokeStyle = '#fff8e0';

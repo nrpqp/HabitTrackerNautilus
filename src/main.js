@@ -582,7 +582,7 @@ function urlTierOverride() {
   const raw = new URLSearchParams(location.search).get('fx');
   if (raw === null) return null;
   const forced = Number(raw);
-  if (!Number.isInteger(forced) || forced < 0 || forced > 3) return null;
+  if (!Number.isInteger(forced) || forced < 1 || forced > 5) return null;
   return forced;
 }
 
