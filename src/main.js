@@ -5,6 +5,7 @@ import { todayISO, addDays, formatDateShort, diffDays } from './utils/date.js';
 import {
   habits, loadHabits, saveHabits,
   todayIndexOf, isDoneToday, habitsActiveToday, habitStreak,
+  bestStreak, effectiveness, activeSummary,
 } from './store.js';
 import { initTheme, toggleTheme } from './theme.js';
 import { renderSVG, view } from './render/svg.js';
@@ -27,6 +28,17 @@ function renderSVGOnly() {
   setUnitScale(view.centerPx().scale);
   renderSVG(onCellToggled, (habitId, event) => openHabitSheet(habitId, 'edit', event));
   refreshDayCore();
+  renderStats();
+}
+
+/* Indicadores del reto. Se escriben por textContent sobre el marcado fijo
+   de index.html: los iconos y las etiquetas no cambian nunca, así que no
+   hay motivo para regenerar nodos en cada repintado. */
+function renderStats() {
+  const { active, total } = activeSummary();
+  document.getElementById('stat-streak').textContent = `${bestStreak()}d`;
+  document.getElementById('stat-effectiveness').textContent = `${effectiveness()}%`;
+  document.getElementById('stat-active').textContent = `${active}/${total}`;
 }
 
 // ── Núcleo del día ───────────────────────────────────────────
@@ -200,6 +212,27 @@ function addHabit(name) {
     saveHabits();
     render();
   }
+}
+
+// ── Hoja de instalación ──────────────────────────────────────
+
+/* Sustituye al alert() nativo. Vive aparte de #habit-sheet: aquel arrastra
+   estado de hábito, modo crear/editar y posicionamiento de popover, y no
+   gana nada absorbiendo un tercer modo. */
+
+function openInfoSheet() {
+  const el = document.getElementById('info-sheet');
+  el.classList.remove('hidden');
+  requestAnimationFrame(() => el.classList.add('open'));
+  document.getElementById('info-sheet-close').focus();
+}
+
+function closeInfoSheet() {
+  const el = document.getElementById('info-sheet');
+  if (el.classList.contains('hidden')) return;
+  el.classList.remove('open');
+  setTimeout(() => el.classList.add('hidden'), 250);
+  document.getElementById('info-btn').focus();
 }
 
 // ── Sheet ────────────────────────────────────────────────────
@@ -403,19 +436,10 @@ function setupEventListeners() {
     toggleTheme(renderSVGOnly);
   });
 
-  document.getElementById('info-btn').addEventListener('click', () => {
-    alert(
-      '📱 Cómo instalar la App:\n\n' +
-      'Para iOS (iPhone/iPad):\n' +
-      '1. Abre este enlace en Safari.\n' +
-      '2. Toca el botón "Compartir" (el cuadrado con la flecha hacia arriba).\n' +
-      '3. Selecciona "Agregar a inicio" o "Añadir a la pantalla de inicio".\n\n' +
-      'Para Android:\n' +
-      '1. Abre este enlace en Chrome.\n' +
-      '2. Toca el menú de 3 puntos (arriba a la derecha).\n' +
-      '3. Selecciona "Instalar aplicación" o "Añadir a pantalla de inicio".'
-    );
-  });
+  document.getElementById('info-btn').addEventListener('click', openInfoSheet);
+  document.getElementById('info-sheet-close').addEventListener('click', closeInfoSheet);
+  document.getElementById('info-sheet-ok').addEventListener('click', closeInfoSheet);
+  document.querySelector('.info-sheet-backdrop').addEventListener('click', closeInfoSheet);
 
   // Sheet: name input
   const nameInput = document.getElementById('sheet-name-input');
@@ -496,8 +520,14 @@ function setupEventListeners() {
   });
 
   document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    // La hoja de instalación está por encima: se cierra ella primero.
+    if (!document.getElementById('info-sheet').classList.contains('hidden')) {
+      closeInfoSheet();
+      return;
+    }
     const sheetEl = document.getElementById('habit-sheet');
-    if (e.key === 'Escape' && !sheetEl.classList.contains('hidden')) {
+    if (!sheetEl.classList.contains('hidden')) {
       closeSheet();
     }
   });

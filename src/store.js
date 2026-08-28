@@ -71,3 +71,40 @@ export function habitStreak(habit) {
   }
   return n;
 }
+
+/* ── Indicadores del reto ─────────────────────────────────────
+   Selectores de sólo lectura derivados de los hábitos guardados.
+   No persisten nada: se recalculan en cada repintado. */
+
+/** La racha más larga entre todos los hábitos, en días. */
+export function bestStreak() {
+  return habits.reduce((max, h) => Math.max(max, habitStreak(h)), 0);
+}
+
+/**
+ * Días vencidos de un hábito: los que ya llegaron o pasaron dentro de su
+ * reto. Los días futuros están bloqueados, así que no cuentan — si no,
+ * un hábito recién creado nacería con un 5 % que no significa nada.
+ */
+function elapsedDays(habit) {
+  const i = diffDays(habit.startDate, todayISO());
+  if (i < 0) return 0;
+  return Math.min(i + 1, TOTAL_DAYS);
+}
+
+/** Porcentaje entero de días completados sobre los días ya vencidos. */
+export function effectiveness() {
+  let due = 0;
+  let done = 0;
+  habits.forEach((h) => {
+    const n = elapsedDays(h);
+    due += n;
+    for (let i = 0; i < n; i++) if (h.progress[i]) done++;
+  });
+  return due === 0 ? 0 : Math.round((done / due) * 100);
+}
+
+/** Hábitos con el reto en curso hoy, sobre el total guardado. */
+export function activeSummary() {
+  return { active: habitsActiveToday().length, total: habits.length };
+}
