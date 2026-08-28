@@ -2,7 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#04060e" />
     <link rel="apple-touch-icon" href="/icon.svg">
     <title>Rastreador de Hábitos - Nautilus</title>
@@ -59,7 +59,7 @@
           </svg>
         </button>
         <h1>Rastreador de Hábitos</h1>
-        <p>Reto de 21 Días - Nautilus</p>
+        <p>Reto de 21 Días</p>
       </header>
 
       <div class="svg-container" id="svg-container">
@@ -223,6 +223,7 @@
             </div>
           </details>
 
+          <p class="info-version" id="info-sheet-version"></p>
           <button id="info-sheet-ok" class="info-sheet-ok">Entendido</button>
         </div>
       </div>
@@ -263,6 +264,12 @@
           <div class="setting-row setting-row-disabled">
             <span class="setting-label">Fuente de texto</span>
             <span class="setting-soon">Próximamente</span>
+          </div>
+
+          <div class="setting-row setting-row-block">
+            <span class="setting-label">Almacenamiento</span>
+            <button type="button" id="settings-clear-cache-btn" class="settings-clear-cache-btn">🗑️ Borrar caché</button>
+            <p class="setting-hint">Descarga de nuevo los archivos de la app. No borra tus hábitos guardados.</p>
           </div>
         </div>
       </div>

@@ -242,6 +242,26 @@ function setupInfoSheet() {
   document.getElementById('info-btn').addEventListener('click', () => infoSheet.open());
   document.getElementById('info-sheet-close').addEventListener('click', () => infoSheet.close());
   document.getElementById('info-sheet-ok').addEventListener('click', () => infoSheet.close());
+  document.getElementById('info-sheet-version').textContent = `Versión ${__APP_VERSION__}`;
+}
+
+/* Borra la caché de assets y desregistra el service worker para forzar una
+   descarga limpia. No toca localStorage: los hábitos del usuario no son
+   caché, son datos. */
+async function clearAppCache() {
+  if (!confirm('¿Borrar la caché de la app? Se recargará para descargar los archivos más recientes. Tus hábitos guardados no se ven afectados.')) return;
+  try {
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+    }
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((reg) => reg.unregister()));
+    }
+  } finally {
+    window.location.reload();
+  }
 }
 
 // ── Sheet ────────────────────────────────────────────────────
@@ -753,6 +773,7 @@ function setupSettings() {
     onLevel: chooseTier,
     onPreview: previewTier,
   });
+  document.getElementById('settings-clear-cache-btn').addEventListener('click', clearAppCache);
 }
 
 function init() {

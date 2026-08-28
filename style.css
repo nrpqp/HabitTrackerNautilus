@@ -1182,6 +1182,15 @@ html[data-tier="1"] .manual-section > summary::after {
 
 .info-sheet-panel strong { color: var(--text-main); font-weight: 600; }
 
+.info-version {
+  margin-top: 18px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
 .info-sheet-ok {
   margin-top: 22px;
   width: 100%;
@@ -1410,6 +1419,36 @@ html[data-tier="1"] .manual-section > summary::after {
   border: 1px dashed var(--border-soft);
   border-radius: 999px;
   padding: 4px 10px;
+}
+
+.settings-clear-cache-btn {
+  margin-top: 8px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--text-main);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+
+.settings-clear-cache-btn:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 14px var(--glow-cyan);
+}
+
+.settings-clear-cache-btn:active {
+  transform: scale(0.97);
+}
+
+.setting-hint {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 /* ── Interruptor de tema ─────────────────────────────────── */
