@@ -48,10 +48,6 @@ function refreshDayCore() {
   const core = document.getElementById('day-core');
   if (!core) return;
 
-  const center = view.centerPx();
-  core.style.left = `${center.x}px`;
-  core.style.top = `${center.y}px`;
-
   const active = habitsActiveToday();
   const done = active.filter(isDoneToday).length;
   setCoreCharge(active.length ? done / active.length : 0);
@@ -565,10 +561,7 @@ function init() {
   setupEventListeners();
   initFxCanvas();
   render();
-  window.addEventListener('resize', () => {
-    setUnitScale(view.centerPx().scale);
-    refreshDayCore();
-  });
+  window.addEventListener('resize', () => setUnitScale(view.centerPx().scale));
   scheduleNotifications();
 }
 

@@ -33,21 +33,30 @@ export const TIER_NAMES = ['Calma', 'Lite', 'Estándar', 'Máximo'];
  */
 export function detectTier() {
   if (caps.reducedMotion || caps.saveData) return 0;
+
   let score = 2;
-  if (caps.cores !== null) {
-    if (caps.cores >= 8) score += 1;
-    else if (caps.cores <= 4) score -= 1;
+
+  // Evidencia positiva fuerte. Si el navegador no declara memoria —Safari y
+  // Firefox nunca lo hacen— basta con los núcleos: no declararla no es
+  // síntoma de debilidad.
+  if (caps.cores !== null && caps.cores >= 8 && (caps.memory === null || caps.memory >= 8)) {
+    score += 1;
   }
-  if (caps.memory !== null) {
-    if (caps.memory >= 8) score += 1;
-    else if (caps.memory <= 4) score -= 1;
+
+  // Evidencia negativa fuerte: sólo valores declarados y bajos de verdad.
+  if ((caps.memory !== null && caps.memory <= 2) || (caps.cores !== null && caps.cores <= 2)) {
+    score -= 1;
   }
-  // Sin deviceMemory y con puntero grueso — todo iOS — asumimos gama media.
-  if (caps.memory === null && caps.coarsePointer) score -= 1;
+
+  // Un puntero fino significa escritorio o portátil, y eso aguanta el nivel
+  // estándar. Los navegadores centrados en privacidad falsean núcleos y
+  // memoria a la baja, y sin este suelo acababan sin partículas.
+  if (!caps.coarsePointer) score = Math.max(2, score);
+
   return Math.max(1, Math.min(3, score));
 }
 
-const BUDGET = [0, 0.35, 1, 1.8];
+const BUDGET = [0, 0, 1, 1.8];   // el nivel 1 no usa el canvas de partículas
 
 export const tier = {
   value: 2,
@@ -134,6 +143,17 @@ export function setUnitScale(value) {
 
 export function pxScale() {
   return unitScale;
+}
+
+// Diagnóstico accesible desde la consola de cualquier navegador: con esto
+// se puede saber por qué un dispositivo concreto cayó en el nivel que cayó.
+if (typeof window !== 'undefined') {
+  window.__nautilusFx = {
+    caps,
+    get tier() { return tier.value; },
+    get forzado() { return tier.forced; },
+    get detectado() { return detectTier(); },
+  };
 }
 
 export const fxCanvas = {

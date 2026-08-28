@@ -28,7 +28,22 @@ La clasificación SHALL derivarse de señales del navegador: `prefers-reduced-mo
 #### Scenario: Señales de capacidad no disponibles
 
 - **WHEN** el navegador no expone memoria del dispositivo ni número de núcleos
-- **THEN** el sistema asigna un nivel intermedio conservador y la aplicación se comporta con normalidad, sin errores ni nivel máximo por defecto
+- **THEN** el sistema asigna un nivel intermedio y la aplicación se comporta con normalidad, sin errores ni nivel máximo por defecto
+
+#### Scenario: Dispositivo táctil que no declara memoria
+
+- **WHEN** el navegador de un dispositivo táctil expone núcleos pero no memoria — el caso de cualquier iPhone o iPad
+- **THEN** el nivel asignado es 2 o superior; no declarar memoria no SHALL tratarse como evidencia de un dispositivo limitado
+
+#### Scenario: Navegador que falsea sus capacidades por privacidad
+
+- **WHEN** un navegador de escritorio declara valores artificialmente bajos de núcleos o memoria como defensa antihuella
+- **THEN** el nivel asignado es 2 o superior, porque el puntero fino identifica un equipo de escritorio y las declaraciones no son fiables
+
+#### Scenario: Dispositivo declaradamente limitado
+
+- **WHEN** un dispositivo táctil declara 2 GB de memoria o menos, o 2 núcleos o menos
+- **THEN** el nivel asignado es 1
 
 #### Scenario: Dispositivo de gama alta
 

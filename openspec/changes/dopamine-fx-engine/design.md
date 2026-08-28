@@ -43,7 +43,11 @@ Ver `proposal.md` — *Why* para la motivación. Las restricciones que dan forma
 
 **Por qué**: el gobernador de FPS puede bajar el nivel a mitad de sesión y hay componentes (el medidor del núcleo, las clases CSS del `<html>`) que necesitan enterarse. Un valor calculado en cada uso no permitiría reaccionar al cambio.
 
-**Fórmula**: `prefers-reduced-motion` o `saveData` fuerzan 0. Si no, se parte de 2 y se suma o resta por núcleos (≥8 suma, ≤4 resta) y memoria (≥8 GB suma, ≤4 GB resta), con el resultado acotado a 1–3. Cuando `deviceMemory` no existe y el puntero es grueso —el caso de todo iOS— se resta uno: es el supuesto conservador para el dispositivo del que menos sabemos.
+**Fórmula**: `prefers-reduced-motion` o `saveData` fuerzan 0. Si no, se parte de 2 y sólo se mueve con evidencia fuerte: sube a 3 con 8 o más núcleos —y 8 GB o más si el navegador declara memoria— y baja a 1 con valores declarados de 2 o menos. Un puntero fino pone suelo en 2.
+
+**Por qué sólo con evidencia fuerte**: la primera versión restaba un nivel por no declarar `deviceMemory` y otro por declarar pocos núcleos. En la práctica eso mandaba **todos los iPhone al nivel 1**, que es el único sin partículas, y también a los navegadores que falsean núcleos y memoria a la baja por privacidad, como Brave. Se verificó en dispositivos reales: iPhone y Brave de escritorio se quedaban sin ningún efecto de canvas. No declarar memoria no es síntoma de debilidad — Safari y Firefox nunca la declaran — y un valor bajo puede ser una defensa antihuella, no el aparato. El suelo por puntero fino recoge lo que sí sabemos con certeza: un escritorio aguanta el nivel estándar.
+
+**Quién decide de verdad**: las capacidades declaradas son una pista; el gobernador de FPS mide. Cualquier dispositivo que no sostenga el ritmo acaba degradado con datos reales, así que equivocarse por generoso se corrige solo y equivocarse por tacaño no.
 
 **Alternativa descartada**: `matchMedia` sobre `(update: fast)` y similares. No discriminan gama en la práctica.
 
