@@ -1370,6 +1370,29 @@ body.sheet-soft-open #effect-overlay {
   }
 }
 
+/* En pantallas cortas el panel llegaba al 63% del alto y dejaba una banda
+   de nautilus demasiado estrecha para que la muestra se viera. Se comprime
+   todo lo que no sea área táctil: los 44px de los controles no se tocan. */
+@media (max-height: 760px) {
+  .settings-sheet-panel {
+    max-height: 62vh;
+    padding: 14px 20px 18px;
+  }
+
+  @supports (padding: env(safe-area-inset-bottom)) {
+    .settings-sheet-panel {
+      padding-bottom: max(18px, env(safe-area-inset-bottom));
+    }
+  }
+
+  .settings-sheet-head { margin-bottom: 10px; }
+  .settings-sheet-head h2 { font-size: 0.92rem; }
+  .setting-row { padding: 7px 0; }
+  .fx-scale { margin-top: 8px; gap: 6px; }
+  .fx-scale-ends { margin-top: 4px; font-size: 0.62rem; }
+  .fx-scale-note { margin-top: 6px; font-size: 0.72rem; }
+}
+
 /* ── Tooltip ─────────────────────────────────────────────── */
 .cell-tooltip {
   position: fixed;

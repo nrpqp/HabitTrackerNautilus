@@ -596,6 +596,11 @@ let settings = null;
 /* Margen para que la muestra no roce el borde del panel. */
 const MARGEN_MUESTRA = 44;
 
+/* Banda libre a partir de la cual el burst cabe entero. Por debajo se
+   encoge en proporción, para que en una pantalla corta siga viéndose algo
+   en vez de quedar todo bajo la máscara. */
+const BANDA_HOLGADA = 170;
+
 /**
  * Origen de la muestra: el centro del área de nautilus que queda libre
  * sobre el panel, no el centro geométrico de la rueda. Con la hoja
@@ -604,12 +609,14 @@ const MARGEN_MUESTRA = 44;
  */
 function previewOrigin() {
   const c = view.centerPx();
-  if (!settings || !settings.isOpen) return c;
+  if (!settings || !settings.isOpen) return { ...c, banda: Infinity };
   const cont = document.getElementById('svg-container').getBoundingClientRect();
   const topPanel = settings.panelTop() - cont.top;
-  if (topPanel <= 0) return c;
-  if (c.y + MARGEN_MUESTRA < topPanel) return c;
-  return { x: c.x, y: Math.max(MARGEN_MUESTRA, topPanel / 2), scale: c.scale };
+  if (topPanel <= 0) return { ...c, banda: Infinity };
+  if (c.y + MARGEN_MUESTRA < topPanel) return { ...c, banda: topPanel };
+  // A la mitad de la banda libre, sin suelo: un suelo fijo empujaría el
+  // origen por debajo de la máscara cuando la banda es más estrecha que él.
+  return { x: c.x, y: topPanel / 2, scale: c.scale, banda: topPanel };
 }
 
 /**
@@ -619,7 +626,10 @@ function previewOrigin() {
 function previewTier() {
   const o = previewOrigin();
   const element = habits.length ? habits[0].element : ELEMENTS[0].id;
-  burstElement(o.x, o.y, element, 20, { base: 26, scale: 1.1, spread: 1.3 });
+  // El burst se encoge con la banda disponible: en una pantalla corta un
+  // estallido a tamaño completo se dibujaría casi entero bajo la máscara.
+  const k = Math.max(0.4, Math.min(1, o.banda / BANDA_HOLGADA));
+  burstElement(o.x, o.y, element, 20, { base: 26, scale: 1.1 * k, spread: 1.3 * k });
   haptics.tap();
 }
 
