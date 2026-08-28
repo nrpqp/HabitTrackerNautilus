@@ -200,13 +200,16 @@ function checkLimit() {
 
 // ── Add habit ────────────────────────────────────────────────
 
-function addHabit(name) {
+function addHabit(name, elementId = null) {
   const trimmed = name.trim().slice(0, MAX_NAME_LENGTH);
   if (trimmed && habits.length < MAX_HABITS) {
+    const usedElements = habits.map((h) => h.element);
+    const fallback = ELEMENTS[habits.length % ELEMENTS.length].id;
+    const chosen = elementId && !usedElements.includes(elementId) ? elementId : fallback;
     habits.push({
       id: Date.now().toString(),
       name: trimmed,
-      element: ELEMENTS[habits.length % ELEMENTS.length].id,
+      element: chosen,
       startDate: todayISO(),
       progress: new Array(TOTAL_DAYS).fill(false),
     });
@@ -221,7 +224,7 @@ function confirmCreateHabit() {
   const nameInput = document.getElementById('sheet-name-input');
   const name = nameInput.value.trim().slice(0, MAX_NAME_LENGTH);
   if (!name) return;
-  addHabit(name);
+  addHabit(name, sheetSelectedElementId);
   closeSheet();
 }
 
@@ -247,6 +250,7 @@ let sheetCurrentHabitId = null;
 let sheetMode = 'edit'; // 'edit' | 'create'
 let sheetOriginalName = '';
 let sheetScrollY = 0;
+let sheetSelectedElementId = null; // elemento elegido a mano en modo creación
 
 /* En modo creación, los íconos de elemento permanecen bloqueados hasta que
    hay un nombre — elegir elemento antes de nombrar el hábito no tiene
@@ -260,7 +264,8 @@ function renderElementSwatches(habit) {
   const lockedByEmptyName = sheetMode === 'create' && !nameInput.value.trim();
   swatchesEl.innerHTML = ELEMENTS.map((el) => {
     const taken = usedElements.includes(el.id);
-    const active = habit && habit.element === el.id;
+    const active = !lockedByEmptyName
+      && (habit ? habit.element === el.id : sheetSelectedElementId === el.id);
     const shouldDisable = (taken && !active) || lockedByEmptyName;
     const title = lockedByEmptyName
       ? 'Escribe un nombre para elegir elemento'
@@ -304,6 +309,7 @@ function unlockBodyScroll() {
 function openHabitSheet(habitId, mode = 'edit', event = null) {
   sheetCurrentHabitId = habitId;
   sheetMode = mode;
+  sheetSelectedElementId = null;
 
   const sheetEl = document.getElementById('habit-sheet');
   const nameInput = document.getElementById('sheet-name-input');
@@ -388,10 +394,38 @@ function openHabitSheet(habitId, mode = 'edit', event = null) {
 
 function closeSheet() {
   const sheetEl = document.getElementById('habit-sheet');
+  const nameInput = document.getElementById('sheet-name-input');
   sheetEl.classList.remove('open');
   setTimeout(() => sheetEl.classList.add('hidden'), 200);
   sheetCurrentHabitId = null;
-  unlockBodyScroll();
+
+  /* Si el teclado virtual seguía abierto, hay que esperar a que termine de
+     cerrarse antes de liberar el scroll: si el body vuelve a scrollear
+     mientras el viewport visual todavía está encogido por el teclado, queda
+     un hueco en blanco donde estaba el teclado hasta que el usuario
+     desplaza la pantalla a mano. document.activeElement no sirve para
+     detectarlo — tocar el botón de confirmar ya le quitó el foco al input
+     antes de llegar aquí — así que se compara la altura del viewport visual
+     contra la del layout.
+  */
+  const keyboardLikelyOpen = !!(
+    window.visualViewport && window.innerHeight - window.visualViewport.height > 80
+  );
+  nameInput.blur();
+
+  if (keyboardLikelyOpen && window.visualViewport) {
+    let done = false;
+    const finishUnlock = () => {
+      if (done) return;
+      done = true;
+      window.visualViewport.removeEventListener('resize', finishUnlock);
+      unlockBodyScroll();
+    };
+    window.visualViewport.addEventListener('resize', finishUnlock);
+    setTimeout(finishUnlock, 350); // respaldo si el evento no llega
+  } else {
+    unlockBodyScroll();
+  }
 }
 
 function positionPopover(panel, event) {
@@ -524,8 +558,20 @@ function setupEventListeners() {
   // Sheet: element selector
   document.getElementById('sheet-swatches').addEventListener('click', (e) => {
     const btn = e.target.closest('.element-btn');
-    if (!btn || !sheetCurrentHabitId) return;
+    if (!btn) return;
     const elementId = btn.dataset.element;
+
+    // En creación no hay hábito todavía: sólo se recuerda la elección para
+    // aplicarla al confirmar.
+    if (sheetMode === 'create') {
+      sheetSelectedElementId = elementId;
+      document.querySelectorAll('#sheet-swatches .element-btn').forEach((b) => {
+        b.classList.toggle('active', b.dataset.element === elementId);
+      });
+      return;
+    }
+
+    if (!sheetCurrentHabitId) return;
     const habit = habits.find((h) => h.id === sheetCurrentHabitId);
     if (habit) {
       habit.element = elementId;
