@@ -412,6 +412,18 @@ html[data-tier="1"] .gauge-arc {
   touch-action: none;
 }
 
+/* Se activa en el body mientras el gesto está en curso (desde el primer
+   toque, no sólo desde el despliegue): aísla el momento del arrastre para
+   que iOS Safari no interprete el paso sobre los números de día o los
+   nombres de hábito como una selección de texto ni dispare su menú de
+   selección/copia. `touch-action: none` en el núcleo evita el scroll; esto
+   cubre lo que aquel no cubre. */
+body.radial-gesture-lock {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 .radial-picker {
   opacity: 0;
   transform-box: fill-box;

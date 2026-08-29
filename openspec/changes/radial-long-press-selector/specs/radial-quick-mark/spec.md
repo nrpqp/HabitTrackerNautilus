@@ -29,6 +29,32 @@ temprano.
   ningún hábito activo pendiente de marcar hoy
 - **THEN** el sistema no despliega el selector radial
 
+### Requirement: Confirmación directa con un solo pendiente
+Cuando al cumplirse la pulsación prolongada sólo hay un hábito activo
+pendiente de marcar hoy, el sistema SHALL marcarlo de inmediato en vez de
+desplegar el selector de sectores: con un único destino posible, no hay
+nada que apuntar, así que el hábito pendiente actúa como el botón mismo.
+
+#### Scenario: Un solo pendiente se marca sin selector
+- **WHEN** el usuario mantiene presionado el núcleo central el tiempo
+  suficiente para desplegar el gesto y sólo hay un hábito activo pendiente
+  de marcar hoy
+- **THEN** el sistema marca ese hábito como completado hoy sin mostrar
+  sectores ni requerir arrastre ni soltar sobre un objetivo
+
+### Requirement: Aislamiento del gesto frente al resto de la página
+Mientras el gesto está en curso — desde la primera pulsación hasta que se
+confirma, cancela o interrumpe — el sistema SHALL evitar que el arrastre
+sobre el resto de la página dispare selección de texto nativa o menús
+contextuales de selección/copia.
+
+#### Scenario: El arrastre no selecciona texto de la página
+- **WHEN** el usuario arrastra el puntero durante el gesto radial sobre
+  números de día o nombres de hábito fuera del núcleo
+- **THEN** el sistema no inicia una selección de texto nativa ni muestra
+  un menú de selección/copia, y esa restricción se levanta apenas el
+  gesto termina
+
 ### Requirement: Apuntado continuo de sector
 Mientras el puntero permanece presionado tras el despliegue, el sistema
 SHALL calcular en cada movimiento el sector de hábito bajo el puntero a

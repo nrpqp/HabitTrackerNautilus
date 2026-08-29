@@ -36,8 +36,13 @@
 - [x] 6.1 Verificar manualmente, antes y después de este cambio, que el marcado por click directo de celda produce exactamente el mismo resultado (racha, cometa, carga del núcleo, supernova de cierre de día) — sin diferencias de comportamiento
 - [x] 6.2 Verificar que ningún anillo, celda, ajuste, tema o efecto fuera del núcleo cambia su apariencia o comportamiento durante ninguna etapa del gesto radial (inspección visual + diff de `git status` limitado a los archivos tocados en el plan)
 
-## 7. Verificación de integración
+## 7. Ajustes de prueba en dispositivo real (iOS)
 
-- [ ] 7.1 Probar el flujo completo en `npm run dev` en desktop (mouse) y en un dispositivo móvil real (touch) con 1, 4 y 7 hábitos activos, en tema claro y oscuro
-- [ ] 7.2 Probar con `?fx=1` y `?fx=5` que el gesto y el overlay no degradan el framerate del canvas de partículas ni al revés
-- [ ] 7.3 Ejecutar `npm run build` y `npm run preview`, hacer hard refresh, y confirmar que el gesto funciona igual bajo el build cacheado por el service worker
+- [x] 7.1 Con exactamente un hábito pendiente, `deploy()` marca directo sin construir el overlay de sectores (evita el artefacto visual del sector de 360°); verificado en Chrome con 1 y 2 hábitos totales (1 pendiente en ambos casos)
+- [x] 7.2 Agregar `radial-gesture-lock` a `document.body` desde `pointerdown` hasta `teardown()`, con `user-select`/`-webkit-touch-callout` en `none` mientras dura, para que el arrastre no dispare selección de texto nativa de iOS sobre los números de día o nombres de hábito; verificado en Chrome que la clase se activa al primer toque y se libera en cualquier salida del gesto
+
+## 8. Verificación de integración
+
+- [ ] 8.1 Probar el flujo completo en `npm run dev` en desktop (mouse) y en un dispositivo móvil real (touch) con 1, 4 y 7 hábitos activos, en tema claro y oscuro
+- [ ] 8.2 Probar con `?fx=1` y `?fx=5` que el gesto y el overlay no degradan el framerate del canvas de partículas ni al revés
+- [ ] 8.3 Ejecutar `npm run build` y `npm run preview`, hacer hard refresh, y confirmar que el gesto funciona igual bajo el build cacheado por el service worker

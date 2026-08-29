@@ -20,6 +20,14 @@ const LONG_PRESS_MS = 320;
 const MOVE_CANCEL_PX = 10;
 const SECTOR_OFFSET = -90; // primer sector alineado al eje superior
 
+/* Mientras el gesto está en curso, iOS Safari puede interpretar el
+   arrastre sobre los números de día o los nombres de hábito como una
+   selección de texto (o disparar su menú de selección/copia): ninguno de
+   los dos es texto interactivo aquí. `touch-action: none` en el núcleo ya
+   evita que el navegador robe el gesto para hacer scroll, pero no cubre la
+   selección — hace falta `user-select`/`-webkit-touch-callout` aparte. */
+const GESTURE_LOCK_CLASS = 'radial-gesture-lock';
+
 function pendingHabits() {
   return habitsActiveToday().filter((h) => !isDoneToday(h));
 }
@@ -152,6 +160,7 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
     clearTimer();
     removeCoreListeners();
     removeOverlay();
+    document.body.classList.remove(GESTURE_LOCK_CLASS);
     if (pointerId !== null && core.hasPointerCapture && core.hasPointerCapture(pointerId)) {
       try { core.releasePointerCapture(pointerId); } catch (_) { /* ya liberado */ }
     }
@@ -177,6 +186,20 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
     timer = null;
     pending = pendingHabits();
     if (!pending.length) return; // nada que marcar: no se despliega nada
+
+    if (pending.length === 1) {
+      // Con un solo pendiente no hay nada que apuntar: el propio hábito
+      // ES el botón. Un sector de 360° sería un artefacto visual (su
+      // punto medio angular cae abajo del núcleo), así que en vez de
+      // desplegar el selector se marca directo.
+      const habit = pending[0];
+      haptics.open();
+      if (onAim) onAim(habit);
+      teardown();
+      if (onConfirm) onConfirm(habit);
+      return;
+    }
+
     phase = 'deployed';
     aimedIndex = -1;
     buildOverlay();
@@ -253,6 +276,7 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
     startX = e.clientX;
     startY = e.clientY;
     startedAt = performance.now();
+    document.body.classList.add(GESTURE_LOCK_CLASS);
 
     core.addEventListener('pointermove', onMove);
     core.addEventListener('pointerup', onUp);
