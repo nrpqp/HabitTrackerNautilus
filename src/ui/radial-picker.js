@@ -54,6 +54,7 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
   let startX = 0;
   let startY = 0;
   let startedAt = 0;
+  let captured = false;
   let pending = [];
   let aimedIndex = -1;
   let overlayGroup = null;
@@ -154,9 +155,9 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
   }
 
   function removeCoreListeners() {
-    core.removeEventListener('pointermove', onMove);
-    core.removeEventListener('pointerup', onUp);
-    core.removeEventListener('pointercancel', onPointerCancel);
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onPointerCancel);
   }
 
   function teardown() {
@@ -164,9 +165,10 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
     removeCoreListeners();
     removeOverlay();
     document.body.classList.remove(GESTURE_LOCK_CLASS);
-    if (pointerId !== null && core.hasPointerCapture && core.hasPointerCapture(pointerId)) {
+    if (captured && pointerId !== null) {
       try { core.releasePointerCapture(pointerId); } catch (_) { /* ya liberado */ }
     }
+    captured = false;
     pointerId = null;
     phase = 'idle';
     pending = [];
@@ -206,7 +208,15 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
     phase = 'deployed';
     aimedIndex = -1;
     buildOverlay();
-    try { core.setPointerCapture(pointerId); } catch (_) { /* puntero ya liberado */ }
+    // Refuerzo, no requisito: el gesto ya se escucha en `document`. Sirve
+    // para que el navegador no reasigne el puntero a otro elemento a mitad
+    // del arrastre.
+    try {
+      core.setPointerCapture(pointerId);
+      captured = true;
+    } catch (_) {
+      captured = false;
+    }
     haptics.open();
     if (onAim) onAim(null);
   }
@@ -307,11 +317,18 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
     startedAt = performance.now();
     document.body.classList.add(GESTURE_LOCK_CLASS);
 
+    // El resto del gesto se escucha en `document`, no en el núcleo: en
+    // cuanto el dedo sale del círculo —que es todo el gesto de apuntado—
+    // el objetivo de los eventos deja de ser el núcleo, y quedaba
+    // dependiendo de que `setPointerCapture` los redirigiera. En Android
+    // eso no ocurría y el arrastre no llegaba nunca. Escuchando en el
+    // documento y filtrando por `pointerId`, la captura pasa a ser un
+    // refuerzo y no un requisito.
     // passive:false es lo que habilita el preventDefault() de onMove en fase
     // 'deployed' — sin esto algunos motores lo ignorarían igual.
-    core.addEventListener('pointermove', onMove, { passive: false });
-    core.addEventListener('pointerup', onUp);
-    core.addEventListener('pointercancel', onPointerCancel);
+    document.addEventListener('pointermove', onMove, { passive: false });
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onPointerCancel);
     timer = setTimeout(deploy, LONG_PRESS_MS);
   }
 

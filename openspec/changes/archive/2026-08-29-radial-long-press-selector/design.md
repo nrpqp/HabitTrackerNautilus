@@ -58,6 +58,17 @@ mientras el usuario apunta hacia sectores externos. Alternativa descartada:
 Touch Events (`touchstart/move/end`) — más verboso, sin soporte de mouse
 nativo, y el proyecto ya no tiene ninguna dependencia de Touch Events hoy.
 
+> **Corregido después (v0.12.3).** Apoyar el arrastre en la captura resultó
+> ser el error de fondo de este diseño: en la PWA de Android la captura no
+> redirigía los eventos, así que apenas el dedo salía del círculo el
+> apuntado dejaba de recibir `pointermove` y no se podía seleccionar nada.
+> Peor: la llamada estaba envuelta en un `try/catch` mudo, de modo que el
+> fallo no dejaba rastro. El gesto pasó a escuchar `move`/`up`/`cancel` en
+> `document`, filtrando por `pointerId`; la captura quedó como refuerzo
+> —evita que el navegador reasigne el puntero a otro elemento— y ya no como
+> requisito. Escuchar en el documento es además la técnica habitual para
+> arrastres, precisamente porque no depende de a quién pertenezca el evento.
+
 **Temporizador de long-press con umbral de movimiento temprano.**
 `pointerdown` arma un `setTimeout` (320ms, punto medio del rango
 300–350ms). Si `pointermove` excede ~10px antes de que dispare el timer, se
