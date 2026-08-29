@@ -266,8 +266,29 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
 
   function onPointerCancel(e) {
     if (e.pointerId !== pointerId) return;
+
+    // Android interrumpe el puntero con su propio gesto (selección, menú
+    // contextual) antes de que llegue el `pointerup`, así que un toque
+    // corto y quieto terminaba en `pointercancel` y la vía accesible no se
+    // abría nunca. Un cancel en esta fase, sin movimiento y antes del
+    // umbral, sólo puede ser ese toque: se trata igual que soltar.
+    if (phase === 'pending') {
+      const elapsed = performance.now() - startedAt;
+      const wasSimpleTap = elapsed < LONG_PRESS_MS;
+      teardown();
+      if (wasSimpleTap && onSimpleTap) onSimpleTap();
+      return;
+    }
+
     teardown();
     if (onCancel) onCancel();
+  }
+
+  /* El long-press nativo de Android abre su menú de selección encima del
+     gesto. Sobre el núcleo no hay nada que seleccionar ni copiar, así que
+     se cancela siempre, no sólo mientras el gesto está en curso. */
+  function onContextMenu(e) {
+    e.preventDefault();
   }
 
   function onDown(e) {
@@ -295,9 +316,11 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
   }
 
   core.addEventListener('pointerdown', onDown);
+  core.addEventListener('contextmenu', onContextMenu);
 
   return function detach() {
     core.removeEventListener('pointerdown', onDown);
+    core.removeEventListener('contextmenu', onContextMenu);
     teardown();
   };
 }

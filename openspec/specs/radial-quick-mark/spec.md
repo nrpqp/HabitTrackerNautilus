@@ -139,6 +139,13 @@ requiera sostener un gesto de arrastre continuo.
 - **THEN** el sistema abre un modal estándar que lista los hábitos activos
   y pendientes de hoy, seleccionables mediante toque directo
 
+#### Scenario: La pulsación simple sobrevive a la interrupción del navegador
+- **WHEN** el usuario realiza una pulsación simple sobre el núcleo y el
+  navegador interrumpe el puntero con un gesto propio antes de que el
+  usuario levante el dedo
+- **THEN** el sistema abre igualmente el modal alternativo: una
+  interrupción durante un toque breve y quieto no descarta la pulsación
+
 ### Requirement: Alcance acotado al núcleo central
 El sistema SHALL limitar todo el comportamiento nuevo de este cambio al
 núcleo central de la ruleta. Los anillos, las celdas de día, su marcado por
