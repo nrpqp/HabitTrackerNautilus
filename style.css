@@ -679,7 +679,8 @@ html[data-tier="1"] .today-indicator {
   position: relative;
   width: 100%;
   max-width: 480px;
-  max-height: 88vh;
+  max-height: min(88vh, 100%);
+  min-height: 0;
   margin: 0 auto;
   background: var(--surface-strong);
   -webkit-backdrop-filter: blur(18px);
