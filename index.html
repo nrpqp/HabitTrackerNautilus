@@ -284,6 +284,19 @@
         </div>
       </div>
 
+      <!-- Vía accesible del selector radial: pulsación simple sobre el
+           núcleo, para quien no pueda sostener el gesto de arrastre. -->
+      <div id="radial-sheet" class="radial-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="radial-sheet-title">
+        <div class="radial-sheet-backdrop" data-sheet-backdrop></div>
+        <div class="radial-sheet-panel" data-sheet-panel tabindex="-1">
+          <div class="radial-sheet-head">
+            <h2 id="radial-sheet-title">Marcar hábito</h2>
+            <button id="radial-sheet-close" class="radial-sheet-close" aria-label="Cerrar">×</button>
+          </div>
+          <div id="radial-sheet-list" class="radial-sheet-list"></div>
+        </div>
+      </div>
+
       <!-- Tooltip flotante para el SVG -->
       <div id="cell-tooltip" class="cell-tooltip"></div>
 

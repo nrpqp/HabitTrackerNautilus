@@ -8,7 +8,8 @@ import {
   bestStreak, effectiveness, activeSummary,
 } from './store.js';
 import { initTheme, applyTheme } from './theme.js';
-import { renderSVG, view } from './render/svg.js';
+import { renderSVG, view, onRebuild } from './render/svg.js';
+import { attachRadialPicker } from './ui/radial-picker.js';
 import {
   tier, detectTier, haptics, initFxCanvas, burstElement, setUnitScale, SOURCES,
 } from './fx/engine.js';
@@ -89,6 +90,43 @@ function showStreakInCore(streak) {
     coreShowingTransient = false;
     refreshDayCore();
   }, 1900);
+}
+
+/**
+ * El selector radial también toma prestado el centro, igual que la racha:
+ * mientras apunta muestra el hábito enfocado, y `endRadialAim` se lo
+ * devuelve a `refreshDayCore` al cancelar o confirmar. No es un segundo
+ * mecanismo — es el mismo `coreShowingTransient` que ya gobierna quién
+ * ocupa el centro.
+ */
+function showRadialAim(habit) {
+  coreShowingTransient = true;
+  clearTimeout(coreTransientTimer);
+  if (habit) {
+    const el = ELEMENTS.find((e) => e.id === habit.element);
+    setCoreLabel(el ? el.icon : '🎯', habit.name, false);
+  } else {
+    setCoreLabel('◎', 'elige', false);
+  }
+}
+
+function endRadialAim() {
+  coreShowingTransient = false;
+  clearTimeout(coreTransientTimer);
+  refreshDayCore();
+}
+
+/** Confirmación del gesto radial: mismo camino de datos que el toggle de celda. */
+function confirmRadialMark(habit) {
+  coreShowingTransient = false;
+  clearTimeout(coreTransientTimer);
+  const dayIndex = todayIndexOf(habit);
+  if (dayIndex === -1) return;
+  const prevState = habit.progress[dayIndex];
+  if (prevState) return; // el gesto radial nunca desmarca
+  habit.progress[dayIndex] = true;
+  saveHabits();
+  onCellToggled(null, habit.id, dayIndex, prevState);
 }
 
 // ── Marcado de una celda ─────────────────────────────────────
@@ -226,6 +264,58 @@ function confirmCreateHabit() {
   if (!name) return;
   addHabit(name, sheetSelectedElementId);
   closeSheet();
+}
+
+// ── Selector radial ──────────────────────────────────────────
+
+let radialSheet = null;
+let detachRadialPicker = null;
+
+/* Vía accesible del gesto radial: mismo patrón de hoja que `info-sheet`.
+   Vive aparte de #habit-sheet por la misma razón que `info-sheet` — no
+   comparte estado ni modo con el panel de edición de hábito. */
+function setupRadialPickerSheet() {
+  radialSheet = createSheet({ root: document.getElementById('radial-sheet') });
+  document.getElementById('radial-sheet-close').addEventListener('click', () => radialSheet.close());
+}
+
+function openRadialPickerSheet() {
+  const pending = habitsActiveToday().filter((h) => !isDoneToday(h));
+  const listEl = document.getElementById('radial-sheet-list');
+  if (!pending.length) {
+    listEl.innerHTML = '<p class="radial-sheet-empty">No queda ningún hábito pendiente hoy.</p>';
+  } else {
+    listEl.innerHTML = pending.map((h) => {
+      const el = ELEMENTS.find((e) => e.id === h.element);
+      return `
+      <button type="button" class="radial-sheet-item" data-habit-id="${h.id}">
+        <span class="radial-sheet-item-icon">${el ? el.icon : '•'}</span>
+        <span class="radial-sheet-item-name">${h.name}</span>
+      </button>`;
+    }).join('');
+    listEl.querySelectorAll('.radial-sheet-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const habit = habits.find((h) => h.id === btn.dataset.habitId);
+        radialSheet.close();
+        if (habit) confirmRadialMark(habit);
+      });
+    });
+  }
+  radialSheet.open();
+}
+
+/* El núcleo se reconstruye entero cuando cambia el número o el orden de
+   anillos (`build()` en svg.js) — el listener del gesto vive en el círculo
+   viejo, que queda desmontado. `onRebuild` es el gancho que ya usa el
+   proyecto para este caso exacto: reenganchar sobre el núcleo nuevo. */
+function setupRadialPicker() {
+  if (detachRadialPicker) detachRadialPicker();
+  detachRadialPicker = attachRadialPicker(view, {
+    onAim: showRadialAim,
+    onConfirm: confirmRadialMark,
+    onCancel: endRadialAim,
+    onSimpleTap: openRadialPickerSheet,
+  });
 }
 
 // ── Hoja de instalación ──────────────────────────────────────
@@ -820,9 +910,12 @@ function init() {
   loadHabits();
   setupEventListeners();
   setupInfoSheet();
+  setupRadialPickerSheet();
   setupSettings();
   initFxCanvas();
   render();
+  setupRadialPicker();
+  onRebuild(setupRadialPicker);
   window.addEventListener('resize', () => setUnitScale(view.centerPx().scale));
   scheduleNotifications();
   setupViewportDebugOverlay();

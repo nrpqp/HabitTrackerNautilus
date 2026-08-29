@@ -174,6 +174,10 @@ export const haptics = {
   success()   { this._go([14, 40, 26]); },
   milestone() { this._go([18, 50, 18, 50, 60]); },
   denied()    { this._go([8, 30, 8]); },
+  /** Despliegue del selector radial: impacto medio, más largo que `tap`. */
+  open()      { this._go(20); },
+  /** Cambio de sector apuntado en el selector radial: sólo un tick corto. */
+  aim()       { this._go(6); },
   _go(pattern) {
     if (!caps.vibrate || tier.value === 1) return;
     try { navigator.vibrate(pattern); } catch (_) { /* sin consecuencias */ }

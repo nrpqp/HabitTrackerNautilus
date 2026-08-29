@@ -402,6 +402,51 @@ html[data-tier="1"] .gauge-arc {
   transition: none;
 }
 
+/* ── Selector radial gestual ──────────────────────────────── */
+/* `touch-action: none` es lo que impide que el navegador móvil arranque su
+   propio scroll/zoom al primer movimiento del dedo sobre el núcleo: sin
+   esto, un pointercancel llegaría antes de que el gesto tuviera ocasión de
+   evaluar su propio umbral de 10px. */
+.nautilus-core {
+  cursor: pointer;
+  touch-action: none;
+}
+
+.radial-picker {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.82);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.radial-picker.open {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.radial-picker-wedge {
+  fill-opacity: 0.3;
+  stroke-width: 1;
+  transition: fill-opacity 0.12s ease, stroke-width 0.12s ease;
+}
+
+.radial-picker-wedge.aimed {
+  fill-opacity: 0.62;
+  stroke-width: 2;
+}
+
+.radial-picker-icon {
+  font-size: 17px;
+  text-anchor: middle;
+  pointer-events: none;
+  user-select: none;
+}
+
+html[data-tier="1"] .radial-picker {
+  transition: none;
+}
+
 .day-core {
   /* El SVG ocupa el 100 % del contenedor y `preserveAspectRatio` centra el
      viewBox dentro de su caja, así que el centro del nautilus es siempre el
@@ -1954,6 +1999,134 @@ svg {
   cursor: not-allowed;
   filter: grayscale(0.3);
   border-style: dashed;
+}
+
+/* ── Hoja accesible del selector radial ──────────────────── */
+/* Mismo esqueleto visual que `.info-sheet`: es la vía alternativa al
+   arrastre radial, así que debe sentirse como parte de la misma familia
+   de hojas, no como un componente aparte. */
+.radial-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.radial-sheet.hidden { display: none; }
+.radial-sheet.open { pointer-events: auto; }
+
+.radial-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 5, 11, 0.72);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.radial-sheet.open .radial-sheet-backdrop { opacity: 1; }
+
+.radial-sheet-panel {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--surface-strong);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid var(--accent-cyan);
+  border-radius: 30px 30px 0 0;
+  padding: 22px 24px 32px;
+  box-shadow: var(--shadow-panel);
+  transform: translateY(100%);
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.radial-sheet.open .radial-sheet-panel { transform: translateY(0); }
+
+.radial-sheet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.radial-sheet-head h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-main);
+}
+
+.radial-sheet-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.radial-sheet-close:hover { color: var(--accent-cyan); }
+
+.radial-sheet-close:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.radial-sheet-empty {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  padding: 8px 0 4px;
+}
+
+.radial-sheet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radial-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-color);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, transform 0.12s;
+}
+
+.radial-sheet-item:active {
+  transform: scale(0.98);
+}
+
+.radial-sheet-item:hover {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.radial-sheet-item-icon {
+  font-size: 20px;
+  line-height: 1;
 }
 
 /* ── Rueda de intensidad ──────────────────────────────────── */
