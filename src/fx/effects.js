@@ -243,10 +243,14 @@ export function setCoreBlend(doneIds) {
   const opacity = doneSet.size
     ? Math.min(CORE_BLEND_MAX_OPACITY, CORE_BLEND_LIGHT / Math.sqrt(doneSet.size))
     : 0;
-  view.coreBlend.forEach(({ habitId, blob }) => {
+  view.coreBlend.forEach(({ habitId, blob, icon }) => {
     const lit = doneSet.has(habitId);
     blob.classList.toggle('lit', lit);
     blob.style.opacity = lit ? opacity : '';
+    // El icono no se atenúa con la mancha: si se reparte también su
+    // opacidad, con el día completo quedarían siete emojis casi
+    // invisibles justo cuando más hay para mostrar.
+    icon.classList.toggle('lit', lit);
   });
 }
 

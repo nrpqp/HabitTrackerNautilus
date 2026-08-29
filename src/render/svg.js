@@ -1,5 +1,5 @@
 import {
-  TOTAL_DAYS,
+  TOTAL_DAYS, ELEMENTS,
   startAngle, sweepAngle, innerRadius, cellThickness, gapBetweenRings,
 } from '../constants.js';
 import { addDays, formatDateFull } from '../utils/date.js';
@@ -28,6 +28,13 @@ const LABEL_MIN_FONT = 7;
 // mezcla que ver.
 const CORE_BLEND_RADIUS = 28;
 const CORE_BLEND_SPREAD = 20;
+const CORE_BLEND_ICON_SIZE = 13;
+// Los iconos no van en el centro de su mancha sino en una órbita común, en
+// el mismo ángulo que ella: los centros de las manchas caen dentro de un
+// radio de 20 y con siete hábitos los emojis se encimaban hasta ser
+// ilegibles. En la órbita quedan separados y, de paso, se leen como los
+// electrones del modelo de Bohr.
+const CORE_BLEND_ICON_ORBIT = 33;
 
 /** Hash determinístico de una cadena a [0,1). FNV-1a con sal. */
 function hashUnit(str, salt = 0) {
@@ -140,6 +147,11 @@ function build(list) {
   // medio llenar, que es justo lo que este centro no debe comunicar.
   const blendGroup = document.createElementNS(NS, 'g');
   blendGroup.setAttribute('class', 'core-blend');
+  // Los iconos van en su propio grupo, por encima y sin modo de fusión: el
+  // `screen`/`multiply` de las manchas lavaría el color de los emojis.
+  const iconGroup = document.createElementNS(NS, 'g');
+  iconGroup.setAttribute('class', 'core-blend-icons');
+  iconGroup.setAttribute('pointer-events', 'none');
   coreBlend = list.map((habit) => {
     // Posición sembrada por id, no por índice: dos hábitos contiguos en la
     // lista no deben caer en posiciones contiguas, o la mezcla vuelve a
@@ -175,9 +187,25 @@ function build(list) {
     blob.style.transformBox = 'fill-box';
     blob.style.transformOrigin = 'center';
     blendGroup.appendChild(blob);
-    return { habitId: habit.id, blob, stops: [inner, mid, outer] };
+
+    // El icono del elemento, en la órbita y en el mismo ángulo que su
+    // mancha: apunta a su nube de color sin encimarse con los demás.
+    const orbit = polarToCartesian(cx, cy, CORE_BLEND_ICON_ORBIT, angle);
+    const icon = document.createElementNS(NS, 'text');
+    icon.setAttribute('x', orbit.x);
+    icon.setAttribute('y', orbit.y);
+    icon.setAttribute('text-anchor', 'middle');
+    icon.setAttribute('dominant-baseline', 'central');
+    icon.setAttribute('font-size', CORE_BLEND_ICON_SIZE);
+    icon.setAttribute('class', 'core-blend-icon');
+    icon.style.transformBox = 'fill-box';
+    icon.style.transformOrigin = 'center';
+    iconGroup.appendChild(icon);
+
+    return { habitId: habit.id, blob, icon, stops: [inner, mid, outer] };
   });
   svgEl.appendChild(blendGroup);
+  svgEl.appendChild(iconGroup);
 
   rings = list.map((habit, r) => {
     const rOut = innerRadius + (r + 1) * cellThickness + r * gapBetweenRings;
@@ -383,6 +411,10 @@ function paint(list) {
     cb.stops[0].setAttribute('stop-color', color);
     cb.stops[1].setAttribute('stop-color', color);
     cb.stops[2].setAttribute('stop-color', color);
+
+    const el = ELEMENTS.find((e) => e.id === habit.element);
+    const glyph = el ? el.icon : '';
+    if (cb.icon.textContent !== glyph) cb.icon.textContent = glyph;
   });
 
   rings.forEach((ring, r) => {
