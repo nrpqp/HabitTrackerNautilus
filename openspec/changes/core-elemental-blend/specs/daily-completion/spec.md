@@ -7,12 +7,15 @@ curso están completados sobre el total de hábitos activos mediante dos
 capas independientes: un anillo de segmentos alrededor del núcleo —uno por
 hábito, distinguible por el color del elemento de ese hábito, que se
 rellena cuando el día de hoy de ese hábito queda marcado y se vacía cuando
-se desmarca— y una mezcla elemental dentro del propio núcleo, compuesta por
-los colores de los elementos de los hábitos ya completados hoy. Ambas
-capas SHALL reflejar el estado correcto al cargar la aplicación, sin
-disparar ninguna celebración. Sin ningún hábito completado hoy, la mezcla
-SHALL mostrar un estado neutro (equivalente al núcleo vacío anterior a este
-cambio).
+se desmarca— y una mezcla elemental dentro del propio núcleo. La mezcla
+SHALL representar únicamente los hábitos ya completados hoy: un hábito
+pendiente SHALL NOT ocupar ningún espacio, hueco, contorno ni marcador
+visible dentro del núcleo — su ausencia es simplemente la ausencia de una
+forma, nunca un indicio visual de tarea sin hacer. Ambas capas SHALL
+reflejar el estado correcto al cargar la aplicación, sin disparar ninguna
+celebración. Sin ningún hábito completado hoy, el núcleo SHALL mostrar su
+estado neutro de base (equivalente al núcleo anterior a este cambio), sin
+ninguna implicación visual de tareas pendientes.
 
 #### Scenario: Estado inicial al abrir la aplicación
 
@@ -53,6 +56,14 @@ cambio).
 - **WHEN** ningún hábito activo tiene marcado su día de hoy
 - **THEN** el núcleo muestra el estado neutro, sin colores de ningún
   elemento
+
+#### Scenario: Ningún hábito pendiente se representa como vacío
+
+- **WHEN** el usuario tiene varios hábitos activos hoy y sólo algunos de
+  ellos están completados
+- **THEN** el núcleo muestra únicamente los colores de los hábitos
+  completados; ningún hábito pendiente aparece representado por un hueco,
+  sector oscuro, contorno o marcador vacío dentro del núcleo
 
 ### Requirement: El estado del día es el reposo del centro
 
