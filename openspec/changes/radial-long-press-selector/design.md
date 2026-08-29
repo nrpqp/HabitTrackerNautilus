@@ -117,6 +117,30 @@ mecanismo que `habit-sheet`/`settings`), listando hábitos pendientes como
 botones; seleccionar uno ejecuta el mismo camino de confirmación que el
 gesto radial. Evita introducir un segundo patrón de modal en el proyecto.
 
+**Con un solo pendiente, `deploy()` no construye el overlay: confirma
+directo.**
+Hallazgo de prueba en dispositivo real (iOS): un sector de 360° (el caso
+`pending.length === 1`) no tiene ángulo que apuntar y su punto medio angular
+cae debajo del núcleo — un artefacto visual, no un selector útil. `deploy()`
+detecta este caso antes de llamar a `buildOverlay()` y en su lugar dispara
+`onAim(habit)` (para el mismo destello de previsualización que ya usa el
+camino normal) seguido de `teardown()` + `onConfirm(habit)` — mismo camino
+de datos, sin sectores de por medio.
+
+**Bloqueo de selección de texto en `document.body` durante todo el gesto.**
+Hallazgo de prueba en dispositivo real (iOS Safari): `touch-action: none`
+en el núcleo evita que el navegador robe el gesto para hacer scroll, pero
+no evita que un arrastre sobre los `<text>` del SVG (números de día,
+nombres de hábito) dispare la selección nativa de texto o su menú de
+copia — eso lo gobierna `user-select`/`-webkit-touch-callout`, una
+propiedad distinta. `onDown` agrega la clase `radial-gesture-lock` a
+`document.body` desde el primer toque (no sólo desde el despliegue, para
+cubrir también la ventana de espera del long-press) y `teardown()` la
+quita en cualquier salida del gesto (confirmación, cancelación,
+interrupción). Alternativa descartada: aplicar `user-select: none` de forma
+permanente sobre los `<text>` del SVG — se prefirió acotarlo a la duración
+del gesto para no tocar comportamiento fuera de él.
+
 ## Risks / Trade-offs
 
 - [Riesgo] `setPointerCapture` en el núcleo puede interceptar gestos de
