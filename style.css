@@ -412,6 +412,31 @@ html[data-tier="1"] .gauge-arc {
   touch-action: none;
 }
 
+/* ── Mezcla elemental del núcleo ──────────────────────────── */
+/* El reposo del centro ya no es una cifra: es la superposición de los
+   colores de los hábitos completados hoy. Cada cuña vive siempre en el
+   DOM (una por hábito guardado) y sólo alterna visible/oculta — nunca se
+   destruye ni se reconstruye al marcar o desmarcar. */
+.core-blend {
+  mix-blend-mode: normal;
+}
+
+.core-blend-wedge {
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.32s ease, transform 0.32s cubic-bezier(0.2, 1.4, 0.3, 1);
+  pointer-events: none;
+}
+
+.core-blend-wedge.lit {
+  opacity: 0.78;
+  transform: scale(1);
+}
+
+html[data-tier="1"] .core-blend-wedge {
+  transition: none;
+}
+
 /* Se activa en el body mientras el gesto está en curso (desde el primer
    toque, no sólo desde el despliegue): aísla el momento del arrastre para
    que iOS Safari no interprete el paso sobre los números de día o los
