@@ -103,8 +103,3 @@ export function effectiveness() {
   });
   return due === 0 ? 0 : Math.round((done / due) * 100);
 }
-
-/** Hábitos con el reto en curso hoy, sobre el total guardado. */
-export function activeSummary() {
-  return { active: habitsActiveToday().length, total: habits.length };
-}

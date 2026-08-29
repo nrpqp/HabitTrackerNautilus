@@ -44,6 +44,9 @@ function pendingHabits() {
 export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleTap } = {}) {
   const core = view.core;
   if (!core) return () => {};
+  // Refuerzo del `touch-action: none` de la hoja de estilos: como atributo
+  // inline gana cualquier cascada rara del motor sobre `<circle>` de SVG.
+  core.style.touchAction = 'none';
 
   let pointerId = null;
   let phase = 'idle'; // idle | pending | deployed
@@ -217,6 +220,11 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
       return;
     }
     if (phase !== 'deployed') return;
+    // Refuerzo cross-browser: no confiar sólo en `touch-action` para que el
+    // navegador no dispute el arrastre (algunos motores lo aplican de forma
+    // menos estricta sobre SVG que sobre HTML). Recién acá, no en 'pending':
+    // antes del despliegue el scroll nativo debe seguir intacto.
+    if (e.cancelable) e.preventDefault();
     const { index, r } = sectorAt(e.clientX, e.clientY);
     const { rInner } = ringGeometry();
     const next = r >= rInner ? index : -1;
@@ -278,7 +286,9 @@ export function attachRadialPicker(view, { onAim, onConfirm, onCancel, onSimpleT
     startedAt = performance.now();
     document.body.classList.add(GESTURE_LOCK_CLASS);
 
-    core.addEventListener('pointermove', onMove);
+    // passive:false es lo que habilita el preventDefault() de onMove en fase
+    // 'deployed' — sin esto algunos motores lo ignorarían igual.
+    core.addEventListener('pointermove', onMove, { passive: false });
     core.addEventListener('pointerup', onUp);
     core.addEventListener('pointercancel', onPointerCancel);
     timer = setTimeout(deploy, LONG_PRESS_MS);

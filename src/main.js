@@ -5,7 +5,7 @@ import { todayISO, addDays, formatDateShort, diffDays } from './utils/date.js';
 import {
   habits, loadHabits, saveHabits,
   todayIndexOf, isDoneToday, habitsActiveToday, habitStreak,
-  bestStreak, effectiveness, activeSummary,
+  bestStreak, effectiveness,
 } from './store.js';
 import { initTheme, applyTheme } from './theme.js';
 import { renderSVG, view, onRebuild } from './render/svg.js';
@@ -37,10 +37,11 @@ function renderSVGOnly() {
    de index.html: los iconos y las etiquetas no cambian nunca, así que no
    hay motivo para regenerar nodos en cada repintado. */
 function renderStats() {
-  const { active, total } = activeSummary();
+  const active = habitsActiveToday();
+  const done = active.filter(isDoneToday).length;
   document.getElementById('stat-streak').textContent = `${bestStreak()}d`;
   document.getElementById('stat-effectiveness').textContent = `${effectiveness()}%`;
-  document.getElementById('stat-active').textContent = `${active}/${total}`;
+  document.getElementById('stat-active').textContent = `${done}/${active.length}`;
 }
 
 // ── Núcleo del día ───────────────────────────────────────────
