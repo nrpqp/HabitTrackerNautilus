@@ -1,8 +1,4 @@
-## Purpose
-
-Panel contextual que agrupa todas las acciones de gestión de un hábito (editar nombre, cambiar color, ver progreso, reiniciar y eliminar) en una superficie cohesiva que se activa desde el label de la escalera SVG, reemplazando la leyenda inferior.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Panel contextual por hábito
 
@@ -61,67 +57,6 @@ En modo edición, el panel SHALL mostrar además un botón de guardado explícit
 - **WHEN** el usuario escribe un nombre distinto y no vacío, y toca el botón de guardado
 - **THEN** el nombre se guarda en localStorage, el SVG se actualiza, y el botón vuelve a su estado bloqueado
 
-### Requirement: Swatches de color
-
-El panel SHALL mostrar una fila de íconos de elemento para que el usuario cambie el elemento del hábito. El elemento seleccionado determina la paleta de colores del anillo; ya no existe una selección de color hexadecimal independiente. El elemento activo SHALL aparecer visualmente destacado (borde o fondo diferenciado). Al seleccionar un nuevo elemento se actualiza de inmediato el SVG con la nueva paleta interpolada sin cerrar el panel.
-
-#### Scenario: Seleccionar elemento
-
-- **WHEN** el usuario toca o hace click en un ícono de elemento en el panel
-- **THEN** el elemento del hábito se actualiza en localStorage, el SVG se re-renderiza con la paleta del nuevo elemento y el ícono seleccionado aparece marcado como activo
-
-#### Scenario: Elemento activo destacado
-
-- **WHEN** el panel está abierto
-- **THEN** el ícono correspondiente al elemento actual del hábito aparece visualmente distinguido de los demás (borde activo o fondo resaltado)
-
-#### Scenario: Sin swatch de color hex
-
-- **WHEN** el usuario abre el panel de edición de cualquier hábito
-- **THEN** no aparece ninguna fila de swatches de color hexadecimal; el color del anillo se deriva exclusivamente del elemento activo
-
-### Requirement: Información de progreso
-
-El panel SHALL mostrar la fecha de inicio, fecha de fin y el día actual del reto (ej. "Día 5 de 21") para el hábito en cuestión.
-
-#### Scenario: Progreso visible al abrir el panel
-
-- **WHEN** el panel se abre para un hábito activo
-- **THEN** se muestran la fecha de inicio, la fecha de fin calculada (inicio + 20 días) y el número de día actual dentro del reto
-
-#### Scenario: Hábito completado
-
-- **WHEN** el panel se abre para un hábito cuyo día actual supera el día 21
-- **THEN** se muestra un indicador de "Completado" en lugar del contador de día
-
-### Requirement: Acción de reiniciar hábito
-
-El panel SHALL incluir una acción para reiniciar el hábito: borra todo el progreso y establece la fecha de inicio como el día actual, previa confirmación del usuario.
-
-#### Scenario: Confirmar reinicio
-
-- **WHEN** el usuario activa la acción de reiniciar y confirma la operación
-- **THEN** el progreso del hábito se resetea a cero días completados y la fecha de inicio cambia a hoy; el SVG y el panel se actualizan
-
-#### Scenario: Cancelar reinicio
-
-- **WHEN** el usuario activa la acción de reiniciar pero cancela la confirmación
-- **THEN** el hábito no se modifica
-
-### Requirement: Acción de eliminar hábito
-
-El panel SHALL incluir una acción para eliminar el hábito, previa confirmación. Al eliminar, el panel se cierra, el hábito desaparece del SVG y del localStorage, y los demás hábitos se re-renderizan.
-
-#### Scenario: Confirmar eliminación
-
-- **WHEN** el usuario activa la acción de eliminar y confirma
-- **THEN** el hábito se elimina de localStorage, el panel se cierra y el SVG se re-renderiza sin ese hábito
-
-#### Scenario: Cancelar eliminación
-
-- **WHEN** el usuario activa la acción de eliminar pero cancela la confirmación
-- **THEN** el hábito permanece sin cambios y el panel sigue abierto
-
 ### Requirement: Añadir nuevo hábito desde el acceso inferior
 
 El sistema SHALL proveer un acceso para añadir hábito en el borde inferior de la pantalla, que abre un input o sheet mínimo para ingresar el nombre del nuevo hábito. El flujo de añadir no requiere abrir la leyenda, los ajustes, el manual ni ningún otro elemento de UI fuera de ese acceso y el panel.
@@ -131,8 +66,6 @@ Al alcanzarse el límite de hábitos, el acceso SHALL mostrarse atenuado y no SH
 Mientras el sheet está en modo creación, el panel SHALL mostrar un botón de confirmación explícito y visible. La confirmación por Enter en el campo de nombre SHALL seguir funcionando como atajo, pero no SHALL ser el único mecanismo disponible para crear el hábito.
 
 Los íconos de elemento del panel SHALL aparecer bloqueados (no interactivos, con una indicación visual de estado pendiente) mientras el campo de nombre esté vacío. En cuanto el campo de nombre contenga un nombre válido (1–15 caracteres tras recortar espacios), SHALL desbloquearse únicamente los íconos de elemento disponibles; los íconos ya asignados a otro hábito SHALL permanecer bloqueados con su indicación existente de "ya asignado".
-
-Mientras el sheet de añadir hábito está abierto, el sistema SHALL impedir que la pantalla se desplace o rebote (scroll/bounce del viewport), incluyendo el reacomodo provocado por la aparición del teclado virtual al enfocar el campo de nombre.
 
 #### Scenario: Añadir hábito nuevo
 
