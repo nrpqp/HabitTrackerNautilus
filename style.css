@@ -450,6 +450,33 @@ html[data-tier="1"] .core-blend-blob {
   transition: none;
 }
 
+/* Icono elemental en el núcleo de cada mancha: el "electrón" que dice qué
+   elemento aportó ese hábito. Queda quieto — sólo pulsa al encenderse, así
+   el centro no mantiene ninguna animación corriendo en reposo. */
+.core-blend-icon {
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.2, 1.4, 0.3, 1);
+  user-select: none;
+}
+
+.core-blend-icon.lit {
+  opacity: 1;
+  transform: scale(1);
+  animation: core-icon-pop 0.55s cubic-bezier(0.2, 1.5, 0.3, 1);
+}
+
+@keyframes core-icon-pop {
+  0%   { transform: scale(0.4); }
+  45%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+html[data-tier="1"] .core-blend-icon {
+  transition: none;
+  animation: none;
+}
+
 /* Se activa en el body mientras el gesto está en curso (desde el primer
    toque, no sólo desde el despliegue): aísla el momento del arrastre para
    que iOS Safari no interprete el paso sobre los números de día o los

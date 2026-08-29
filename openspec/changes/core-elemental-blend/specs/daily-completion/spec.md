@@ -88,6 +88,31 @@ SHALL dejar el centro en un estado distinto de forma permanente.
 
 ## ADDED Requirements
 
+### Requirement: Cada elemento aportado se identifica con su icono
+
+Por cada hábito completado hoy, el núcleo SHALL mostrar el icono de su
+elemento junto a la mancha de color que ese hábito aporta, de modo que la
+mezcla no sea sólo color sino que diga qué elementos la componen. Los
+iconos SHALL permanecer legibles y sin encimarse entre sí con cualquier
+cantidad de hábitos completados, hasta el máximo de siete. Un hábito
+pendiente SHALL NOT mostrar icono alguno.
+
+#### Scenario: El icono aparece al completar el hábito
+
+- **WHEN** el usuario marca el día de hoy de un hábito
+- **THEN** el icono del elemento de ese hábito aparece en el núcleo junto
+  a su mancha de color
+
+#### Scenario: Los iconos no se enciman con el máximo de hábitos
+
+- **WHEN** el usuario tiene siete hábitos completados hoy
+- **THEN** los siete iconos se distinguen sin superponerse entre sí
+
+#### Scenario: Sin hábitos completados no hay iconos
+
+- **WHEN** ningún hábito activo tiene marcado su día de hoy
+- **THEN** el núcleo no muestra ningún icono
+
 ### Requirement: La mezcla elemental respeta el nivel de efectos activo
 
 La mezcla elemental del núcleo SHALL seguir la escala de niveles de efecto
