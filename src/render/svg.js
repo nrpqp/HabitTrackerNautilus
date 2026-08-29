@@ -44,6 +44,7 @@ let centerCircle = null;
 let guideCircle = null;
 let dayNumbers = [];
 let gauges = [];        // [{ arc, length }] — un segmento por hábito
+let coreBlend = [];     // [{ habitId, wedge }] — mezcla elemental del núcleo
 let rings = [];          // [{ habitId, rIn, rOut, rMid, cells:[path], indicator, label, textPath, hit }]
 let metrics = null;
 let dayAngles = [];
@@ -109,6 +110,30 @@ function build(list) {
   centerCircle.setAttribute('stroke-width', '1.2');
   centerCircle.setAttribute('class', 'nautilus-core');
   svgEl.appendChild(centerCircle);
+
+  // Mezcla elemental del núcleo: una cuña por hábito guardado, igual que el
+  // medidor de arcos (gauges) más abajo — no sólo los activos hoy, para no
+  // depender de un signature de rebuild aparte. Una cuña de un hábito sin
+  // reto en curso simplemente nunca se enciende (dailyCompletion.isDoneToday
+  // ya es `false` para esos). Radio hasta el borde del núcleo: sin hueco
+  // central para evitar un `annularSectorPath` degenerado en r=0.
+  const blendGroup = document.createElementNS(NS, 'g');
+  blendGroup.setAttribute('class', 'core-blend');
+  const blendOuterR = innerRadius - 8;
+  const blendInnerR = 6;
+  const blendSeg = 360 / Math.max(1, list.length);
+  coreBlend = list.map((habit, i) => {
+    const a0 = -90 + i * blendSeg;
+    const a1 = -90 + (i + 1) * blendSeg;
+    const wedge = document.createElementNS(NS, 'path');
+    wedge.setAttribute('d', annularSectorPath(cx, cy, blendInnerR, blendOuterR, a0, a1));
+    wedge.setAttribute('class', 'core-blend-wedge');
+    wedge.style.transformBox = 'fill-box';
+    wedge.style.transformOrigin = 'center';
+    blendGroup.appendChild(wedge);
+    return { habitId: habit.id, wedge };
+  });
+  svgEl.appendChild(blendGroup);
 
   rings = list.map((habit, r) => {
     const rOut = innerRadius + (r + 1) * cellThickness + r * gapBetweenRings;
@@ -304,6 +329,12 @@ function paint(list) {
   centerCircle.setAttribute('fill', tc.centerFill);
   centerCircle.setAttribute('stroke', tc.centerStroke);
 
+  coreBlend.forEach((cb, i) => {
+    const habit = list[i];
+    if (!habit) return;
+    cb.wedge.setAttribute('fill', elementColor(habit.element, 20));
+  });
+
   rings.forEach((ring, r) => {
     const habit = list[r];
     if (!habit) return;
@@ -412,6 +443,7 @@ export const view = {
   get overlay() { return overlayEl; },
   get core() { return centerCircle; },
   get gauges() { return gauges; },
+  get coreBlend() { return coreBlend; },
   get metrics() { return metrics; },
   get ringCount() { return rings.length; },
 

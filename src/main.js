@@ -17,7 +17,7 @@ import { readPreference, writePreference, NONE } from './fx/preference.js';
 import { createSheet } from './ui/sheet.js';
 import { createSettings } from './ui/settings.js';
 import {
-  streakComet, arrivalBurst, extinguishCell, chargeToCore, setCoreCharge, supernova,
+  streakComet, arrivalBurst, extinguishCell, chargeToCore, setCoreCharge, setCoreBlend, supernova,
 } from './fx/effects.js';
 
 if ('serviceWorker' in navigator) {
@@ -60,21 +60,27 @@ function setCoreLabel(value, caption, full) {
   core.classList.add('swapping');
 }
 
-/** Estado en reposo del centro: cuántos hábitos quedan cerrados hoy. */
+/**
+ * Estado en reposo del centro: la mezcla elemental de los hábitos ya
+ * cerrados hoy. El anillo de arcos y el brillo (`setCoreCharge`) siguen
+ * dando la lectura exacta en paralelo; la mezcla es el lenguaje visual,
+ * no reemplaza esa cuenta, sólo el número que antes ocupaba el centro.
+ */
 function refreshDayCore() {
   const core = document.getElementById('day-core');
   if (!core) return;
 
   const active = habitsActiveToday();
-  const done = active.filter(isDoneToday).length;
-  setCoreCharge(active.length ? done / active.length : 0);
+  const doneHabits = active.filter(isDoneToday);
+  setCoreCharge(active.length ? doneHabits.length / active.length : 0);
+  setCoreBlend(doneHabits.map((h) => h.id));
 
   if (coreShowingTransient) return;
   if (!active.length) {
     setCoreLabel('—', 'sin retos', false);
     return;
   }
-  setCoreLabel(`${done}/${active.length}`, 'hoy', done === active.length);
+  setCoreLabel('', '', false);
 }
 
 /**

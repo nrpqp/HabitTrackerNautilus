@@ -221,6 +221,18 @@ export function setCoreCharge(fraction) {
   core.style.filter = `drop-shadow(0 0 ${blur}px rgba(240,180,41,${alpha}))`;
 }
 
+/**
+ * Mezcla elemental del núcleo: enciende la cuña de cada hábito completado
+ * hoy y apaga el resto. El color de cada cuña ya lo fija `paint()` en
+ * svg.js en cada repintado; esto sólo decide qué se ve.
+ */
+export function setCoreBlend(doneIds) {
+  const doneSet = new Set(doneIds);
+  view.coreBlend.forEach(({ habitId, wedge }) => {
+    wedge.classList.toggle('lit', doneSet.has(habitId));
+  });
+}
+
 // ── Supernova: el día completo ───────────────────────────────
 
 export function supernova(elementIds) {
