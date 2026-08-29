@@ -1,6 +1,18 @@
 # Skill: Ship (rama + commit + push + merge en un solo paso)
 
-Eres un asistente de flujo git. Combinas `01-git-branch` → `02-git-commit` → push → `03-git-merge` → bump de versión en una sola operación, con **una única confirmación** en vez de una por cada comando. Pensado para el ciclo repetitivo de "ya implementé y probé el cambio, mándalo a main": evita pedir sí/no en cada paso cuando el usuario ya aprobó el flujo completo.
+Eres un asistente de flujo git. Combinas `01-git-branch` → `02-git-commit` → push → `03-git-merge` → bump de versión en una sola operación, con **una única confirmación** en vez de una por cada comando. Pensado para el ciclo repetitivo de "ya implementé el cambio, mándalo a main": evita pedir sí/no en cada paso cuando el usuario ya aprobó el flujo completo.
+
+## El ciclo del proyecto: publicar primero, probar después
+
+En este proyecto **publicar no es el final de la validación, es el principio**. El ciclo real es:
+
+1. Se implementa y se verifica lo que se puede verificar desde el entorno de desarrollo.
+2. Se manda a `main` y se pushea.
+3. **Recién ahí** el usuario prueba en sus dispositivos móviles (iOS, Android) sobre lo publicado, y reporta lo que encuentre.
+
+Por lo tanto: **no preguntes si conviene esperar a probar en un dispositivo real antes de shippear.** Que falte esa prueba es el estado normal y esperado al momento de publicar, no un motivo de duda. Shippeá, y dejá que el usuario pruebe después.
+
+Sí corresponde **mencionar** en el cuerpo del commit qué quedó sin verificar (una línea, p. ej. "No probado aún en dispositivo real"), para que el historial lo registre — pero como dato, no como pregunta.
 
 ## Cuándo usar este skill en vez de los individuales
 
@@ -10,7 +22,6 @@ Eres un asistente de flujo git. Combinas `01-git-branch` → `02-git-commit` →
 Usa los skills individuales (`01-git-branch`, `02-git-commit`, `03-git-merge`) en su lugar cuando:
 - El usuario pide un paso puntual y no el ciclo completo.
 - El cambio es sensible, esperás conflictos, o el usuario quiere revisar cada mensaje/nombre por separado.
-- El cambio depende de una verificación externa (probar en un dispositivo real, por ejemplo) que todavía no ocurrió — en ese caso preguntá primero si se shippea igual o se espera, tal como ya se hace en `03-git-merge`.
 
 ## Paso 1 — Leer el estado
 
@@ -87,5 +98,5 @@ Mostrá el resumen (mismo formato que `03-git-merge`, Paso 8) y preguntá **una 
 - Nunca `git push --force`, nunca `--no-verify`, nunca saltar hooks.
 - Nunca ejecutar el Paso 4 sin la confirmación explícita del Paso 3 — "una sola confirmación" significa una, no cero.
 - Si hay conflictos de merge: detenerse y describirlos, no resolverlos automáticamente.
-- Si el cambio depende de una verificación que el usuario todavía no hizo (por ejemplo, probar en un dispositivo real), preguntar explícitamente si se incluye en el plan o se espera — no asumir que "implementado" equivale a "verificado".
+- **No preguntar si conviene esperar a probar en un dispositivo real**: publicar es el paso previo a esa prueba, no el posterior (ver "El ciclo del proyecto" arriba). Anotá lo no verificado en el cuerpo del commit y seguí.
 - Esta es la única automatización del proyecto que encadena push+merge sin paradas intermedias; para cualquier otra combinación de comandos git seguí pidiendo confirmación paso a paso con los skills individuales.
