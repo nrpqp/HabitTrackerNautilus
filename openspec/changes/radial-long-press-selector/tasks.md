@@ -46,3 +46,8 @@
 - [ ] 8.1 Probar el flujo completo en `npm run dev` en desktop (mouse) y en un dispositivo móvil real (touch) con 1, 4 y 7 hábitos activos, en tema claro y oscuro
 - [ ] 8.2 Probar con `?fx=1` y `?fx=5` que el gesto y el overlay no degradan el framerate del canvas de partículas ni al revés
 - [ ] 8.3 Ejecutar `npm run build` y `npm run preview`, hacer hard refresh, y confirmar que el gesto funciona igual bajo el build cacheado por el service worker
+
+## 9. Ajustes de prueba en dispositivo real (Android/Firefox)
+
+- [x] 9.1 Reporte de Android+Firefox: comportamiento inconsistente (a veces no despliega, a veces cancela al mover, a veces confirma un sector distinto). Agregado `e.preventDefault()` en `onMove` durante la fase Apuntado, listener `pointermove` registrado con `{ passive: false }`, y `touch-action: none` inline como refuerzo de la regla CSS; verificado en Chrome que el flujo multi-sector y el de un solo pendiente siguen funcionando igual
+- [ ] 9.2 Repetir la prueba en el mismo dispositivo Android + Firefox para confirmar que el refuerzo resuelve los tres síntomas reportados (no verificable desde este entorno)

@@ -141,6 +141,23 @@ interrupción). Alternativa descartada: aplicar `user-select: none` de forma
 permanente sobre los `<text>` del SVG — se prefirió acotarlo a la duración
 del gesto para no tocar comportamiento fuera de él.
 
+**Refuerzo cross-browser en fase Apuntado: `preventDefault()` + listener no
+pasivo, además de `touch-action`.**
+Reporte de prueba en dispositivo real (Android + Firefox): el gesto se veía
+inconsistente — a veces no se desplegaba, a veces se cancelaba apenas
+arrancaba el arrastre, a veces confirmaba un sector distinto al apuntado.
+`touch-action: none` no es igual de estricto en todos los motores sobre un
+`<circle>` de SVG, así que `onMove` ahora también llama
+`e.preventDefault()` una vez en fase `deployed` (nunca en `pending`, por la
+misma razón que la captura se demora: preservar el scroll nativo si el
+gesto no llega a desplegarse), y el listener de `pointermove` se registra
+con `{ passive: false }` — sin eso, `preventDefault()` no tiene efecto en
+algunos motores. También se fija `touch-action: none` inline sobre el
+núcleo como refuerzo redundante de la regla CSS. No pudo verificarse en el
+dispositivo real donde se reportó el problema — son las mitigaciones
+conocidas para esta clase de bug de Pointer Events + SVG, a la espera de
+una repetición de la prueba.
+
 ## Risks / Trade-offs
 
 - [Riesgo] `setPointerCapture` en el núcleo puede interceptar gestos de
