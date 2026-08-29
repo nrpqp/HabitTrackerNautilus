@@ -108,6 +108,12 @@ pendiente SHALL NOT mostrar icono alguno.
 - **WHEN** el usuario tiene siete hábitos completados hoy
 - **THEN** los siete iconos se distinguen sin superponerse entre sí
 
+#### Scenario: El icono acompaña a su propia mancha
+
+- **WHEN** el núcleo muestra la mezcla de varios hábitos completados
+- **THEN** el icono de cada elemento aparece sobre la mancha de color de
+  ese mismo hábito, no separado de ella
+
 #### Scenario: Sin hábitos completados no hay iconos
 
 - **WHEN** ningún hábito activo tiene marcado su día de hoy
@@ -134,3 +140,24 @@ igual pero sin animación de transición.
   `prefers-reduced-motion` activo
 - **THEN** el color de ese elemento aparece en la mezcla de inmediato, sin
   animación de transición
+
+### Requirement: Órbita continua de la mezcla en los niveles altos
+
+En los niveles de efecto 4 y 5, el conjunto de la mezcla —las manchas de
+color junto con sus iconos— SHALL girar de forma continua alrededor del
+centro del núcleo, conservando la separación entre partículas. Los iconos
+SHALL mantener su orientación mientras orbitan, sin darse vuelta. Por
+debajo del nivel 4 la mezcla SHALL permanecer inmóvil.
+
+#### Scenario: La mezcla orbita en nivel Estándar o Máximo
+
+- **WHEN** el nivel de efectos activo es 4 o 5 y hay al menos un hábito
+  completado hoy
+- **THEN** las manchas y sus iconos giran lentamente alrededor del centro,
+  y cada icono se mantiene derecho durante todo el giro
+
+#### Scenario: Sin órbita por debajo del nivel 4
+
+- **WHEN** el nivel de efectos activo es 3 o inferior, o
+  `prefers-reduced-motion` está activo
+- **THEN** la mezcla del núcleo permanece inmóvil
