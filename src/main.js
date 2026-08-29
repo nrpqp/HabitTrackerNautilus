@@ -269,7 +269,6 @@ async function clearAppCache() {
 let sheetCurrentHabitId = null;
 let sheetMode = 'edit'; // 'edit' | 'create'
 let sheetOriginalName = '';
-let sheetScrollY = 0;
 let sheetSelectedElementId = null; // elemento elegido a mano en modo creación
 
 /* En modo creación, los íconos de elemento permanecen bloqueados hasta que
@@ -302,28 +301,6 @@ function renderElementSwatches(habit) {
       <span class="element-name">${el.name}</span>
     </button>`;
   }).join('');
-}
-
-/* Bloquea el scroll/rebote de la página mientras el sheet está abierto.
-   overflow:hidden en body no basta en iOS Safari: el rebote elástico sigue
-   ocurriendo al enfocar el input y desplegarse el teclado. Fijar el body en
-   su posición actual sí lo evita. */
-function lockBodyScroll() {
-  sheetScrollY = window.scrollY || window.pageYOffset || 0;
-  document.body.style.position = 'fixed';
-  document.body.style.top = `-${sheetScrollY}px`;
-  document.body.style.left = '0';
-  document.body.style.right = '0';
-  document.body.style.width = '100%';
-}
-
-function unlockBodyScroll() {
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.left = '';
-  document.body.style.right = '';
-  document.body.style.width = '';
-  window.scrollTo(0, sheetScrollY);
 }
 
 function openHabitSheet(habitId, mode = 'edit', event = null) {
@@ -405,11 +382,11 @@ function openHabitSheet(habitId, mode = 'edit', event = null) {
     panel.style.removeProperty('transform');
   }
 
-  lockBodyScroll();
   sheetEl.classList.remove('hidden');
   requestAnimationFrame(() => sheetEl.classList.add('open'));
   nameInput.focus();
   nameInput.select();
+  syncSheetToVisualViewport();
 }
 
 function closeSheet() {
@@ -418,34 +395,8 @@ function closeSheet() {
   sheetEl.classList.remove('open');
   setTimeout(() => sheetEl.classList.add('hidden'), 200);
   sheetCurrentHabitId = null;
-
-  /* Si el teclado virtual seguía abierto, hay que esperar a que termine de
-     cerrarse antes de liberar el scroll: si el body vuelve a scrollear
-     mientras el viewport visual todavía está encogido por el teclado, queda
-     un hueco en blanco donde estaba el teclado hasta que el usuario
-     desplaza la pantalla a mano. document.activeElement no sirve para
-     detectarlo — tocar el botón de confirmar ya le quitó el foco al input
-     antes de llegar aquí — así que se compara la altura del viewport visual
-     contra la del layout.
-  */
-  const keyboardLikelyOpen = !!(
-    window.visualViewport && window.innerHeight - window.visualViewport.height > 80
-  );
   nameInput.blur();
-
-  if (keyboardLikelyOpen && window.visualViewport) {
-    let done = false;
-    const finishUnlock = () => {
-      if (done) return;
-      done = true;
-      window.visualViewport.removeEventListener('resize', finishUnlock);
-      unlockBodyScroll();
-    };
-    window.visualViewport.addEventListener('resize', finishUnlock);
-    setTimeout(finishUnlock, 350); // respaldo si el evento no llega
-  } else {
-    unlockBodyScroll();
-  }
+  resetSheetViewportSync();
 }
 
 function positionPopover(panel, event) {
@@ -516,16 +467,32 @@ function scheduleNotifications() {
   });
 }
 
-function adjustSheetForKeyboard() {
+/* Ancla el sheet al viewport visual real en vez de sólo empujar el borde
+   inferior del panel: en iOS Safari el viewport de layout (position:fixed;
+   inset:0) y el visual (lo que de verdad se ve con el teclado abierto)
+   pueden desalinearse — sobre todo apenas se abre el teclado, mientras
+   anima — y ese desfase es el hueco en blanco entre el teclado y el panel.
+   Igualar top/left/width/height al visualViewport en cada evento elimina
+   la necesidad de calcular un offset a mano. */
+function syncSheetToVisualViewport() {
+  const vv = window.visualViewport;
+  if (!vv) return;
   const sheetEl = document.getElementById('habit-sheet');
   if (!sheetEl || sheetEl.classList.contains('hidden')) return;
-  const panel = sheetEl.querySelector('.habit-sheet-panel');
-  if (window.innerWidth > 768) return; // only for mobile bottom sheet
-  const offsetBottom = Math.max(
-    0,
-    window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop
-  );
-  panel.style.bottom = `${offsetBottom}px`;
+  if (window.innerWidth > 768) return; // sólo aplica al bottom sheet móvil
+  sheetEl.style.top = `${vv.offsetTop}px`;
+  sheetEl.style.left = `${vv.offsetLeft}px`;
+  sheetEl.style.width = `${vv.width}px`;
+  sheetEl.style.height = `${vv.height}px`;
+}
+
+function resetSheetViewportSync() {
+  const sheetEl = document.getElementById('habit-sheet');
+  if (!sheetEl) return;
+  sheetEl.style.top = '';
+  sheetEl.style.left = '';
+  sheetEl.style.width = '';
+  sheetEl.style.height = '';
 }
 
 // ── Event listeners ──────────────────────────────────────────
@@ -648,9 +615,11 @@ function setupEventListeners() {
     }
   });
 
-  // iOS keyboard adjustment
+  // iOS keyboard adjustment — 'scroll' se dispara cuando el propio iOS
+  // desplaza el viewport visual para mantener visible el input enfocado.
   if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', adjustSheetForKeyboard);
+    window.visualViewport.addEventListener('resize', syncSheetToVisualViewport);
+    window.visualViewport.addEventListener('scroll', syncSheetToVisualViewport);
   }
 
   // Notification toggle
@@ -776,6 +745,42 @@ function setupSettings() {
   document.getElementById('settings-clear-cache-btn').addEventListener('click', clearAppCache);
 }
 
+/* Overlay de diagnóstico opt-in (?debug=viewport): números en vivo del
+   viewport de layout vs. el visual mientras el teclado abre/cierra. Sin
+   esto, un bug de desfase de viewport en iOS Safari sólo se puede depurar
+   a ciegas — con esto el usuario puede fotografiar los números reales del
+   dispositivo en el momento del bug y reportarlos. */
+function setupViewportDebugOverlay() {
+  if (new URLSearchParams(location.search).get('debug') !== 'viewport') return;
+  const el = document.createElement('div');
+  el.style.cssText = [
+    'position:fixed', 'top:0', 'left:0', 'z-index:9999',
+    'background:rgba(0,0,0,0.82)', 'color:#0f0', 'font:10px/1.4 monospace',
+    'padding:6px 8px', 'white-space:pre', 'pointer-events:none',
+  ].join(';');
+  document.body.appendChild(el);
+
+  function update() {
+    const vv = window.visualViewport;
+    el.textContent = [
+      `innerWidth/Height: ${window.innerWidth} / ${window.innerHeight}`,
+      `docEl clientHeight: ${document.documentElement.clientHeight}`,
+      vv ? `vv width/height: ${vv.width.toFixed(0)} / ${vv.height.toFixed(0)}` : 'sin visualViewport',
+      vv ? `vv offsetTop/Left: ${vv.offsetTop.toFixed(0)} / ${vv.offsetLeft.toFixed(0)}` : '',
+      vv ? `vv scale: ${vv.scale.toFixed(2)}` : '',
+      `sheet top/left/w/h: ${document.getElementById('habit-sheet').style.top || '—'} / ${document.getElementById('habit-sheet').style.left || '—'} / ${document.getElementById('habit-sheet').style.width || '—'} / ${document.getElementById('habit-sheet').style.height || '—'}`,
+    ].filter(Boolean).join('\n');
+  }
+
+  update();
+  window.addEventListener('resize', update);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', update);
+    window.visualViewport.addEventListener('scroll', update);
+  }
+  setInterval(update, 300); // por si algún evento no llega
+}
+
 function init() {
   initTheme();
   applyStoredTier();
@@ -787,6 +792,7 @@ function init() {
   render();
   window.addEventListener('resize', () => setUnitScale(view.centerPx().scale));
   scheduleNotifications();
+  setupViewportDebugOverlay();
 }
 
 init();
