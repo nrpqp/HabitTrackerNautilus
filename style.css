@@ -407,9 +407,27 @@ html[data-tier="1"] .gauge-arc {
    propio scroll/zoom al primer movimiento del dedo sobre el núcleo: sin
    esto, un pointercancel llegaría antes de que el gesto tuviera ocasión de
    evaluar su propio umbral de 10px. */
+/* El núcleo es la superficie del gesto radial, así que tiene que quedar
+   fuera de todos los gestos nativos del navegador, no sólo del scroll.
+   En Android el long-press levanta selección y menú contextual, y el toque
+   pinta un recuadro de resaltado: los tres se montan encima del gesto y
+   lo dejan a medias. Se desactivan de forma permanente —no sólo mientras
+   el gesto corre, como hace `radial-gesture-lock`— porque el navegador los
+   arranca antes de que llegue nuestro `pointerdown`. */
 .nautilus-core {
   cursor: pointer;
   touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* El resaltado del toque tampoco aporta nada en el resto del nautilus, y
+   en la PWA de Android se veía como un recuadro azul sobre la rueda. */
+.svg-container,
+.svg-container svg {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── Mezcla elemental del núcleo ──────────────────────────── */
