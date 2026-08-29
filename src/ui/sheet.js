@@ -92,8 +92,13 @@ export function createSheet({ root, softBackdrop = false, duration = 250, onOpen
     void root.offsetWidth;
     root.classList.add('open');
 
+    // `preventScroll` es lo que impide que el navegador desplace la página
+    // para traer a la vista lo que acaba de recibir el foco. La hoja ya
+    // está fija sobre el viewport, así que ese desplazamiento no acerca
+    // nada: sólo corre el contenido de abajo —en la PWA de Android se veía
+    // como si la pantalla entera se deslizara hacia arriba al abrir.
     const items = enfocables();
-    (items[0] || panel).focus();
+    (items[0] || panel).focus({ preventScroll: true });
 
     // Eleva el canvas de efectos por encima del velo. Con una clase y no
     // con `:has()`: Safari no lo soportó hasta la 15.4 y ahí la muestra
@@ -117,7 +122,9 @@ export function createSheet({ root, softBackdrop = false, duration = 250, onOpen
     document.removeEventListener('keydown', onKeydown, true);
     root.removeEventListener('click', onPointer);
 
-    if (opener && document.contains(opener)) opener.focus();
+    // Igual que al abrir: el origen ya estaba a la vista antes de la hoja,
+    // así que devolverle el foco no debe mover la página.
+    if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
     opener = null;
     if (onClose) onClose();
   }
