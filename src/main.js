@@ -916,13 +916,28 @@ function setupGestureDebugOverlay() {
   const core = view.core;
   if (core) {
     ['pointerdown', 'pointerup', 'pointercancel', 'contextmenu', 'click'].forEach((t) => {
-      core.addEventListener(t, (e) => anotar(`${t} ${e.pointerType || ''}`), true);
+      core.addEventListener(t, (e) => anotar(`nucleo ${t} ${e.pointerType || ''}`), true);
     });
   }
+  // El arrastre se escucha en `document`: si acá no llega ningún move, el
+  // problema está antes que en el cálculo del sector.
+  let moves = 0;
+  document.addEventListener('pointermove', () => {
+    moves++;
+    if (moves % 10 === 1) anotar(`doc pointermove x${moves}`);
+  }, true);
   // El scroll de la página es el sospechoso de la "animación hacia arriba".
   window.addEventListener('scroll', () => anotar(`scroll -> ${Math.round(window.scrollY)}`), true);
-  document.getElementById('radial-sheet')
-    .addEventListener('transitionstart', () => anotar('hoja: transición'), true);
+
+  // La hoja de abajo: si abre pero el toque en un hábito no llega, se ve acá.
+  const hoja = document.getElementById('radial-sheet');
+  hoja.addEventListener('transitionstart', () => anotar('hoja: transición'), true);
+  ['pointerdown', 'click'].forEach((t) => {
+    hoja.addEventListener(t, (e) => {
+      const item = e.target.closest ? e.target.closest('.radial-sheet-item') : null;
+      anotar(`hoja ${t} -> ${item ? 'HABITO' : (e.target.className || e.target.tagName)}`);
+    }, true);
+  });
 
   window.__gestoLog = () => registro.join('\n');
   pintar();
