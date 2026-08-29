@@ -23,7 +23,7 @@
 ## 4. Feedback háptico
 
 - [x] 4.1 Disparar `haptics` (o un patrón nuevo equivalente en `src/fx/engine.js` si los existentes no encajan) en apertura, cambio de sector apuntado y confirmación, respetando el nivel de efectos activo; verificar en un dispositivo Android que los tres momentos vibran de forma distinguible
-- [ ] 4.2 Verificar en iOS Safari (o simulando `navigator.vibrate === undefined`) que el gesto completo funciona sin errores y sin refuerzo háptico
+- [x] 4.2 Verificar en iOS Safari (o simulando `navigator.vibrate === undefined`) que el gesto completo funciona sin errores y sin refuerzo háptico — confirmado por el usuario en iPhone real: el gesto completo funciona correctamente
 
 ## 5. Alternativa accesible
 
