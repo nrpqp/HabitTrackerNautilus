@@ -21,30 +21,18 @@ const LABEL_ARC_DEGREES = 60;
 const LABEL_ARC_MARGIN = 0.88; // deja aire en las puntas del arco
 const LABEL_MIN_FONT = 7;
 
-// Mezcla del núcleo. La dispersión se mantiene bien por debajo del radio de
-// cada mancha: así dos hábitos cualesquiera se solapan siempre en la zona
-// central, que es donde la superposición produce el color nuevo. Con una
-// dispersión mayor las manchas se separarían en islas de color y no habría
-// mezcla que ver.
+// Mezcla del núcleo. Cada hábito es una partícula —mancha de color más el
+// icono de su elemento, juntos— en una órbita común alrededor del centro.
+//
+// El radio de la órbita es el equilibrio entre dos exigencias opuestas:
+// cuanto más chico, más se solapan las manchas y más se mezcla el color;
+// cuanto más grande, más aire tienen los iconos para leerse. Con 22 y
+// siete hábitos quedan ~19px entre iconos vecinos (legibles) y las manchas
+// enfrentadas siguen cubriendo el centro (44px de separación contra 28 de
+// radio cada una), que es donde nace el color nuevo.
 const CORE_BLEND_RADIUS = 28;
-const CORE_BLEND_SPREAD = 20;
-const CORE_BLEND_ICON_SIZE = 13;
-// Los iconos no van en el centro de su mancha sino en una órbita común, en
-// el mismo ángulo que ella: los centros de las manchas caen dentro de un
-// radio de 20 y con siete hábitos los emojis se encimaban hasta ser
-// ilegibles. En la órbita quedan separados y, de paso, se leen como los
-// electrones del modelo de Bohr.
-const CORE_BLEND_ICON_ORBIT = 33;
-
-/** Hash determinístico de una cadena a [0,1). FNV-1a con sal. */
-function hashUnit(str, salt = 0) {
-  let h = (2166136261 ^ salt) >>> 0;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619) >>> 0;
-  }
-  return (h % 100000) / 100000;
-}
+const CORE_BLEND_ORBIT = 22;
+const CORE_BLEND_ICON_SIZE = 12;
 
 /** Encoge la fuente del label lo justo para que el nombre completo entre
     en el arco de su anillo, midiendo el largo real del texto renderizado
@@ -145,6 +133,14 @@ function build(list) {
   // cero, sin contorno ni hueco que insinúe una tarea sin hacer. Ver
   // design.md — el layout de cuñas anterior se leía como un checklist a
   // medio llenar, que es justo lo que este centro no debe comunicar.
+  // Todo el conjunto vive dentro de un grupo que rota: la órbita es del
+  // sistema entero, no de cada partícula por separado, así ninguna se
+  // acerca a otra al girar y la separación calculada acá se conserva.
+  const orbitGroup = document.createElementNS(NS, 'g');
+  orbitGroup.setAttribute('class', 'core-orbit');
+  orbitGroup.style.transformBox = 'view-box';
+  orbitGroup.style.transformOrigin = `${cx}px ${cy}px`;
+
   const blendGroup = document.createElementNS(NS, 'g');
   blendGroup.setAttribute('class', 'core-blend');
   // Los iconos van en su propio grupo, por encima y sin modo de fusión: el
@@ -152,13 +148,15 @@ function build(list) {
   const iconGroup = document.createElementNS(NS, 'g');
   iconGroup.setAttribute('class', 'core-blend-icons');
   iconGroup.setAttribute('pointer-events', 'none');
-  coreBlend = list.map((habit) => {
-    // Posición sembrada por id, no por índice: dos hábitos contiguos en la
-    // lista no deben caer en posiciones contiguas, o la mezcla vuelve a
-    // leerse como "casilleros" ordenados.
-    const angle = hashUnit(habit.id, 1) * 360;
-    const dist = CORE_BLEND_SPREAD * (0.45 + hashUnit(habit.id, 2) * 0.55);
-    const p = polarToCartesian(cx, cy, dist, angle);
+
+  // Reparto angular uniforme por índice, no sembrado por id: es lo único
+  // que garantiza que dos partículas nunca queden pegadas — con ángulos
+  // al azar, siete hábitos podían caer casi encimados. Que lo apagado no
+  // dibuje nada evita que este orden regular se lea como casilleros.
+  const step = 360 / Math.max(1, list.length);
+  coreBlend = list.map((habit, i) => {
+    const angle = -90 + i * step;
+    const p = polarToCartesian(cx, cy, CORE_BLEND_ORBIT, angle);
 
     // Degradado radial en vez de `filter: blur()`: da el mismo borde
     // difuso sin el coste de repintado de un filtro, sin recorte del área
@@ -188,24 +186,31 @@ function build(list) {
     blob.style.transformOrigin = 'center';
     blendGroup.appendChild(blob);
 
-    // El icono del elemento, en la órbita y en el mismo ángulo que su
-    // mancha: apunta a su nube de color sin encimarse con los demás.
-    const orbit = polarToCartesian(cx, cy, CORE_BLEND_ICON_ORBIT, angle);
+    // El icono viaja con su mancha, en el mismo punto de la órbita. Va
+    // dentro de un grupo que gira al revés que la órbita y sobre el propio
+    // icono: sin eso el emoji daría vueltas de cabeza mientras orbita.
+    const spin = document.createElementNS(NS, 'g');
+    spin.setAttribute('class', 'core-icon-spin');
+    spin.style.transformBox = 'view-box';
+    spin.style.transformOrigin = `${p.x}px ${p.y}px`;
+
     const icon = document.createElementNS(NS, 'text');
-    icon.setAttribute('x', orbit.x);
-    icon.setAttribute('y', orbit.y);
+    icon.setAttribute('x', p.x);
+    icon.setAttribute('y', p.y);
     icon.setAttribute('text-anchor', 'middle');
     icon.setAttribute('dominant-baseline', 'central');
     icon.setAttribute('font-size', CORE_BLEND_ICON_SIZE);
     icon.setAttribute('class', 'core-blend-icon');
     icon.style.transformBox = 'fill-box';
     icon.style.transformOrigin = 'center';
-    iconGroup.appendChild(icon);
+    spin.appendChild(icon);
+    iconGroup.appendChild(spin);
 
     return { habitId: habit.id, blob, icon, stops: [inner, mid, outer] };
   });
-  svgEl.appendChild(blendGroup);
-  svgEl.appendChild(iconGroup);
+  orbitGroup.appendChild(blendGroup);
+  orbitGroup.appendChild(iconGroup);
+  svgEl.appendChild(orbitGroup);
 
   rings = list.map((habit, r) => {
     const rOut = innerRadius + (r + 1) * cellThickness + r * gapBetweenRings;

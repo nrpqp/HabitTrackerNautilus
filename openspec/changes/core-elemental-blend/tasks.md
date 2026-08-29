@@ -36,3 +36,11 @@
 - [x] 6.3 Encender/apagar el icono junto con su mancha desde `setCoreBlend`, pero **sin** repartir su opacidad entre los encendidos como se hace con las manchas — de lo contrario el día completo mostraría siete emojis casi invisibles; verificar que con ningún hábito completado no queda ningún icono visible (`opacity: 0`, sin rastro)
 - [x] 6.4 Pulso de aparición (`core-icon-pop`) al encenderse, sin animación continua en reposo, deshabilitado en `html[data-tier="1"]`; verificado: la animación se dispara al marcar, en nivel 1 no hay transición ni animación, y en reposo las únicas animaciones activas son los `today-indicator` que ya existían
 - [x] 6.5 Verificar el conjunto en tema claro y oscuro, con 3 y 7 hábitos completados, y bajo el build de producción con service worker
+
+## 7. Órbita: el icono viaja con su esfera (niveles 4 y 5)
+
+- [x] 7.1 Devolver el icono al punto de su mancha (misma coordenada, no una órbita exterior aparte) y repartir las partículas en ángulos uniformes por índice en vez de sembrados por id — el reparto al azar era lo que las dejaba encimadas y obligó a separar el icono de su mancha en la iteración anterior; verificado: icono y mancha comparten coordenada y quedan 19,1px entre iconos vecinos con siete hábitos
+- [x] 7.2 Envolver manchas e iconos en un `<g class="core-orbit">` que gira como bloque, de modo que la separación calculada se conserve durante todo el giro; `transform-origin` fijado al centro del viewBox
+- [x] 7.3 Contra-rotar cada icono sobre sí mismo (`.core-icon-spin`, misma duración en sentido inverso) para que orbite sin darse vuelta; verificado midiendo las matrices de transformación: la suma de ambas rotaciones da 0,00° en todo momento
+- [x] 7.4 Reservar la órbita a los niveles 4 y 5, dejando la mezcla inmóvil por debajo; verificado `?fx=1` y `?fx=3` sin animación, `?fx=4` y `?fx=5` con `core-orbit-spin` a 54s por vuelta. `prefers-reduced-motion` queda cubierto porque ya sujeta el nivel activo a 1
+- [x] 7.5 Verificar que la órbita no altera lo demás: con ningún hábito completado el núcleo sigue sin dibujar nada (opacidad 0 en manchas e iconos), el pulso de aparición sigue disparándose al marcar, y todo se comporta igual en tema claro y bajo el build de producción con service worker

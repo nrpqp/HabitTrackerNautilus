@@ -477,6 +477,34 @@ html[data-tier="1"] .core-blend-icon {
   animation: none;
 }
 
+/* ── Órbita del núcleo (niveles 4 y 5) ───────────────────── */
+/* Todo el sistema —manchas e iconos— gira como un bloque, así la
+   separación entre partículas no cambia al rotar. Es una animación de
+   `transform` pura, que el compositor resuelve sin repintar y sin tocar
+   el bucle de efectos de engine.js; aun así se reserva a los dos niveles
+   más altos, porque en reposo es lo único que quedaría en movimiento.
+   `prefers-reduced-motion` ya sujeta el nivel activo a 1, de modo que
+   estas reglas no llegan a aplicarse. */
+@keyframes core-orbit-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* El icono gira al revés y sobre sí mismo: compensa exactamente la
+   rotación del sistema, de modo que orbita sin darse vuelta. */
+@keyframes core-orbit-counter {
+  to { transform: rotate(-360deg); }
+}
+
+html[data-tier="4"] .core-orbit,
+html[data-tier="5"] .core-orbit {
+  animation: core-orbit-spin 54s linear infinite;
+}
+
+html[data-tier="4"] .core-icon-spin,
+html[data-tier="5"] .core-icon-spin {
+  animation: core-orbit-counter 54s linear infinite;
+}
+
 /* Se activa en el body mientras el gesto está en curso (desde el primer
    toque, no sólo desde el despliegue): aísla el momento del arrastre para
    que iOS Safari no interprete el paso sobre los números de día o los
