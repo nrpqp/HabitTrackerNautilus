@@ -325,6 +325,13 @@ function openHabitSheet(habitId, mode = 'edit', event = null) {
   nameInput.value = sheetOriginalName;
   nameInput.maxLength = MAX_NAME_LENGTH;
 
+  // El botón de guardar nombre sólo existe en modo edición, y arranca
+  // bloqueado: recién se desbloquea si el usuario cambia el nombre.
+  const nameSaveBtn = document.getElementById('sheet-name-save-btn');
+  nameSaveBtn.style.display = mode === 'edit' ? '' : 'none';
+  nameSaveBtn.disabled = true;
+  nameSaveBtn.classList.remove('dirty');
+
   // Populate element selector — disable elements already used by other habits
   renderElementSwatches(habit);
 
@@ -421,12 +428,26 @@ function positionPopover(panel, event) {
   });
 }
 
+/* Botón de guardar del nombre en modo edición: gris mientras el campo
+   coincide con el nombre guardado, se habilita apenas hay una edición
+   real pendiente de confirmar. */
+function updateNameSaveButton() {
+  const saveBtn = document.getElementById('sheet-name-save-btn');
+  if (sheetMode !== 'edit') return;
+  const nameInput = document.getElementById('sheet-name-input');
+  const trimmed = nameInput.value.trim();
+  const dirty = !!trimmed && trimmed !== sheetOriginalName;
+  saveBtn.disabled = !dirty;
+  saveBtn.classList.toggle('dirty', dirty);
+}
+
 function commitSheetName() {
   if (!sheetCurrentHabitId) return;
   const nameInput = document.getElementById('sheet-name-input');
   const newName = nameInput.value.trim().slice(0, MAX_NAME_LENGTH);
   if (!newName) {
     nameInput.value = sheetOriginalName;
+    updateNameSaveButton();
     return;
   }
   const habit = habits.find((h) => h.id === sheetCurrentHabitId);
@@ -436,6 +457,7 @@ function commitSheetName() {
     render();
   }
   sheetOriginalName = newName;
+  updateNameSaveButton();
 }
 
 function saveNotifTime() {
@@ -529,17 +551,28 @@ function setupEventListeners() {
     }
   });
   // En modo creación, el nombre gobierna el bloqueo de los íconos de
-  // elemento y la habilitación del botón de confirmación.
+  // elemento y la habilitación del botón de confirmación. En modo edición,
+  // gobierna el desbloqueo del botón de guardar.
   nameInput.addEventListener('input', () => {
-    if (sheetMode !== 'create') return;
-    const confirmBtn = document.getElementById('sheet-confirm-btn');
-    confirmBtn.disabled = !nameInput.value.trim();
-    renderElementSwatches(null);
+    if (sheetMode === 'create') {
+      const confirmBtn = document.getElementById('sheet-confirm-btn');
+      confirmBtn.disabled = !nameInput.value.trim();
+      renderElementSwatches(null);
+    } else {
+      updateNameSaveButton();
+    }
   });
 
   // Sheet: botón de confirmación (modo creación)
   document.getElementById('sheet-confirm-btn').addEventListener('click', () => {
     if (sheetMode === 'create') confirmCreateHabit();
+  });
+
+  // Sheet: botón de guardar nombre (modo edición)
+  document.getElementById('sheet-name-save-btn').addEventListener('click', () => {
+    if (sheetMode !== 'edit') return;
+    commitSheetName();
+    nameInput.blur();
   });
 
   // Sheet: element selector

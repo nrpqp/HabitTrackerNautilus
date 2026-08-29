@@ -13,6 +13,26 @@ const NS = 'http://www.w3.org/2000/svg';
 // Gap bisector angle (midpoint of the 60° gap between arc end ~210° and arc start ~270°)
 const GAP_BISECTOR = 240;
 
+// El hueco del label mide siempre 60°, pero cada anillo tiene un radio
+// distinto -> distinta longitud de arco disponible. Sin ajustar la fuente,
+// un nombre en el anillo interno (arco más corto) se sale del trazo curvo
+// y sigue en línea recta más allá de sus extremos: pierde la curvatura.
+const LABEL_ARC_DEGREES = 60;
+const LABEL_ARC_MARGIN = 0.88; // deja aire en las puntas del arco
+const LABEL_MIN_FONT = 7;
+
+/** Encoge la fuente del label lo justo para que el nombre completo entre
+    en el arco de su anillo, midiendo el largo real del texto renderizado
+    en vez de estimarlo por cantidad de caracteres. */
+function fitLabelFont(label, arcLabelR, maxFontSize) {
+  label.setAttribute('font-size', maxFontSize);
+  const maxLen = arcLabelR * (LABEL_ARC_DEGREES * Math.PI / 180) * LABEL_ARC_MARGIN;
+  const len = label.getComputedTextLength();
+  if (len > maxLen && len > 0) {
+    label.setAttribute('font-size', Math.max(LABEL_MIN_FONT, maxFontSize * (maxLen / len)));
+  }
+}
+
 // ── Estado del árbol construido ──────────────────────────────
 // El SVG se construye una sola vez y después sólo se mutan atributos.
 // Reconstruir sólo cuando cambia el número de anillos o su orden.
@@ -341,7 +361,10 @@ function paint(list) {
     }
 
     ring.label.setAttribute('fill', elementColor(habit.element, 10));
-    if (ring.textPath.textContent !== habit.name) ring.textPath.textContent = habit.name;
+    if (ring.textPath.textContent !== habit.name) {
+      ring.textPath.textContent = habit.name;
+      fitLabelFont(ring.label, ring.rIn + 2, labelFontSize);
+    }
 
     const hitW = Math.max(44, Math.ceil(habit.name.length * labelFontSize * 0.65) + 8);
     const hitH = Math.max(44, cellThickness + 4);

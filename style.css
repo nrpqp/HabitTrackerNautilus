@@ -650,6 +650,10 @@ html[data-tier="1"] .today-indicator {
   display: flex;
   align-items: flex-end;
   pointer-events: none;
+  /* syncSheetToVisualViewport() mueve top/left/width/height a mano en cada
+     evento de resize/scroll del teclado; sin transición, cada paso se ve
+     como un salto entrecortado en vez de un desplazamiento fluido. */
+  transition: top 0.12s linear, left 0.12s linear, width 0.12s linear, height 0.12s linear;
 }
 
 .habit-sheet.hidden {
@@ -721,8 +725,16 @@ html[data-tier="1"] .today-indicator {
 }
 
 /* ── Sheet name input ───────────────────────────────────── */
+.sheet-name-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
 .sheet-name-input {
   width: 100%;
+  flex: 1;
+  min-width: 0;
   font-family: var(--font-ui);
   font-size: 1.15rem;
   font-weight: 600;
@@ -738,6 +750,40 @@ html[data-tier="1"] .today-indicator {
 .sheet-name-input:focus {
   border-color: var(--accent-cyan);
   box-shadow: 0 0 0 3px var(--glow-cyan);
+}
+
+/* Botón de guardar el nombre en modo edición: gris/bloqueado mientras el
+   nombre no cambió, se "desbloquea" (color y glow) apenas hay una edición
+   pendiente de guardar. */
+.sheet-name-save-btn {
+  flex-shrink: 0;
+  width: 46px;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-solid);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  filter: grayscale(1);
+  opacity: 0.5;
+  transition: border-color 0.2s, box-shadow 0.2s, filter 0.2s, opacity 0.2s, transform 0.1s;
+}
+
+.sheet-name-save-btn:disabled {
+  cursor: not-allowed;
+}
+
+.sheet-name-save-btn.dirty {
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  filter: grayscale(0);
+  opacity: 1;
+  box-shadow: 0 0 14px var(--glow-cyan);
+}
+
+.sheet-name-save-btn.dirty:active {
+  transform: scale(0.92);
 }
 
 /* ── Sheet swatches ─────────────────────────────────────── */
