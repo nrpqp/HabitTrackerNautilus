@@ -108,13 +108,23 @@
         <div class="habit-sheet-backdrop"></div>
         <div class="habit-sheet-panel">
           <div class="habit-sheet-handle"></div>
-          <input
-            type="text"
-            id="sheet-name-input"
-            class="sheet-name-input"
-            maxlength="15"
-            placeholder="Nombre del hábito"
-          />
+          <div class="sheet-name-row">
+            <input
+              type="text"
+              id="sheet-name-input"
+              class="sheet-name-input"
+              maxlength="15"
+              placeholder="Nombre del hábito"
+            />
+            <button
+              type="button"
+              id="sheet-name-save-btn"
+              class="sheet-name-save-btn"
+              aria-label="Guardar nombre"
+              title="Guardar nombre"
+              disabled
+            >💾</button>
+          </div>
           <div id="sheet-swatches" class="sheet-swatches"></div>
           <div id="sheet-progress" class="sheet-progress"></div>
           <div id="sheet-notification" class="sheet-notification" style="display:none">
