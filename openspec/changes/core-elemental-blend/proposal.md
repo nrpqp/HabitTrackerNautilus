@@ -7,15 +7,28 @@ vean mezclándose visualmente en el núcleo, en vez de reducir el avance del
 día a un número. La cifra funciona, pero no conecta con la identidad
 elemental (fuego, agua, planta...) que ya define cada anillo.
 
+**Revisión tras uso real:** la primera implementación de este cambio usaba
+cuñas fijas de una torta, una por hábito. En uso real se sintió "infantil"
+y, más grave, generó ansiedad — ver el núcleo con sectores sin completar
+se leyó como un checklist a medio llenar, el mismo efecto de culpa que
+este cambio buscaba evitar al retirar el contador numérico. Esta versión
+del proposal corrige eso: la mezcla ahora sólo representa lo ya logrado,
+nunca lo pendiente como un vacío. Ver design.md — Decisions.
+
 ## What Changes
 
 - El **reposo del centro** deja de mostrar el contador `hecho/activos`: pasa
   a mostrar una mezcla visual construida con los colores elementales de los
-  hábitos ya marcados hoy. Es persistente — se ve mientras dure el día, no
-  un destello que aparece y se apaga —, y crece a medida que se marcan más
-  hábitos.
-- Sin hábitos completados hoy, el núcleo queda en un estado neutro (sin
-  mezcla, equivalente al "vacío" actual).
+  hábitos ya marcados hoy. Es persistente durante el día — se resetea solo
+  al día siguiente, como el resto del reto — y **sólo representa lo
+  completado**: un hábito pendiente no ocupa ningún espacio reservado en el
+  núcleo, así que nunca se ve "incompleto".
+- Sin hábitos completados hoy, el núcleo queda en un estado neutro de base
+  (equivalente al "vacío" actual), sin ninguna implicación de tareas
+  pendientes.
+- Fuera de alcance de este cambio, pero anotado en design.md como semilla
+  para una iteración futura: fusiones visuales específicas por
+  combinación de elementos (p. ej. fuego+agua → vapor).
 - Las presentaciones transitorias que ya "toman prestado" el centro —racha,
   apuntado del selector radial, mensaje de "sin retos"— **no cambian**:
   siguen mostrando su texto encima, y al terminar devuelven el centro a la

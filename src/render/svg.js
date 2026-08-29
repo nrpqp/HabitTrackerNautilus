@@ -21,6 +21,24 @@ const LABEL_ARC_DEGREES = 60;
 const LABEL_ARC_MARGIN = 0.88; // deja aire en las puntas del arco
 const LABEL_MIN_FONT = 7;
 
+// Mezcla del núcleo. La dispersión se mantiene bien por debajo del radio de
+// cada mancha: así dos hábitos cualesquiera se solapan siempre en la zona
+// central, que es donde la superposición produce el color nuevo. Con una
+// dispersión mayor las manchas se separarían en islas de color y no habría
+// mezcla que ver.
+const CORE_BLEND_RADIUS = 28;
+const CORE_BLEND_SPREAD = 20;
+
+/** Hash determinístico de una cadena a [0,1). FNV-1a con sal. */
+function hashUnit(str, salt = 0) {
+  let h = (2166136261 ^ salt) >>> 0;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return (h % 100000) / 100000;
+}
+
 /** Encoge la fuente del label lo justo para que el nombre completo entre
     en el arco de su anillo, midiendo el largo real del texto renderizado
     en vez de estimarlo por cantidad de caracteres. */
@@ -111,27 +129,53 @@ function build(list) {
   centerCircle.setAttribute('class', 'nautilus-core');
   svgEl.appendChild(centerCircle);
 
-  // Mezcla elemental del núcleo: una cuña por hábito guardado, igual que el
-  // medidor de arcos (gauges) más abajo — no sólo los activos hoy, para no
-  // depender de un signature de rebuild aparte. Una cuña de un hábito sin
-  // reto en curso simplemente nunca se enciende (dailyCompletion.isDoneToday
-  // ya es `false` para esos). Radio hasta el borde del núcleo: sin hueco
-  // central para evitar un `annularSectorPath` degenerado en r=0.
+  // Mezcla elemental del núcleo: una mancha por hábito guardado, igual que
+  // el medidor de arcos (gauges) más abajo — no sólo los activos hoy, para
+  // no depender de un signature de rebuild aparte. La mancha de un hábito
+  // sin reto en curso simplemente nunca se enciende.
+  //
+  // Nunca se dibuja nada por lo pendiente: una mancha apagada es opacidad
+  // cero, sin contorno ni hueco que insinúe una tarea sin hacer. Ver
+  // design.md — el layout de cuñas anterior se leía como un checklist a
+  // medio llenar, que es justo lo que este centro no debe comunicar.
   const blendGroup = document.createElementNS(NS, 'g');
   blendGroup.setAttribute('class', 'core-blend');
-  const blendOuterR = innerRadius - 8;
-  const blendInnerR = 6;
-  const blendSeg = 360 / Math.max(1, list.length);
-  coreBlend = list.map((habit, i) => {
-    const a0 = -90 + i * blendSeg;
-    const a1 = -90 + (i + 1) * blendSeg;
-    const wedge = document.createElementNS(NS, 'path');
-    wedge.setAttribute('d', annularSectorPath(cx, cy, blendInnerR, blendOuterR, a0, a1));
-    wedge.setAttribute('class', 'core-blend-wedge');
-    wedge.style.transformBox = 'fill-box';
-    wedge.style.transformOrigin = 'center';
-    blendGroup.appendChild(wedge);
-    return { habitId: habit.id, wedge };
+  coreBlend = list.map((habit) => {
+    // Posición sembrada por id, no por índice: dos hábitos contiguos en la
+    // lista no deben caer en posiciones contiguas, o la mezcla vuelve a
+    // leerse como "casilleros" ordenados.
+    const angle = hashUnit(habit.id, 1) * 360;
+    const dist = CORE_BLEND_SPREAD * (0.45 + hashUnit(habit.id, 2) * 0.55);
+    const p = polarToCartesian(cx, cy, dist, angle);
+
+    // Degradado radial en vez de `filter: blur()`: da el mismo borde
+    // difuso sin el coste de repintado de un filtro, sin recorte del área
+    // filtrada y escalando con el viewBox. Es además la misma técnica que
+    // ya usa `glowSprite` en fx/engine.js para las partículas.
+    const grad = document.createElementNS(NS, 'radialGradient');
+    grad.setAttribute('id', `core-blend-grad-${habit.id}`);
+    const inner = document.createElementNS(NS, 'stop');
+    inner.setAttribute('offset', '0%');
+    const mid = document.createElementNS(NS, 'stop');
+    mid.setAttribute('offset', '45%');
+    const outer = document.createElementNS(NS, 'stop');
+    outer.setAttribute('offset', '100%');
+    outer.setAttribute('stop-opacity', '0');
+    grad.appendChild(inner);
+    grad.appendChild(mid);
+    grad.appendChild(outer);
+    defsEl.appendChild(grad);
+
+    const blob = document.createElementNS(NS, 'circle');
+    blob.setAttribute('cx', p.x);
+    blob.setAttribute('cy', p.y);
+    blob.setAttribute('r', CORE_BLEND_RADIUS);
+    blob.setAttribute('fill', `url(#core-blend-grad-${habit.id})`);
+    blob.setAttribute('class', 'core-blend-blob');
+    blob.style.transformBox = 'fill-box';
+    blob.style.transformOrigin = 'center';
+    blendGroup.appendChild(blob);
+    return { habitId: habit.id, blob, stops: [inner, mid, outer] };
   });
   svgEl.appendChild(blendGroup);
 
@@ -332,7 +376,13 @@ function paint(list) {
   coreBlend.forEach((cb, i) => {
     const habit = list[i];
     if (!habit) return;
-    cb.wedge.setAttribute('fill', elementColor(habit.element, 20));
+    // El degradado se apaga hacia el borde: el color pleno en el centro de
+    // la mancha, transparente en el perímetro. La opacidad final la pone
+    // el CSS al encender la mancha; acá sólo va el color.
+    const color = elementColor(habit.element, 20);
+    cb.stops[0].setAttribute('stop-color', color);
+    cb.stops[1].setAttribute('stop-color', color);
+    cb.stops[2].setAttribute('stop-color', color);
   });
 
   rings.forEach((ring, r) => {

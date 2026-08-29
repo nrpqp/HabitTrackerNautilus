@@ -15,6 +15,11 @@ import {
 
 const GOLD = [255, 214, 120];
 
+// Mezcla del núcleo: techo de opacidad por mancha y luz total a repartir
+// entre las encendidas. Ver `setCoreBlend`.
+const CORE_BLEND_MAX_OPACITY = 0.9;
+const CORE_BLEND_LIGHT = 1.05;
+
 // ── Encendido de una celda ───────────────────────────────────
 // Reutilizado por el cometa, por su variante sin canvas y por el
 // feedback de marcado.
@@ -222,14 +227,26 @@ export function setCoreCharge(fraction) {
 }
 
 /**
- * Mezcla elemental del núcleo: enciende la cuña de cada hábito completado
- * hoy y apaga el resto. El color de cada cuña ya lo fija `paint()` en
+ * Mezcla elemental del núcleo: enciende la mancha de cada hábito completado
+ * hoy y apaga el resto. El color de cada mancha ya lo fija `paint()` en
  * svg.js en cada repintado; esto sólo decide qué se ve.
+ *
+ * Apagada significa invisible por completo, no atenuada: lo pendiente no
+ * deja rastro en el núcleo.
  */
 export function setCoreBlend(doneIds) {
   const doneSet = new Set(doneIds);
-  view.coreBlend.forEach(({ habitId, wedge }) => {
-    wedge.classList.toggle('lit', doneSet.has(habitId));
+  // `screen` suma luz: siete manchas a plena opacidad se acumulan hasta un
+  // gris lavado, justo en el día completo, que debería ser el momento más
+  // vistoso. Repartir la opacidad entre las manchas encendidas mantiene el
+  // color de cada elemento reconocible sin importar cuántas haya.
+  const opacity = doneSet.size
+    ? Math.min(CORE_BLEND_MAX_OPACITY, CORE_BLEND_LIGHT / Math.sqrt(doneSet.size))
+    : 0;
+  view.coreBlend.forEach(({ habitId, blob }) => {
+    const lit = doneSet.has(habitId);
+    blob.classList.toggle('lit', lit);
+    blob.style.opacity = lit ? opacity : '';
   });
 }
 

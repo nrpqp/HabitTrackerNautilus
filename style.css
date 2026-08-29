@@ -414,26 +414,39 @@ html[data-tier="1"] .gauge-arc {
 
 /* ── Mezcla elemental del núcleo ──────────────────────────── */
 /* El reposo del centro ya no es una cifra: es la superposición de los
-   colores de los hábitos completados hoy. Cada cuña vive siempre en el
+   colores de los hábitos completados hoy. Cada mancha vive siempre en el
    DOM (una por hábito guardado) y sólo alterna visible/oculta — nunca se
-   destruye ni se reconstruye al marcar o desmarcar. */
-.core-blend {
-  mix-blend-mode: normal;
-}
-
-.core-blend-wedge {
+   destruye ni se reconstruye al marcar o desmarcar.
+   Lo pendiente no dibuja nada: `opacity: 0` sin contorno ni hueco, para
+   que el centro nunca se lea como un checklist a medio llenar. */
+/* La opacidad de una mancha encendida la fija `setCoreBlend` en JS —
+   depende de cuántas haya encendidas a la vez— así que acá sólo va el
+   valor de reposo y la escala. */
+.core-blend-blob {
   opacity: 0;
-  transform: scale(0.6);
-  transition: opacity 0.32s ease, transform 0.32s cubic-bezier(0.2, 1.4, 0.3, 1);
+  transform: scale(0.55);
+  transition: opacity 0.42s ease, transform 0.42s cubic-bezier(0.2, 1.3, 0.3, 1);
   pointer-events: none;
 }
 
-.core-blend-wedge.lit {
-  opacity: 0.78;
+.core-blend-blob.lit {
   transform: scale(1);
 }
 
-html[data-tier="1"] .core-blend-wedge {
+/* El modo de fusión se invierte con el tema: `screen` aclara, así que sólo
+   produce un color nuevo sobre el núcleo oscuro; sobre el claro lavaría
+   todo a blanco. `multiply` hace lo simétrico en tema claro. En ambos, dos
+   manchas superpuestas dan un tono que ninguna de las dos tenía sola — que
+   es el punto de la mezcla. */
+.core-blend-blob {
+  mix-blend-mode: screen;
+}
+
+html[data-theme="light"] .core-blend-blob {
+  mix-blend-mode: multiply;
+}
+
+html[data-tier="1"] .core-blend-blob {
   transition: none;
 }
 
