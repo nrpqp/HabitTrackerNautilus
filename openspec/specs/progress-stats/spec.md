@@ -1,12 +1,12 @@
 ## Purpose
 
-Resume el estado del reto en tres cifras siempre visibles —racha, efectividad y hábitos activos— para que el usuario sepa cómo va sin tener que interpretar la rueda anillo por anillo.
+Resume el estado del reto en tres cifras siempre visibles —racha, efectividad y avance del día— para que el usuario sepa cómo va sin tener que interpretar la rueda anillo por anillo.
 
 ## Requirements
 
 ### Requirement: Fila de tres indicadores
 
-El sistema SHALL mostrar bajo la rueda una fila de tres indicadores, cada uno con un icono, una cifra y una etiqueta: **Racha**, **Efectividad** y **Activos**. Los tres SHALL derivarse de los hábitos guardados, sin persistir ningún dato nuevo.
+El sistema SHALL mostrar bajo la rueda una fila de tres indicadores, cada uno con un icono, una cifra y una etiqueta: **Racha**, **Efectividad** y **Hoy**. Los tres SHALL derivarse de los hábitos guardados, sin persistir ningún dato nuevo.
 
 Los indicadores SHALL ser informativos: no reciben interacción y no alteran el estado de ningún hábito.
 
@@ -57,20 +57,20 @@ Cuando no hay ningún día vencido, el indicador SHALL mostrar `0%`.
 - **WHEN** existe un único hábito creado hoy y sin marcar
 - **THEN** el indicador muestra `0%`
 
-### Requirement: Activos
+### Requirement: Hoy
 
-El indicador de activos SHALL mostrar cuántos hábitos tienen su reto en curso hoy sobre el total de hábitos guardados, en formato `n/m`. Un reto está en curso cuando la fecha de hoy cae dentro de sus 21 días.
+El indicador "Hoy" SHALL mostrar cuántos hábitos activos ya están completados en el día en curso sobre el total de hábitos activos, en formato `n/m` — el mismo par de cifras que muestra el medidor del núcleo central. Un hábito está activo cuando la fecha de hoy cae dentro de sus 21 días.
 
-Con cero hábitos, el indicador SHALL mostrar `0/0`.
+Con cero hábitos activos, el indicador SHALL mostrar `0/0`.
 
-#### Scenario: Un reto terminado
+#### Scenario: Avance parcial del día
 
-- **WHEN** hay tres hábitos y uno de ellos ya superó sus 21 días
+- **WHEN** hay tres hábitos activos hoy y dos ya están marcados
 - **THEN** el indicador muestra `2/3`
 
-#### Scenario: Sin hábitos
+#### Scenario: Sin hábitos activos
 
-- **WHEN** el usuario ha eliminado todos sus hábitos
+- **WHEN** el usuario no tiene ningún hábito con el reto en curso hoy (sin hábitos, o todos ya superaron sus 21 días)
 - **THEN** el indicador muestra `0/0` y la fila sigue visible sin errores
 
 ### Requirement: Actualización inmediata de los indicadores
@@ -80,7 +80,7 @@ Los tres indicadores SHALL reflejar el estado actual tras cualquier operación q
 #### Scenario: Marcar el día de hoy
 
 - **WHEN** el usuario marca el día de hoy de un hábito
-- **THEN** la efectividad y, si procede, la racha se actualizan en el mismo instante, sin recargar la página
+- **THEN** "Hoy" se actualiza de inmediato, y la efectividad y, si procede, la racha se actualizan en el mismo instante, sin recargar la página
 
 #### Scenario: Eliminar un hábito
 
