@@ -875,6 +875,60 @@ function setupSettings() {
   document.getElementById('settings-clear-cache-btn').addEventListener('click', clearAppCache);
 }
 
+/* Overlay de diagnóstico opt-in (?debug=gesto): registra lo que de verdad
+   pasa al tocar el núcleo — qué eventos de puntero llegan, si la hoja se
+   abre y hacia dónde se mueve la página. El gesto del núcleo sólo falla en
+   dispositivos que no están a mano, y sin estos datos cada intento de
+   arreglo es una conjetura; con esto el usuario fotografía el registro real
+   del momento del fallo. Hermano de `?debug=viewport`. */
+function setupGestureDebugOverlay() {
+  if (new URLSearchParams(location.search).get('debug') !== 'gesto') return;
+  const el = document.createElement('div');
+  el.style.cssText = [
+    'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:9999',
+    'background:rgba(0,0,0,0.86)', 'color:#0f0', 'font:10px/1.35 monospace',
+    'padding:5px 7px', 'white-space:pre-wrap', 'pointer-events:none',
+    'max-height:45vh', 'overflow:hidden',
+  ].join(';');
+  document.body.appendChild(el);
+
+  const registro = [];
+  const t0 = performance.now();
+  const anotar = (txt) => {
+    registro.push(`${String(Math.round(performance.now() - t0)).padStart(5)} ${txt}`);
+    if (registro.length > 14) registro.shift();
+    pintar();
+  };
+
+  function pintar() {
+    const hoja = document.getElementById('radial-sheet');
+    const panel = hoja.querySelector('[data-sheet-panel]');
+    const pr = panel.getBoundingClientRect();
+    el.textContent = [
+      `scrollY:${Math.round(window.scrollY)} innerH:${window.innerHeight}`,
+      `hoja:[${hoja.className}]`,
+      `panel top:${Math.round(pr.top)} h:${Math.round(pr.height)}`,
+      '── eventos ──',
+      ...registro,
+    ].join('\n');
+  }
+
+  const core = view.core;
+  if (core) {
+    ['pointerdown', 'pointerup', 'pointercancel', 'contextmenu', 'click'].forEach((t) => {
+      core.addEventListener(t, (e) => anotar(`${t} ${e.pointerType || ''}`), true);
+    });
+  }
+  // El scroll de la página es el sospechoso de la "animación hacia arriba".
+  window.addEventListener('scroll', () => anotar(`scroll -> ${Math.round(window.scrollY)}`), true);
+  document.getElementById('radial-sheet')
+    .addEventListener('transitionstart', () => anotar('hoja: transición'), true);
+
+  window.__gestoLog = () => registro.join('\n');
+  pintar();
+  setInterval(pintar, 400);
+}
+
 /* Overlay de diagnóstico opt-in (?debug=viewport): números en vivo del
    viewport de layout vs. el visual mientras el teclado abre/cierra. Sin
    esto, un bug de desfase de viewport en iOS Safari sólo se puede depurar
@@ -926,6 +980,7 @@ function init() {
   window.addEventListener('resize', () => setUnitScale(view.centerPx().scale));
   scheduleNotifications();
   setupViewportDebugOverlay();
+  setupGestureDebugOverlay();
 }
 
 init();

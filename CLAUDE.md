@@ -86,6 +86,17 @@ paso por separado.
   sin borrar la preferencia guardada, y gana también a `?fx=`.
 - `?fx=1..5` en la URL fuerza el nivel — la única forma de probarlos en un móvil.
 
+## Diagnóstico en dispositivos
+
+Los bugs que sólo aparecen en un móvil no se pueden depurar desde el
+entorno de desarrollo, así que hay overlays opt-in que muestran los datos
+reales en pantalla para fotografiarlos:
+
+- `?debug=viewport` — viewport de layout vs. visual, para desfases con el
+  teclado abierto (iOS Safari).
+- `?debug=gesto` — eventos de puntero que llegan al núcleo, estado de la
+  hoja y scroll de la página, para el gesto del selector radial.
+
 ## Notas importantes
 
 - Verificar que el SVG radial sigue renderizando tras cambios en `src/render/`
